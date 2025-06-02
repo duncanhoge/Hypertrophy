@@ -332,3 +332,5 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
     </div>
   );
 }
+
+export default WorkoutSession
