@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { REST_DURATION_SECONDS } from '../data/workoutData';
 import { IconButton } from './ui/IconButton';
@@ -40,6 +40,7 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showExerciseInfoModal, setShowExerciseInfoModal] = useState(false);
+  const [showWorkoutQueue, setShowWorkoutQueue] = useState(false);
 
   const currentExercise = plan.exercises[currentExerciseIndex];
 
@@ -167,6 +168,15 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
 
+  // Calculate total sets in workout
+  const totalSets = plan.exercises.reduce((acc, ex) => acc + ex.sets, 0);
+  
+  // Calculate completed sets
+  const completedSets = plan.exercises.slice(0, currentExerciseIndex).reduce((acc, ex) => acc + ex.sets, 0) + (currentSet - 1);
+  
+  // Calculate progress percentage
+  const progressPercentage = (completedSets / totalSets) * 100;
+
   if (!currentExercise) {
     return (
       <Card className="bg-theme-black-light border border-theme-gold/20 text-center">
@@ -185,12 +195,73 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
     <div className="max-w-2xl mx-auto space-y-6">
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-theme-gold">{plan.name}</h2>
-          <IconButton onClick={() => setShowExerciseInfoModal(true)} ariaLabel="Exercise Info">
-            <Info size={20} />
-          </IconButton>
+          <div>
+            <h2 className="text-2xl font-semibold text-theme-gold">{plan.name}</h2>
+            <p className="text-sm text-theme-gold-dark mt-1">
+              Set {completedSets + 1} of {totalSets} Total Sets
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <IconButton 
+              onClick={() => setShowWorkoutQueue(!showWorkoutQueue)} 
+              ariaLabel="Toggle Workout Queue" 
+              className={showWorkoutQueue ? "bg-theme-gold text-theme-black hover:bg-theme-gold-light" : ""}
+            >
+              <ListChecks size={20} />
+            </IconButton>
+            <IconButton onClick={() => setShowExerciseInfoModal(true)} ariaLabel="Exercise Info">
+              <Info size={20} />
+            </IconButton>
+          </div>
         </div>
-        
+
+        <div className="h-2 bg-theme-black-lighter rounded-full mb-4">
+          <div 
+            className="h-full bg-theme-gold rounded-full transition-all duration-300"
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
+
+        {showWorkoutQueue && (
+          <div className="mb-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
+            <h3 className="text-lg font-medium text-theme-gold mb-3">Workout Queue</h3>
+            <div className="space-y-2">
+              {plan.exercises.map((exercise, index) => {
+                const isCurrentExercise = index === currentExerciseIndex;
+                const isPastExercise = index < currentExerciseIndex;
+                const exerciseProgress = isCurrentExercise ? currentSet - 1 : (isPastExercise ? exercise.sets : 0);
+                
+                return (
+                  <div 
+                    key={exercise.id}
+                    className={`p-2 rounded border ${
+                      isCurrentExercise 
+                        ? 'bg-theme-gold/20 border-theme-gold' 
+                        : isPastExercise
+                          ? 'bg-theme-black border-theme-gold/30 opacity-50'
+                          : 'bg-theme-black border-theme-gold/10'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className={`font-medium ${isCurrentExercise ? 'text-theme-gold' : 'text-theme-gold-dark'}`}>
+                        {exercise.name}
+                      </span>
+                      <span className="text-sm text-theme-gold-dark">
+                        {exerciseProgress}/{exercise.sets} sets
+                      </span>
+                    </div>
+                    {isCurrentExercise && (
+                      <div className="mt-1 text-sm text-theme-gold-dark">
+                        Current Set: {currentSet} | Target: {exercise.reps}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="mb-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
           <h3 className="text-xl font-medium text-theme-gold">{currentExercise.name}</h3>
           <p className="text-sm text-theme-gold-dark flex items-center">
@@ -333,4 +404,4 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
   );
 }
 
-export default WorkoutSession
+export default WorkoutSession;
