@@ -6,9 +6,13 @@ export default {
       colors: {
         theme: {
           black: {
-            DEFAULT: '#121212',
-            light: '#1E1E1E',
-            lighter: '#2D2D2D'
+            DEFAULT: '#000000',
+            light: '#121212',
+            lighter: '#1A1A1A'
+          },
+          white: {
+            DEFAULT: '#FFFFFF',
+            muted: 'rgba(255, 255, 255, 0.7)'
           },
           gold: {
             DEFAULT: '#FFD700',
