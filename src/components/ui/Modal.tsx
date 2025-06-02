@@ -15,7 +15,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
   
   return (
     <div className="fixed inset-0 bg-theme-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md bg-theme-black p-6">
+      <Card className="w-full max-w-md bg-theme-black">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-theme-gold">{title}</h2>
           <IconButton onClick={onClose} ariaLabel="Close modal" className="bg-theme-black hover:bg-red-900/50 p-2">
