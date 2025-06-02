@@ -8,11 +8,10 @@ import { WORKOUT_PLAN } from './data/workoutData';
 function App() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'workout'
-  const [selectedDay, setSelectedDay] = useState<string | null>(null); // 'Monday', 'Wednesday', 'Friday'
+  const [currentPage, setCurrentPage] = useState('home');
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [workoutHistory, setWorkoutHistory] = useState<Record<string, any[]>>({});
 
-  // Supabase Authentication
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -20,7 +19,6 @@ function App() {
           setUserId(session.user.id);
         } else {
           try {
-            // Sign in anonymously if no session exists
             const { data, error } = await supabase.auth.signUp({
               email: `anonymous-${crypto.randomUUID()}@example.com`,
               password: crypto.randomUUID(),
@@ -32,7 +30,6 @@ function App() {
             }
           } catch (error) {
             console.error("Error during sign-in:", error);
-            // Fallback to a random ID if auth fails
             setUserId(crypto.randomUUID());
           }
         }
@@ -40,7 +37,6 @@ function App() {
       }
     );
 
-    // Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setUserId(session.user.id);
@@ -53,7 +49,6 @@ function App() {
     };
   }, []);
 
-  // Fetch workout history
   useEffect(() => {
     if (!isAuthReady || !userId) return;
 
@@ -69,7 +64,6 @@ function App() {
         return;
       }
 
-      // Group logs by date
       const history: Record<string, any[]> = {};
       data.forEach((log) => {
         const dateStr = new Date(log.created_at).toLocaleDateString();
@@ -84,7 +78,6 @@ function App() {
 
     fetchWorkoutHistory();
 
-    // Set up real-time subscription
     const subscription = supabase
       .channel('workout_logs_changes')
       .on('postgres_changes', 
@@ -116,20 +109,20 @@ function App() {
   };
 
   if (!isAuthReady) {
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center text-gray-700"><TimerIcon className="animate-spin mr-2" />Loading authentication...</div>;
+    return <div className="min-h-screen bg-theme-black flex items-center justify-center text-theme-gold"><TimerIcon className="animate-spin mr-2" />Loading authentication...</div>;
   }
   
   if (!userId) {
-     return <div className="min-h-screen bg-gray-100 flex items-center justify-center text-red-500"><XCircle className="mr-2" />Authentication failed. Please ensure Supabase is configured correctly.</div>;
+     return <div className="min-h-screen bg-theme-black flex items-center justify-center text-red-500"><XCircle className="mr-2" />Authentication failed. Please ensure Supabase is configured correctly.</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-gray-100 font-sans p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8">
       <header className="mb-8 text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-teal-400 to-green-400">
+        <h1 className="text-4xl sm:text-5xl font-bold text-theme-gold">
           Hypertrophy Hub
         </h1>
-        {userId && <p className="text-xs text-gray-400 mt-1">User ID: {userId.substring(0, 8)}...</p>}
+        {userId && <p className="text-xs text-theme-gold-dark mt-1">User ID: {userId.substring(0, 8)}...</p>}
       </header>
 
       {currentPage === 'home' && (
@@ -150,5 +143,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

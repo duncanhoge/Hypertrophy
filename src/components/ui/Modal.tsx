@@ -14,11 +14,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md bg-slate-800 border border-slate-700">
+    <div className="fixed inset-0 bg-theme-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <Card className="w-full max-w-md bg-theme-black-light border border-theme-gold/20">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-100">{title}</h2>
-          <IconButton onClick={onClose} ariaLabel="Close modal" className="bg-red-500 hover:bg-red-600 p-2">
+          <h2 className="text-xl font-semibold text-theme-gold">{title}</h2>
+          <IconButton onClick={onClose} ariaLabel="Close modal" className="bg-theme-black-lighter hover:bg-red-900/50 p-2">
             <XCircle size={20} />
           </IconButton>
         </div>

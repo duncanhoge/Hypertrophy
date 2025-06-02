@@ -11,7 +11,7 @@ export const IconButton: React.FC<IconButtonProps> = ({ onClick, children, class
   <button
     onClick={onClick}
     aria-label={ariaLabel}
-    className={`p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400 ${className}`}
+    className={`p-3 bg-theme-black-lighter hover:bg-theme-gold/20 text-theme-gold rounded-lg shadow-md transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 border border-theme-gold/30 ${className}`}
   >
     {children}
   </button>
