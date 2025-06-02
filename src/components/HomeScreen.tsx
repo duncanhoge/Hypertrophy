@@ -62,3 +62,5 @@ function HomeScreen({ onStartWorkout, workoutHistory }: HomeScreenProps) {
     </div>
   );
 }
+
+export default HomeScreen
