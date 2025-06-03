@@ -41,28 +41,30 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8">
-      <header className="mb-8 text-center">
-        <h1 className="hero" data-text="Hypertrophy Hub">
-          Hypertrophy Hub
-        </h1>
-      </header>
+    <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8 flex flex-col items-center">
+      <div className="w-full max-w-7xl">
+        <header className="mb-8 text-center">
+          <h1 className="hero" data-text="Hypertrophy Hub">
+            Hypertrophy Hub
+          </h1>
+        </header>
 
-      {currentPage === 'home' && (
-        <HomeScreen 
-          onStartWorkout={startWorkout} 
-          workoutHistory={workoutHistory} 
-        />
-      )}
-      
-      {currentPage === 'workout' && selectedDay && (
-        <WorkoutSession
-          day={selectedDay}
-          plan={WORKOUT_PLAN[selectedDay]}
-          onGoHome={goHome}
-          onLogWorkout={updateWorkoutHistory}
-        />
-      )}
+        {currentPage === 'home' && (
+          <HomeScreen 
+            onStartWorkout={startWorkout} 
+            workoutHistory={workoutHistory} 
+          />
+        )}
+        
+        {currentPage === 'workout' && selectedDay && (
+          <WorkoutSession
+            day={selectedDay}
+            plan={WORKOUT_PLAN[selectedDay]}
+            onGoHome={goHome}
+            onLogWorkout={updateWorkoutHistory}
+          />
+        )}
+      </div>
     </div>
   );
 }
