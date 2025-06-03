@@ -79,7 +79,7 @@ function AuthScreen() {
           >
             {loading ? (
               <>
-                <Loader2 className="animate-spin" size={20} />
+                <Loader2 className="animate-spin\" size={20} />
                 <span>Sending...</span>
               </>
             ) : (
