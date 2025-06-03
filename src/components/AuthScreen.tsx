@@ -17,7 +17,7 @@ function AuthScreen() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}${window.location.pathname}`,
         },
       });
 
@@ -79,7 +79,7 @@ function AuthScreen() {
           >
             {loading ? (
               <>
-                <Loader2 className="animate-spin\" size={20} />
+                <Loader2 className="animate-spin" size={20} />
                 <span>Sending...</span>
               </>
             ) : (
