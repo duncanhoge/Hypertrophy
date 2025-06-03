@@ -6,8 +6,9 @@
 
 @layer base {
   .hero {
-    @apply uppercase text-6xl font-black tracking-wider relative;
+    @apply uppercase font-black tracking-wider relative;
     font-family: 'Archivo', sans-serif;
+    font-size: clamp(3rem, 10vw, 8rem);
     color: #FFD700;
     z-index: 1;
   }
