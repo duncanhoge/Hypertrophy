@@ -14,7 +14,7 @@ function HomeScreen({ onStartWorkout, workoutHistory }: HomeScreenProps) {
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <Card className="bg-theme-black-light border border-theme-gold/20">
-        <h2 className="text-2xl font-semibold mb-6 text-center text-theme-gold">It's a great day for gains</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-center text-theme-gold">IT'S A GREAT DAY FOR GAINS</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {Object.keys(WORKOUT_PLAN).map((day) => (
             <button
