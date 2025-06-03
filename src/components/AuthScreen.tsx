@@ -38,10 +38,10 @@ function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-theme-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-theme-black flex flex-col items-center justify-center p-4">
+      <h1 className="hero text-theme-gold mb-8">Hypertrophy Hub</h1>
       <Card className="w-full max-w-md bg-theme-black-light border border-theme-gold/20">
         <div className="text-center mb-8">
-          <h1 className="hero text-theme-gold mb-2">Hypertrophy Hub</h1>
           <p className="text-theme-gold-dark">Sign in to track your workouts</p>
         </div>
 
