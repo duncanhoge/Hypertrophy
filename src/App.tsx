@@ -1,90 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, TimerIcon, XCircle, Mail } from 'lucide-react';
-import { supabase } from './lib/supabaseClient';
+import { ChevronLeft, ChevronRight, TimerIcon } from 'lucide-react';
 import HomeScreen from './components/HomeScreen';
 import WorkoutSession from './components/WorkoutSession';
 import { WORKOUT_PLAN } from './data/workoutData';
-import AuthScreen from './components/AuthScreen';
 
 function App() {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isAuthReady, setIsAuthReady] = useState(false);
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [workoutHistory, setWorkoutHistory] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          setUserId(session.user.id);
-        } else {
-          setUserId(null);
-        }
-        setIsAuthReady(true);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUserId(session.user.id);
-      }
-      setIsAuthReady(true);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Load workout history from localStorage
+    const savedHistory = localStorage.getItem('workoutHistory');
+    if (savedHistory) {
+      setWorkoutHistory(JSON.parse(savedHistory));
+    }
   }, []);
-
-  useEffect(() => {
-    if (!isAuthReady || !userId) return;
-
-    const fetchWorkoutHistory = async () => {
-      const { data, error } = await supabase
-        .from('workout_logs')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error fetching workout history:", error);
-        return;
-      }
-
-      const history: Record<string, any[]> = {};
-      data.forEach((log) => {
-        const dateStr = new Date(log.created_at).toLocaleDateString();
-        if (!history[dateStr]) {
-          history[dateStr] = [];
-        }
-        history[dateStr].push(log);
-      });
-      
-      setWorkoutHistory(history);
-    };
-
-    fetchWorkoutHistory();
-
-    const subscription = supabase
-      .channel('workout_logs_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'workout_logs',
-          filter: `user_id=eq.${userId}`
-        }, 
-        () => {
-          fetchWorkoutHistory();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(subscription);
-    };
-  }, [isAuthReady, userId]);
 
   const startWorkout = (day: string) => {
     setSelectedDay(day);
@@ -96,13 +27,18 @@ function App() {
     setSelectedDay(null);
   };
 
-  if (!isAuthReady) {
-    return <div className="min-h-screen bg-theme-black flex items-center justify-center text-theme-gold"><TimerIcon className="animate-spin mr-2" />Loading authentication...</div>;
-  }
-
-  if (!userId) {
-    return <AuthScreen />;
-  }
+  const updateWorkoutHistory = (newLog: any) => {
+    const dateStr = new Date(newLog.created_at).toLocaleDateString();
+    const updatedHistory = { ...workoutHistory };
+    
+    if (!updatedHistory[dateStr]) {
+      updatedHistory[dateStr] = [];
+    }
+    updatedHistory[dateStr].push(newLog);
+    
+    setWorkoutHistory(updatedHistory);
+    localStorage.setItem('workoutHistory', JSON.stringify(updatedHistory));
+  };
 
   return (
     <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8">
@@ -110,7 +46,6 @@ function App() {
         <h1 className="text-4xl sm:text-5xl font-bold text-theme-gold">
           Hypertrophy Hub
         </h1>
-        {userId && <p className="text-xs text-theme-gold-dark mt-1">User ID: {userId.substring(0, 8)}...</p>}
       </header>
 
       {currentPage === 'home' && (
@@ -125,7 +60,7 @@ function App() {
           day={selectedDay}
           plan={WORKOUT_PLAN[selectedDay]}
           onGoHome={goHome}
-          userId={userId}
+          onLogWorkout={updateWorkoutHistory}
         />
       )}
     </div>

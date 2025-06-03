@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
 import { REST_DURATION_SECONDS } from '../data/workoutData';
 import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
@@ -22,10 +21,10 @@ interface WorkoutSessionProps {
     exercises: Exercise[];
   };
   onGoHome: () => void;
-  userId: string;
+  onLogWorkout: (log: any) => void;
 }
 
-function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
+function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionProps) {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
   const [weight, setWeight] = useState('');
@@ -74,7 +73,7 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
     return () => clearInterval(interval);
   }, [timerActive, timerSeconds, isResting, isTimedExerciseActive]);
 
-  const handleLogSet = async () => {
+  const handleLogSet = () => {
     if (!currentExercise) return;
 
     let repsLogged = reps;
@@ -91,7 +90,6 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
     }
     
     const logEntry = {
-      user_id: userId,
       workout_day: day,
       exercise_id: currentExercise.id,
       exercise_name: currentExercise.name,
@@ -104,38 +102,25 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
       created_at: new Date().toISOString(),
     };
 
-    try {
-      const { data, error } = await supabase
-        .from('workout_logs')
-        .insert([logEntry])
-        .select();
+    onLogWorkout(logEntry);
+    setLoggedSetsForExercise(prev => [...prev, logEntry]);
+    
+    setWeight('');
+    setReps('');
 
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        setLoggedSetsForExercise(prev => [...prev, data[0]]);
+    if (currentSet < currentExercise.sets) {
+      setCurrentSet(prev => prev + 1);
+      if (currentExercise.type !== 'timed') {
+        setIsResting(true);
+        setTimerSeconds(REST_DURATION_SECONDS);
+        setTimerActive(true);
       }
-      
-      setWeight('');
-      setReps('');
-
-      if (currentSet < currentExercise.sets) {
-        setCurrentSet(prev => prev + 1);
-        if (currentExercise.type !== 'timed') {
-          setIsResting(true);
-          setTimerSeconds(REST_DURATION_SECONDS);
-          setTimerActive(true);
-        }
+    } else {
+      if (currentExerciseIndex < plan.exercises.length - 1) {
+        // User will need to click next
       } else {
-        if (currentExerciseIndex < plan.exercises.length - 1) {
-          // User will need to click next
-        } else {
-          setShowCompletionModal(true);
-        }
+        setShowCompletionModal(true);
       }
-    } catch (error) {
-      console.error("Error logging set: ", error);
-      alert("Failed to log set. Check console for details.");
     }
   };
   
@@ -368,7 +353,7 @@ function WorkoutSession({ day, plan, onGoHome, userId }: WorkoutSessionProps) {
             <h4 className="text-md font-semibold text-theme-gold mb-2">Logged Sets for {currentExercise.name}:</h4>
             <ul className="space-y-1 text-sm">
               {loggedSetsForExercise.map((log, index) => (
-                <li key={log.id || index} className="p-2 bg-theme-black-lighter rounded border border-theme-gold/10 text-theme-gold-dark">
+                <li key={index} className="p-2 bg-theme-black-lighter rounded border border-theme-gold/10 text-theme-gold-dark">
                   Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
                 </li>
               ))}
