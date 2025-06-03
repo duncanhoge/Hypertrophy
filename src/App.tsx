@@ -43,7 +43,7 @@ function App() {
   return (
     <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8">
       <header className="mb-8 text-center">
-        <h1 className="text-4xl sm:text-5xl font-bold text-theme-gold">
+        <h1 className="hero">
           Hypertrophy Hub
         </h1>
       </header>
