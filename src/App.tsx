@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, TimerIcon, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, TimerIcon, XCircle, Mail } from 'lucide-react';
 import { supabase } from './lib/supabaseClient';
 import HomeScreen from './components/HomeScreen';
 import WorkoutSession from './components/WorkoutSession';
 import { WORKOUT_PLAN } from './data/workoutData';
+import AuthScreen from './components/AuthScreen';
 
 function App() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -18,20 +19,7 @@ function App() {
         if (session) {
           setUserId(session.user.id);
         } else {
-          try {
-            const { data, error } = await supabase.auth.signUp({
-              email: `anonymous-${crypto.randomUUID()}@example.com`,
-              password: crypto.randomUUID(),
-            });
-            
-            if (error) throw error;
-            if (data.user) {
-              setUserId(data.user.id);
-            }
-          } catch (error) {
-            console.error("Error during sign-in:", error);
-            setUserId(crypto.randomUUID());
-          }
+          setUserId(null);
         }
         setIsAuthReady(true);
       }
@@ -40,8 +28,8 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setUserId(session.user.id);
-        setIsAuthReady(true);
       }
+      setIsAuthReady(true);
     });
 
     return () => {
@@ -111,9 +99,9 @@ function App() {
   if (!isAuthReady) {
     return <div className="min-h-screen bg-theme-black flex items-center justify-center text-theme-gold"><TimerIcon className="animate-spin mr-2" />Loading authentication...</div>;
   }
-  
+
   if (!userId) {
-     return <div className="min-h-screen bg-theme-black flex items-center justify-center text-red-500"><XCircle className="mr-2" />Authentication failed. Please ensure Supabase is configured correctly.</div>;
+    return <AuthScreen />;
   }
 
   return (
@@ -144,4 +132,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
