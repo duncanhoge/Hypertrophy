@@ -8,7 +8,7 @@
   .hero {
     @apply uppercase text-6xl font-black tracking-wider;
     font-family: 'Archivo', sans-serif;
-    text-shadow: 3px 3px 0 #B7A000,
-                 6px 6px 0 #000000;
+    text-shadow: 4px 4px 0 #B7A000,
+                 8px 8px 0 #000000;
   }
 }
