@@ -17,15 +17,8 @@ function PlanSelection({ onSelectPlan }: PlanSelectionProps) {
             className="bg-theme-black-light border border-theme-gold/20 transform transition-all duration-300 hover:scale-[1.02] hover:border-theme-gold/40 cursor-pointer"
             onClick={() => onSelectPlan(plan.id)}
           >
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="md:w-1/3">
-                <img 
-                  src={plan.image} 
-                  alt={plan.name}
-                  className="w-full h-48 md:h-full object-cover rounded-lg"
-                />
-              </div>
-              <div className="md:w-2/3 space-y-4">
+            <div className="flex flex-col gap-6">
+              <div className="space-y-4">
                 <h3 className="text-2xl font-bold text-theme-gold flex items-center gap-2">
                   <Dumbbell className="w-6 h-6" />
                   {plan.name}
