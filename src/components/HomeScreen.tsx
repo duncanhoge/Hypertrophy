@@ -24,7 +24,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
       </div>
 
       <Card className="bg-theme-black-light border border-theme-gold/20">
-        <h2 className="hero text-2xl mb-6 text-center">Select a workout</h2>
+        <h2 className="hero text-2xl mb-12 text-center">Select a workout</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {Object.entries(plan.workouts).map(([day, workout]) => (
             <button
