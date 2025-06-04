@@ -6,10 +6,7 @@ A sleek and modern workout tracking application designed for strength training a
 
 ## Features
 
-- 🏋️‍♂️ Three-day split workout program focusing on:
-  - Monday: Chest & Triceps
-  - Wednesday: Shoulders & Abs
-  - Friday: Arms & Secondary Chest
+- 🏋️‍♂️ Multiple workout plans to choose from
 - ⏱️ Built-in rest timer with customizable durations
 - 📊 Workout history tracking
 - 💪 Support for various exercise types:
@@ -23,28 +20,30 @@ A sleek and modern workout tracking application designed for strength training a
 ## Sitemap
 
 ```
-Home Screen
-├── Workout Selection
-│   ├── Monday - Chest & Triceps
-│   │   └── Exercise Session
-│   │       ├── Exercise Details
-│   │       ├── Set Logging
-│   │       ├── Rest Timer
-│   │       └── Completion Modal
-│   ├── Wednesday - Shoulders & Abs
-│   │   └── Exercise Session
-│   │       ├── Exercise Details
-│   │       ├── Set Logging
-│   │       ├── Rest Timer
-│   │       └── Completion Modal
-│   └── Friday - Arms & Secondary Chest
-│       └── Exercise Session
-│           ├── Exercise Details
-│           ├── Set Logging
-│           ├── Rest Timer
-│           └── Completion Modal
-└── Workout History
-    └── Daily Logs
+Plan Selection
+└── Available Plans
+    └── Duncan's Plan
+        ├── Workout Selection
+        │   ├── Monday - Chest & Triceps
+        │   │   └── Exercise Session
+        │   │       ├── Exercise Details
+        │   │       ├── Set Logging
+        │   │       ├── Rest Timer
+        │   │       └── Completion Modal
+        │   ├── Wednesday - Shoulders & Abs
+        │   │   └── Exercise Session
+        │   │       ├── Exercise Details
+        │   │       ├── Set Logging
+        │   │       ├── Rest Timer
+        │   │       └── Completion Modal
+        │   └── Friday - Arms & Secondary Chest
+        │       └── Exercise Session
+        │           ├── Exercise Details
+        │           ├── Set Logging
+        │           ├── Rest Timer
+        │           └── Completion Modal
+        └── Workout History
+            └── Daily Logs
 ```
 
 ## Getting Started
