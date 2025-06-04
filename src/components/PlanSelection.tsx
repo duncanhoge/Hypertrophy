@@ -24,8 +24,7 @@ function PlanSelection({ onSelectPlan }: PlanSelectionProps) {
                 </div>
               </div>
               <div className="md:w-2/3 space-y-4">
-                <h3 className="text-2xl font-bold text-theme-gold flex items-center gap-2">
-                  <Dumbbell className="w-6 h-6" />
+                <h3 className="text-2xl font-bold text-theme-gold">
                   {plan.name}
                 </h3>
                 <p className="text-theme-gold-dark">{plan.description}</p>
