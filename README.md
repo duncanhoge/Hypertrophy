@@ -20,6 +20,33 @@ A sleek and modern workout tracking application designed for strength training a
 - 📱 Responsive design for all devices
 - 🎯 Progress tracking for each workout session
 
+## Sitemap
+
+```
+Home Screen
+├── Workout Selection
+│   ├── Monday - Chest & Triceps
+│   │   └── Exercise Session
+│   │       ├── Exercise Details
+│   │       ├── Set Logging
+│   │       ├── Rest Timer
+│   │       └── Completion Modal
+│   ├── Wednesday - Shoulders & Abs
+│   │   └── Exercise Session
+│   │       ├── Exercise Details
+│   │       ├── Set Logging
+│   │       ├── Rest Timer
+│   │       └── Completion Modal
+│   └── Friday - Arms & Secondary Chest
+│       └── Exercise Session
+│           ├── Exercise Details
+│           ├── Set Logging
+│           ├── Rest Timer
+│           └── Completion Modal
+└── Workout History
+    └── Daily Logs
+```
+
 ## Getting Started
 
 1. Clone the repository
