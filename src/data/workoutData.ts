@@ -67,5 +67,44 @@ export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
         ]
       }
     }
+  },
+  'muscle-fiber': {
+    id: 'muscle-fiber',
+    name: "Phase II: Muscle Fiber",
+    description: "A two-day foundational workout program focused on building muscle fiber and strength through compound movements.",
+    image: "https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    workouts: {
+      'Day 1': {
+        name: "Day 1 - Full Body Foundation",
+        exercises: [
+          { id: "d1_ex1", name: "Barbell Squats", sets: 3, reps: "8-12", notes: "Focus on form and depth.", type: "weight_reps" },
+          { id: "d1_ex2", name: "Incline Barbell Chest Press", sets: 3, reps: "8-12", notes: "Control the movement.", type: "weight_reps" },
+          { id: "d1_ex3", name: "Barbell Rows", sets: 3, reps: "8-12", notes: "Keep back straight, squeeze shoulder blades.", type: "weight_reps" },
+          { id: "d1_ex4", name: "Standing Dumbbell Shrugs", sets: 3, reps: "8-12", notes: "Hold at top for a second.", type: "weight_reps" },
+          { id: "d1_ex5", name: "Rear Delt Flyes", sets: 2, reps: "8-12", notes: "Control the movement.", type: "weight_reps" },
+          { id: "d1_ex6", name: "Lateral Raise", sets: 2, reps: "8-12", notes: "Keep slight bend in elbows.", type: "weight_reps" },
+          { id: "d1_ex7", name: "Dumbbell Supinating Curls", sets: 3, reps: "8-12", notes: "Rotate wrists during curl.", type: "weight_reps" },
+          { id: "d1_ex8", name: "Weighted Dips", sets: 3, reps: "8-12", notes: "Control the descent.", type: "weight_reps" },
+          { id: "d1_ex9", name: "Seated Calf Raises", sets: 3, reps: "8-12", notes: "Full range of motion.", type: "weight_reps" },
+          { id: "d1_ex10", name: "Hanging Leg Raises", sets: 3, reps: "8-20", notes: "Keep core engaged.", type: "reps_only" }
+        ]
+      },
+      'Day 2': {
+        name: "Day 2 - Strength Foundation",
+        exercises: [
+          { id: "d2_ex1", name: "Barbell Deadlifts", sets: 3, reps: "4-8", notes: "Focus on form and hip hinge.", type: "weight_reps" },
+          { id: "d2_ex2", name: "Lying Leg Curls", sets: 1, reps: "8-12", notes: "Squeeze at peak contraction.", type: "weight_reps" },
+          { id: "d2_ex3", name: "Barbell Shrugs", sets: 3, reps: "8-12", notes: "Hold at top.", type: "weight_reps" },
+          { id: "d2_ex4", name: "Flat Dumbbell Chest Press", sets: 3, reps: "8-12", notes: "Full range of motion.", type: "weight_reps" },
+          { id: "d2_ex5", name: "Dumbbell Pullover", sets: 1, reps: "8-12", notes: "Keep arms slightly bent.", type: "weight_reps" },
+          { id: "d2_ex6", name: "Bodyweight Chin-Ups", sets: 2, reps: "6-12", notes: "Use assistance if needed.", type: "reps_only" },
+          { id: "d2_ex7", name: "Dumbbell Shoulder Press", sets: 3, reps: "8-12", notes: "Control the movement.", type: "weight_reps" },
+          { id: "d2_ex8", name: "Barbell Curls", sets: 3, reps: "8-12", notes: "Keep elbows at sides.", type: "weight_reps" },
+          { id: "d2_ex9", name: "Tricep Pressdowns", sets: 3, reps: "8-12", notes: "Keep elbows tucked.", type: "weight_reps" },
+          { id: "d2_ex10", name: "Standing Calf Raises", sets: 3, reps: "8-12", notes: "Full extension at top.", type: "weight_reps" },
+          { id: "d2_ex11", name: "Bodyweight Decline Sit-Ups", sets: 3, reps: "30-100", notes: "Control the movement.", type: "reps_only" }
+        ]
+      }
+    }
   }
 };
