@@ -18,12 +18,10 @@ function PlanSelection({ onSelectPlan }: PlanSelectionProps) {
             onClick={() => onSelectPlan(plan.id)}
           >
             <div className="flex flex-col md:flex-row gap-6">
-              <div className="md:w-1/3">
-                <img 
-                  src={plan.image} 
-                  alt={plan.name}
-                  className="w-full h-48 md:h-full object-cover rounded-lg"
-                />
+              <div className="md:w-1/3 flex items-center justify-center bg-theme-black-lighter rounded-lg">
+                <div className="w-16 h-16 flex items-center justify-center">
+                  <Dumbbell className="w-8 h-8 text-theme-gold" />
+                </div>
               </div>
               <div className="md:w-2/3 space-y-4">
                 <h3 className="text-2xl font-bold text-theme-gold flex items-center gap-2">
