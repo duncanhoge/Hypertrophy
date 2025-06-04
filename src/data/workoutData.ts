@@ -70,7 +70,7 @@ export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
   },
   'muscle-fiber': {
     id: 'muscle-fiber',
-    name: "Phase II: Muscle Fiber",
+    name: "Ryan's Plan",
     description: "A two-day foundational workout program focused on building muscle fiber and strength through compound movements.",
     image: "https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     workouts: {
