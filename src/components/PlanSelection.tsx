@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { WORKOUT_PLANS } from '../data/workoutData';
 import { Card } from './ui/Card';
-import { Dumbbell, Calendar, ChevronRight, PlusCircle, MinusCircle } from 'lucide-react';
+import { Dumbbell, Calendar, PlusCircle, MinusCircle } from 'lucide-react';
 
 interface PlanSelectionProps {
   onSelectPlan: (planId: string) => void;
@@ -42,9 +42,6 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
                     </span>
                   ))}
                 </div>
-                <button className="mt-4 flex items-center gap-2 text-theme-gold hover:text-theme-gold-light transition-colors">
-                  Start Plan <ChevronRight className="w-5 h-5" />
-                </button>
               </div>
             </div>
           </Card>
