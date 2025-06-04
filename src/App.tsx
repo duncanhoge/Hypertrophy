@@ -55,7 +55,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8 flex flex-col items-center">
+    <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8 flex items-center justify-center">
       <div className="w-full max-w-7xl">
         <header className="mb-8 text-center">
           <h1 className="hero" data-text="It's a great day for gains">
