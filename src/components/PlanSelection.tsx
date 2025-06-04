@@ -10,11 +10,6 @@ interface PlanSelectionProps {
 function PlanSelection({ onSelectPlan }: PlanSelectionProps) {
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-      <div className="text-center mb-12">
-        <h2 className="text-2xl font-semibold mb-4 text-theme-gold">Choose Your Path to Gains</h2>
-        <p className="text-theme-gold-dark">Select a workout plan that matches your goals</p>
-      </div>
-
       <div className="grid grid-cols-1 gap-6">
         {Object.values(WORKOUT_PLANS).map((plan) => (
           <Card 
