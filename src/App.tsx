@@ -45,7 +45,7 @@ function App() {
       <div className="w-full max-w-7xl">
         <header className="mb-8 text-center">
           <h1 className="hero" data-text="It's a great day for gains">
-            Hypertrophy Hub
+            It's a great day for gains
           </h1>
         </header>
 
