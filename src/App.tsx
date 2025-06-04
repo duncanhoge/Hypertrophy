@@ -64,7 +64,10 @@ function App() {
         </header>
 
         {currentPage === 'plans' && (
-          <PlanSelection onSelectPlan={handleSelectPlan} />
+          <PlanSelection 
+            onSelectPlan={handleSelectPlan} 
+            workoutHistory={workoutHistory}
+          />
         )}
 
         {currentPage === 'workouts' && selectedPlanId && (

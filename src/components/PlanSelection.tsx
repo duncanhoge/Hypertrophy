@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { WORKOUT_PLANS } from '../data/workoutData';
 import { Card } from './ui/Card';
-import { Dumbbell, Calendar, ChevronRight } from 'lucide-react';
+import { Dumbbell, Calendar, ChevronRight, PlusCircle, MinusCircle } from 'lucide-react';
 
 interface PlanSelectionProps {
   onSelectPlan: (planId: string) => void;
+  workoutHistory: Record<string, any[]>;
 }
 
-function PlanSelection({ onSelectPlan }: PlanSelectionProps) {
+function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
+  const [showHistory, setShowHistory] = useState(false);
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="grid grid-cols-1 gap-6">
@@ -47,6 +50,38 @@ function PlanSelection({ onSelectPlan }: PlanSelectionProps) {
           </Card>
         ))}
       </div>
+
+      <Card className="bg-theme-black-light border border-theme-gold/20">
+        <button 
+          onClick={() => setShowHistory(!showHistory)}
+          className="w-full flex justify-between items-center text-left text-xl font-semibold text-theme-gold hover:text-theme-gold-light transition-colors py-2"
+        >
+          Workout History
+          {showHistory ? <MinusCircle size={24} /> : <PlusCircle size={24} />}
+        </button>
+        {showHistory && (
+          <div className="mt-4 space-y-4 max-h-96 overflow-y-auto pr-2">
+            {Object.keys(workoutHistory).length > 0 ? (
+              Object.entries(workoutHistory)
+                .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
+                .map(([date, logs]) => (
+                <div key={date} className="p-3 bg-theme-black-lighter rounded-md border border-theme-gold/10">
+                  <h3 className="text-md font-semibold text-theme-gold-light mb-2">{date}</h3>
+                  <ul className="space-y-1 text-sm">
+                    {logs.map((log, index) => (
+                      <li key={index} className="text-theme-gold-dark">
+                        {log.workout_day} - {log.exercise_name} - Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''}{log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            ) : (
+              <p className="text-theme-gold-dark">No workout history yet. Complete a workout to see your logs!</p>
+            )}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
