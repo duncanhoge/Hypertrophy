@@ -1,29 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, TimerIcon } from 'lucide-react';
+import { TimerIcon } from 'lucide-react';
+import PlanSelection from './components/PlanSelection';
 import HomeScreen from './components/HomeScreen';
 import WorkoutSession from './components/WorkoutSession';
-import { WORKOUT_PLAN } from './data/workoutData';
+import { WORKOUT_PLANS } from './data/workoutData';
+
+type Page = 'plans' | 'workouts' | 'session';
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState<Page>('plans');
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [workoutHistory, setWorkoutHistory] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
-    // Load workout history from localStorage
     const savedHistory = localStorage.getItem('workoutHistory');
     if (savedHistory) {
       setWorkoutHistory(JSON.parse(savedHistory));
     }
   }, []);
 
-  const startWorkout = (day: string) => {
-    setSelectedDay(day);
-    setCurrentPage('workout');
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlanId(planId);
+    setCurrentPage('workouts');
   };
 
-  const goHome = () => {
-    setCurrentPage('home');
+  const startWorkout = (day: string) => {
+    setSelectedDay(day);
+    setCurrentPage('session');
+  };
+
+  const goToPlans = () => {
+    setCurrentPage('plans');
+    setSelectedPlanId(null);
+    setSelectedDay(null);
+  };
+
+  const goToWorkouts = () => {
+    setCurrentPage('workouts');
     setSelectedDay(null);
   };
 
@@ -49,18 +63,24 @@ function App() {
           </h1>
         </header>
 
-        {currentPage === 'home' && (
+        {currentPage === 'plans' && (
+          <PlanSelection onSelectPlan={handleSelectPlan} />
+        )}
+
+        {currentPage === 'workouts' && selectedPlanId && (
           <HomeScreen 
-            onStartWorkout={startWorkout} 
-            workoutHistory={workoutHistory} 
+            plan={WORKOUT_PLANS[selectedPlanId]}
+            onStartWorkout={startWorkout}
+            onBack={goToPlans}
+            workoutHistory={workoutHistory}
           />
         )}
         
-        {currentPage === 'workout' && selectedDay && (
+        {currentPage === 'session' && selectedPlanId && selectedDay && (
           <WorkoutSession
             day={selectedDay}
-            plan={WORKOUT_PLAN[selectedDay]}
-            onGoHome={goHome}
+            plan={WORKOUT_PLANS[selectedPlanId].workouts[selectedDay]}
+            onGoHome={goToWorkouts}
             onLogWorkout={updateWorkoutHistory}
           />
         )}
