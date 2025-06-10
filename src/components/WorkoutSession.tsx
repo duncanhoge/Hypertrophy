@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
 import { REST_DURATION_SECONDS } from '../data/workoutData';
 import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
+import { ExerciseHistory } from './ExerciseHistory';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../hooks/useAuth';
 
 interface Exercise {
   id: string;
@@ -40,7 +43,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showExerciseInfoModal, setShowExerciseInfoModal] = useState(false);
   const [showWorkoutQueue, setShowWorkoutQueue] = useState(false);
+  const [showExerciseHistory, setShowExerciseHistory] = useState(false);
 
+  const { user } = useAuth();
   const currentExercise = plan.exercises[currentExerciseIndex];
 
   useEffect(() => {
@@ -73,8 +78,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     return () => clearInterval(interval);
   }, [timerActive, timerSeconds, isResting, isTimedExerciseActive]);
 
-  const handleLogSet = () => {
-    if (!currentExercise) return;
+  const handleLogSet = async () => {
+    if (!currentExercise || !user) return;
 
     let repsLogged = reps;
     if (currentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
@@ -83,18 +88,19 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             alert("Valid number required for AMRAP reps.");
             return;
         }
-        repsLogged = parseInt(amrapReps);
+        repsLogged = parseInt(amrapReps).toString();
     } else if (currentExercise.type !== 'timed' && (isNaN(parseInt(repsLogged)) || parseInt(repsLogged) <= 0)) {
         alert("Please enter a valid number of reps.");
         return;
     }
     
     const logEntry = {
+      user_id: user.id,
       workout_day: day,
       exercise_id: currentExercise.id,
       exercise_name: currentExercise.name,
       set_number: currentSet,
-      weight: currentExercise.type.includes('weight') ? (weight ? parseFloat(weight) : 0) : null,
+      weight: currentExercise.type.includes('weight') ? (weight ? parseFloat(weight) : null) : null,
       reps_logged: currentExercise.type === 'timed' ? null : parseInt(repsLogged),
       duration_seconds: currentExercise.type === 'timed' ? (duration ? parseInt(duration) : parseInt(currentExercise.reps.match(/\d+/)?.[0] || '0')) : null,
       target_reps: currentExercise.reps,
@@ -102,25 +108,42 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       created_at: new Date().toISOString(),
     };
 
-    onLogWorkout(logEntry);
-    setLoggedSetsForExercise(prev => [...prev, logEntry]);
-    
-    setWeight('');
-    setReps('');
+    try {
+      // Save to Supabase
+      const { error } = await supabase
+        .from('workout_logs')
+        .insert([logEntry]);
 
-    if (currentSet < currentExercise.sets) {
-      setCurrentSet(prev => prev + 1);
-      if (currentExercise.type !== 'timed') {
-        setIsResting(true);
-        setTimerSeconds(REST_DURATION_SECONDS);
-        setTimerActive(true);
+      if (error) {
+        console.error('Error saving to Supabase:', error);
+        alert('Failed to save workout log. Please try again.');
+        return;
       }
-    } else {
-      if (currentExerciseIndex < plan.exercises.length - 1) {
-        // User will need to click next
+
+      // Also call the legacy callback for local storage compatibility
+      onLogWorkout(logEntry);
+      setLoggedSetsForExercise(prev => [...prev, logEntry]);
+      
+      setWeight('');
+      setReps('');
+
+      if (currentSet < currentExercise.sets) {
+        setCurrentSet(prev => prev + 1);
+        if (currentExercise.type !== 'timed') {
+          setIsResting(true);
+          setTimerSeconds(REST_DURATION_SECONDS);
+          setTimerActive(true);
+        }
       } else {
-        setShowCompletionModal(true);
+        if (currentExerciseIndex < plan.exercises.length - 1) {
+          // User will need to click next
+        } else {
+          setShowCompletionModal(true);
+        }
       }
+    } catch (error) {
+      console.error('Error logging workout:', error);
+      alert('Failed to save workout log. Please try again.');
     }
   };
   
@@ -193,6 +216,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
               className={showWorkoutQueue ? "bg-theme-gold text-theme-black hover:bg-theme-gold-light" : ""}
             >
               <ListChecks size={20} />
+            </IconButton>
+            <IconButton 
+              onClick={() => setShowExerciseHistory(true)} 
+              ariaLabel="Exercise History"
+            >
+              <History size={20} />
             </IconButton>
             <IconButton onClick={() => setShowExerciseInfoModal(true)} ariaLabel="Exercise Info">
               <Info size={20} />
@@ -385,6 +414,13 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           {currentExercise.notes && <p><strong className="text-theme-gold-light">Notes:</strong> {currentExercise.notes}</p>}
         </div>
       </Modal>
+
+      <ExerciseHistory
+        isOpen={showExerciseHistory}
+        onClose={() => setShowExerciseHistory(false)}
+        exerciseId={currentExercise.id}
+        exerciseName={currentExercise.name}
+      />
     </div>
   );
 }
