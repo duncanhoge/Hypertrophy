@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft } from 'lucide-react';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
+import { getEnhancedExercise } from '../data/workoutData';
 import type { WorkoutPlan } from '../data/workoutData';
 
 interface HomeScreenProps {

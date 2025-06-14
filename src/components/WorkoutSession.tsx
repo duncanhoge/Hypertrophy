@@ -1,28 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
-import { REST_DURATION_SECONDS } from '../data/workoutData';
+import { REST_DURATION_SECONDS, getEnhancedExercise } from '../data/workoutData';
 import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
 import { ExerciseHistory } from './ExerciseHistory';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-
-interface Exercise {
-  id: string;
-  name: string;
-  sets: number;
-  reps: string;
-  notes: string;
-  type: string;
-}
+import type { Exercise, WorkoutDay } from '../data/workoutData';
 
 interface WorkoutSessionProps {
   day: string;
-  plan: {
-    name: string;
-    exercises: Exercise[];
-  };
+  plan: WorkoutDay;
   onGoHome: () => void;
   onLogWorkout: (log: any) => void;
 }
@@ -47,17 +36,20 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
   const { user } = useAuth();
   const currentExercise = plan.exercises[currentExerciseIndex];
+  const enhancedCurrentExercise = currentExercise ? getEnhancedExercise(currentExercise) : null;
 
   useEffect(() => {
+    if (!enhancedCurrentExercise) return;
+    
     setCurrentSet(1);
     setWeight('');
     setReps('');
-    setDuration(currentExercise.type === 'timed' ? currentExercise.reps.match(/\d+/)?.[0] || '' : '');
+    setDuration(enhancedCurrentExercise.type === 'timed' ? enhancedCurrentExercise.reps.match(/\d+/)?.[0] || '' : '');
     setLoggedSetsForExercise([]);
     setIsResting(false);
     setTimerActive(false);
     setIsTimedExerciseActive(false);
-  }, [currentExerciseIndex, currentExercise.type, currentExercise.reps]);
+  }, [currentExerciseIndex, enhancedCurrentExercise?.type, enhancedCurrentExercise?.reps]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -79,17 +71,17 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   }, [timerActive, timerSeconds, isResting, isTimedExerciseActive]);
 
   const handleLogSet = async () => {
-    if (!currentExercise || !user) return;
+    if (!enhancedCurrentExercise || !user) return;
 
     let repsLogged = reps;
-    if (currentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
+    if (enhancedCurrentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
         const amrapReps = prompt("Enter AMRAP reps achieved:");
         if (amrapReps === null || isNaN(parseInt(amrapReps))) {
             alert("Valid number required for AMRAP reps.");
             return;
         }
         repsLogged = parseInt(amrapReps).toString();
-    } else if (currentExercise.type !== 'timed' && (isNaN(parseInt(repsLogged)) || parseInt(repsLogged) <= 0)) {
+    } else if (enhancedCurrentExercise.type !== 'timed' && (isNaN(parseInt(repsLogged)) || parseInt(repsLogged) <= 0)) {
         alert("Please enter a valid number of reps.");
         return;
     }
@@ -97,14 +89,14 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     const logEntry = {
       user_id: user.id,
       workout_day: day,
-      exercise_id: currentExercise.id,
-      exercise_name: currentExercise.name,
+      exercise_id: enhancedCurrentExercise.id,
+      exercise_name: enhancedCurrentExercise.name,
       set_number: currentSet,
-      weight: currentExercise.type.includes('weight') ? (weight ? parseFloat(weight) : null) : null,
-      reps_logged: currentExercise.type === 'timed' ? null : parseInt(repsLogged),
-      duration_seconds: currentExercise.type === 'timed' ? (duration ? parseInt(duration) : parseInt(currentExercise.reps.match(/\d+/)?.[0] || '0')) : null,
-      target_reps: currentExercise.reps,
-      target_sets: currentExercise.sets,
+      weight: enhancedCurrentExercise.type.includes('weight') ? (weight ? parseFloat(weight) : null) : null,
+      reps_logged: enhancedCurrentExercise.type === 'timed' ? null : parseInt(repsLogged),
+      duration_seconds: enhancedCurrentExercise.type === 'timed' ? (duration ? parseInt(duration) : parseInt(enhancedCurrentExercise.reps.match(/\d+/)?.[0] || '0')) : null,
+      target_reps: enhancedCurrentExercise.reps,
+      target_sets: enhancedCurrentExercise.sets,
       created_at: new Date().toISOString(),
     };
 
@@ -127,9 +119,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setWeight('');
       setReps('');
 
-      if (currentSet < currentExercise.sets) {
+      if (currentSet < enhancedCurrentExercise.sets) {
         setCurrentSet(prev => prev + 1);
-        if (currentExercise.type !== 'timed') {
+        if (enhancedCurrentExercise.type !== 'timed') {
           setIsResting(true);
           setTimerSeconds(REST_DURATION_SECONDS);
           setTimerActive(true);
@@ -148,7 +140,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   };
   
   const startTimedExercise = () => {
-    if (currentExercise.type === 'timed' && duration) {
+    if (enhancedCurrentExercise?.type === 'timed' && duration) {
       setIsTimedExerciseActive(true);
       setTimerSeconds(parseInt(duration));
       setTimerActive(true);
@@ -185,7 +177,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   // Calculate progress percentage
   const progressPercentage = (completedSets / totalSets) * 100;
 
-  if (!currentExercise) {
+  if (!enhancedCurrentExercise) {
     return (
       <Card className="bg-theme-black-light border border-theme-gold/20 text-center">
         <p className="text-xl text-red-400">Error: Exercise not found.</p>
@@ -196,7 +188,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     );
   }
 
-  const isLastSetForExercise = currentSet >= currentExercise.sets;
+  const isLastSetForExercise = currentSet >= enhancedCurrentExercise.sets;
   const isLastExerciseOverall = currentExerciseIndex >= plan.exercises.length - 1;
 
   return (
@@ -241,6 +233,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             <h3 className="text-lg font-medium text-theme-gold mb-3">Workout Queue</h3>
             <div className="space-y-2">
               {plan.exercises.map((exercise, index) => {
+                const enhancedExercise = getEnhancedExercise(exercise);
                 const isCurrentExercise = index === currentExerciseIndex;
                 const isPastExercise = index < currentExerciseIndex;
                 const exerciseProgress = isCurrentExercise ? currentSet - 1 : (isPastExercise ? exercise.sets : 0);
@@ -258,7 +251,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                   >
                     <div className="flex justify-between items-center">
                       <span className={`font-medium ${isCurrentExercise ? 'text-theme-gold' : 'text-theme-gold-dark'}`}>
-                        {exercise.name}
+                        {enhancedExercise.name}
                       </span>
                       <span className="text-sm text-theme-gold-dark">
                         {exerciseProgress}/{exercise.sets} sets
@@ -277,10 +270,10 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         )}
 
         <div className="mb-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
-          <h3 className="text-xl font-medium text-theme-gold">{currentExercise.name}</h3>
+          <h3 className="text-xl font-medium text-theme-gold">{enhancedCurrentExercise.name}</h3>
           <p className="text-sm text-theme-gold-dark flex items-center">
             <Target size={16} className="mr-2"/> 
-            Set {currentSet} of {currentExercise.sets} | Target Reps: {currentExercise.reps}
+            Set {currentSet} of {enhancedCurrentExercise.sets} | Target Reps: {enhancedCurrentExercise.reps}
           </p>
         </div>
 
@@ -300,7 +293,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         
         {!isTimedExerciseActive && !isResting && (
           <div className="space-y-4 mb-6">
-            {currentExercise.type === 'weight_reps' && (
+            {enhancedCurrentExercise.type === 'weight_reps' && (
               <div className="flex items-center space-x-3">
                 <Dumbbell size={20} className="text-theme-gold-dark" />
                 <label htmlFor="weight" className="w-16 text-theme-gold">Weight:</label>
@@ -314,21 +307,21 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 />
               </div>
             )}
-            {(currentExercise.type === 'weight_reps' || currentExercise.type === 'reps_only' || currentExercise.type === 'reps_only_with_optional_weight') && (
+            {(enhancedCurrentExercise.type === 'weight_reps' || enhancedCurrentExercise.type === 'reps_only' || enhancedCurrentExercise.type === 'reps_only_with_optional_weight') && (
               <div className="flex items-center space-x-3">
                 <Repeat size={20} className="text-theme-gold-dark" />
                 <label htmlFor="reps" className="w-16 text-theme-gold">Reps:</label>
                 <input
-                  type={currentExercise.reps.toUpperCase() === 'AMRAP' ? "text" : "number"}
+                  type={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "text" : "number"}
                   id="reps"
                   value={reps}
                   onChange={(e) => setReps(e.target.value)}
-                  placeholder={currentExercise.reps.toUpperCase() === 'AMRAP' ? "AMRAP" : "e.g., 10"}
+                  placeholder={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "AMRAP" : "e.g., 10"}
                   className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
                 />
               </div>
             )}
-             {currentExercise.type === 'reps_only_with_optional_weight' && (
+             {enhancedCurrentExercise.type === 'reps_only_with_optional_weight' && (
               <div className="flex items-center space-x-3">
                 <Dumbbell size={20} className="text-theme-gold-dark" />
                 <label htmlFor="optional_weight" className="w-16 text-theme-gold">Weight (Opt):</label>
@@ -342,7 +335,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 />
               </div>
             )}
-            {currentExercise.type === 'timed' && (
+            {enhancedCurrentExercise.type === 'timed' && (
               <div className="flex items-center space-x-3">
                 <Clock size={20} className="text-theme-gold-dark" />
                 <label htmlFor="duration" className="w-16 text-theme-gold">Duration (s):</label>
@@ -360,12 +353,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         )}
 
         <div className="flex flex-col sm:flex-row gap-3">
-          {currentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
+          {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
             <IconButton onClick={startTimedExercise} ariaLabel="Start Timed Exercise" className="flex-1">
               <Play size={20} className="mr-2" /> Start Timer
             </IconButton>
           )}
-          {currentExercise.type !== 'timed' && !isResting && (
+          {enhancedCurrentExercise.type !== 'timed' && !isResting && (
              <IconButton onClick={handleLogSet} ariaLabel="Log Set" className="flex-1">
               <Save size={20} className="mr-2" /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
             </IconButton>
@@ -379,7 +372,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         
         {loggedSetsForExercise.length > 0 && (
           <div className="mt-6 pt-4 border-t border-theme-gold/20">
-            <h4 className="text-md font-semibold text-theme-gold mb-2">Logged Sets for {currentExercise.name}:</h4>
+            <h4 className="text-md font-semibold text-theme-gold mb-2">Logged Sets for {enhancedCurrentExercise.name}:</h4>
             <ul className="space-y-1 text-sm">
               {loggedSetsForExercise.map((log, index) => (
                 <li key={index} className="p-2 bg-theme-black-lighter rounded border border-theme-gold/10 text-theme-gold-dark">
@@ -406,20 +399,31 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         </div>
       </Modal>
 
-      <Modal isOpen={showExerciseInfoModal} onClose={() => setShowExerciseInfoModal(false)} title={currentExercise.name + " Info"}>
+      <Modal isOpen={showExerciseInfoModal} onClose={() => setShowExerciseInfoModal(false)} title={enhancedCurrentExercise.name + " Info"}>
         <div className="space-y-3 text-theme-gold">
-          <p><strong className="text-theme-gold-light">Target Sets:</strong> {currentExercise.sets}</p>
-          <p><strong className="text-theme-gold-light">Target Reps/Duration:</strong> {currentExercise.reps}</p>
-          <p><strong className="text-theme-gold-light">Type:</strong> {currentExercise.type.replace('_', ' ')}</p>
-          {currentExercise.notes && <p><strong className="text-theme-gold-light">Notes:</strong> {currentExercise.notes}</p>}
+          <p><strong className="text-theme-gold-light">Target Sets:</strong> {enhancedCurrentExercise.sets}</p>
+          <p><strong className="text-theme-gold-light">Target Reps/Duration:</strong> {enhancedCurrentExercise.reps}</p>
+          <p><strong className="text-theme-gold-light">Type:</strong> {enhancedCurrentExercise.type.replace('_', ' ')}</p>
+          {enhancedCurrentExercise.primaryMuscle && (
+            <p><strong className="text-theme-gold-light">Primary Muscle:</strong> {enhancedCurrentExercise.primaryMuscle}</p>
+          )}
+          {enhancedCurrentExercise.secondaryMuscle && enhancedCurrentExercise.secondaryMuscle.length > 0 && (
+            <p><strong className="text-theme-gold-light">Secondary Muscles:</strong> {enhancedCurrentExercise.secondaryMuscle.join(', ')}</p>
+          )}
+          {enhancedCurrentExercise.equipment && enhancedCurrentExercise.equipment.length > 0 && (
+            <p><strong className="text-theme-gold-light">Equipment:</strong> {enhancedCurrentExercise.equipment.join(', ')}</p>
+          )}
+          {enhancedCurrentExercise.description && (
+            <p><strong className="text-theme-gold-light">Notes:</strong> {enhancedCurrentExercise.description}</p>
+          )}
         </div>
       </Modal>
 
       <ExerciseHistory
         isOpen={showExerciseHistory}
         onClose={() => setShowExerciseHistory(false)}
-        exerciseId={currentExercise.id}
-        exerciseName={currentExercise.name}
+        exerciseId={enhancedCurrentExercise.id}
+        exerciseName={enhancedCurrentExercise.name}
       />
     </div>
   );

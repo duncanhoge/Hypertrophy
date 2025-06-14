@@ -29,6 +29,7 @@ Visit the live application: [https://weights.duncanhoge.com](https://weights.dun
 - ⏰ **Smart Rest Timer**: Automatic rest periods between sets
 - 💾 **Cloud Data Persistence**: All workout data synced to Supabase
 - 🔄 **Real-time Updates**: Instant data synchronization across sessions
+- 📚 **Centralized Exercise Dictionary**: Single source of truth for all exercise data
 
 ### User Experience
 - 🎨 Premium "Apple-level" design aesthetics with gold/black theme
@@ -59,11 +60,25 @@ src/
 ├── lib/                 # External service integrations
 │   └── supabase.ts      # Supabase client configuration
 ├── data/                # Static data and configurations
-│   └── workoutData.ts   # Workout plans and exercise definitions
+│   ├── exerciseDictionary.ts # Centralized exercise definitions
+│   └── workoutData.ts   # Workout plans and exercise references
+├── docs/                # Architecture documentation
+│   └── exercise-dictionary.md # Exercise Dictionary documentation
 ├── App.tsx              # Main application component
 ├── main.tsx             # Application entry point
 └── index.css            # Global styles and Tailwind imports
 ```
+
+### Exercise Dictionary Architecture
+
+The application uses a **Centralized Exercise Dictionary** as the single source of truth for all exercise data. This architecture provides:
+
+- **Maintainability**: Single location for all exercise definitions
+- **Scalability**: Easy addition of new exercises and equipment types
+- **Feature Enablement**: Foundation for advanced features like exercise substitutions
+- **Data Consistency**: Eliminates duplication and ensures accuracy
+
+For detailed information about the Exercise Dictionary, see: [Exercise Dictionary Documentation](docs/exercise-dictionary.md)
 
 ### Backend Architecture (Supabase)
 ```
@@ -107,6 +122,7 @@ Security:
   - Support for all exercise types (weight/reps, timed, AMRAP)
   - Smart navigation between exercises
   - Workout completion celebration
+  - Integration with Exercise Dictionary for rich exercise metadata
 
 #### `ExerciseHistory`
 - **Modal component** displaying exercise performance history
@@ -162,6 +178,12 @@ Security:
 3. User starts workout → `WorkoutSession`
 4. User logs sets → Data saved to Supabase
 5. Real-time updates → UI reflects changes immediately
+
+### Exercise Data Flow
+1. Workout plans reference exercises by ID
+2. `getEnhancedExercise()` combines plan data with dictionary data
+3. UI components receive complete exercise information
+4. Exercise metadata enhances user experience and enables features
 
 ### Exercise History Flow
 1. User clicks history button → `ExerciseHistory` modal opens
@@ -299,15 +321,25 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 - **Exercise Queue**: Visual progress through the workout
 - **History Access**: Quick reference to previous performance
 - **Smart Navigation**: Seamless flow between exercises
+- **Exercise Information**: Rich metadata from Exercise Dictionary
 
 ## 🔧 Configuration
 
 ### Workout Plans
-Workout plans are defined in `src/data/workoutData.ts` and include:
-- Exercise definitions with types and targets
+Workout plans are defined in `src/data/workoutData.ts` and reference exercises from the centralized Exercise Dictionary. Plans include:
+- Exercise IDs referencing dictionary entries
 - Set and rep schemes
-- Exercise notes and instructions
+- Exercise types and configurations
 - Plan metadata and descriptions
+
+### Exercise Dictionary
+The Exercise Dictionary (`src/data/exerciseDictionary.ts`) contains:
+- Complete exercise definitions with metadata
+- Muscle group classifications
+- Equipment requirements
+- Movement patterns
+- Alternative exercise suggestions
+- Form cues and descriptions
 
 ### Styling
 The application uses a custom Tailwind theme defined in `tailwind.config.js`:
@@ -344,6 +376,8 @@ Ensure the following environment variables are set in your deployment platform:
 - Use the established design system
 - Write descriptive commit messages
 - Test authentication flows thoroughly
+- When adding exercises, update the Exercise Dictionary
+- Follow the established ID naming conventions
 
 ## 📄 License
 
