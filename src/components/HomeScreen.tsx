@@ -31,7 +31,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
             <button
               key={day}
               onClick={() => onStartWorkout(day)}
-              className="w-full bg-theme-black-lighter hover:bg-theme-gold/20 text-theme-gold font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 flex flex-col items-center space-y-2 border border-theme-gold/30"
+              className="w-full bg-theme-black-lighter hover:bg-theme-gold/20 text-theme-gold font-semibold py-4 px-6 rounded-nested-container shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 flex flex-col items-center space-y-2 border border-theme-gold/30"
             >
               <CalendarDays size={28} />
               <span>{day}</span>
@@ -53,7 +53,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
           <div className="mt-4 space-y-4 max-h-96 overflow-y-auto pr-2">
             {Object.keys(workoutHistory).length > 0 ? (
               Object.entries(workoutHistory).map(([date, logs]) => (
-                <div key={date} className="p-3 bg-theme-black-lighter rounded-md border border-theme-gold/10">
+                <div key={date} className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/10">
                   <h3 className="text-md font-semibold text-theme-gold-light mb-2">{date}</h3>
                   <ul className="space-y-1 text-sm">
                     {logs.map((log, index) => (

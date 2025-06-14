@@ -25,9 +25,15 @@ export default {
         }
       },
       borderRadius: {
-        'sm': '8px',   // Small elements
-        'md': '32px',  // Nested containers
-        'lg': '64px'   // Buttons (pill shape)
+        'sm': '8px',   // 2x-nested-container (deepest level)
+        'md': '32px',  // nested-container (medium nesting)
+        'lg': '64px',  // buttons (pill shape)
+        'xl': '48px',  // top-level-container (outermost containers)
+        
+        // Semantic aliases for container hierarchy
+        'top-level-container': '48px',      // Level 1: Main cards, primary containers
+        'nested-container': '32px',         // Level 2: Containers inside main cards
+        '2x-nested-container': '8px',       // Level 3: Items inside nested containers
       }
     },
   },
