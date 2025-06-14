@@ -25,7 +25,7 @@ export default {
         }
       },
       borderRadius: {
-        'lg': '12px', // Increased from default 8px to 12px for more rounded appearance
+        'lg': '64px', // Very rounded, pill-like appearance
       }
     },
   },
