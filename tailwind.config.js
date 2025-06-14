@@ -23,6 +23,9 @@ export default {
             dark: '#B7A000'
           }
         }
+      },
+      borderRadius: {
+        'lg': '12px', // Increased from default 8px to 12px for more rounded appearance
       }
     },
   },
