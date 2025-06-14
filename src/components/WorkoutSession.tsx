@@ -423,19 +423,28 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
         <div className="flex flex-col sm:flex-row gap-3">
           {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
-            <IconButton onClick={startTimedExercise} ariaLabel="Start Timed Exercise" className="flex-1">
-              <Play size={20} className="mr-2" /> Start Timer
-            </IconButton>
+            <button 
+              onClick={startTimedExercise}
+              className="flex-1 inline-flex items-center justify-center gap-2 p-4 bg-theme-gold text-theme-black font-semibold rounded-lg hover:bg-theme-gold-light transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50"
+            >
+              <Play size={20} /> Start Timer
+            </button>
           )}
           {enhancedCurrentExercise.type !== 'timed' && !isResting && (
-             <IconButton onClick={handleLogSet} ariaLabel="Log Set" className="flex-1">
-              <Save size={20} className="mr-2" /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
-            </IconButton>
+            <button 
+              onClick={handleLogSet}
+              className="flex-1 inline-flex items-center justify-center gap-2 p-4 bg-theme-gold text-theme-black font-semibold rounded-lg hover:bg-theme-gold-light transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50"
+            >
+              <Save size={20} /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
+            </button>
           )}
           {isLastSetForExercise && !isResting && (
-            <IconButton onClick={moveToNextExercise} ariaLabel="Next Exercise" className="flex-1">
-              {isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'} <ChevronRight size={20} className="ml-2" />
-            </IconButton>
+            <button 
+              onClick={moveToNextExercise}
+              className="flex-1 inline-flex items-center justify-center gap-2 p-4 bg-theme-black hover:bg-theme-black-lighter text-theme-gold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 border border-theme-gold/30"
+            >
+              {isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'} <ChevronRight size={20} />
+            </button>
           )}
         </div>
         
