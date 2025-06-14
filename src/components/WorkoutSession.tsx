@@ -177,6 +177,10 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   // Calculate progress percentage
   const progressPercentage = (completedSets / totalSets) * 100;
 
+  // Timer progress calculation for SVG circle
+  const timerProgress = isResting || isTimedExerciseActive ? 
+    ((REST_DURATION_SECONDS - timerSeconds) / REST_DURATION_SECONDS) * 100 : 0;
+
   if (!enhancedCurrentExercise) {
     return (
       <Card className="bg-theme-black-light border border-theme-gold/20 text-center">
@@ -192,7 +196,62 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const isLastExerciseOverall = currentExerciseIndex >= plan.exercises.length - 1;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 relative">
+      {/* Enhanced Timer Overlay */}
+      {(isResting || isTimedExerciseActive) && timerActive && (
+        <div className="fixed inset-0 bg-theme-black/90 backdrop-blur-lg flex items-center justify-center z-50 transition-all duration-500 ease-in-out">
+          <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+            {/* SVG for circular timer */}
+            <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              {/* Background track */}
+              <circle 
+                cx="50" 
+                cy="50" 
+                r="45" 
+                strokeWidth="6" 
+                fill="none" 
+                className="stroke-theme-gold/20"
+              />
+              {/* Progress ring */}
+              <circle 
+                cx="50" 
+                cy="50" 
+                r="45" 
+                strokeWidth="6" 
+                fill="none" 
+                className="stroke-theme-gold transition-all duration-1000 ease-linear"
+                strokeLinecap="round"
+                style={{
+                  strokeDasharray: `${2 * Math.PI * 45}`,
+                  strokeDashoffset: `${2 * Math.PI * 45 * (1 - timerProgress / 100)}`
+                }}
+              />
+            </svg>
+            
+            {/* Countdown Text */}
+            <div className="text-center">
+              <span className="text-5xl md:text-6xl font-bold text-theme-gold tracking-tighter font-mono">
+                {formatTime(timerSeconds)}
+              </span>
+              <p className="text-theme-gold-light uppercase tracking-widest text-sm mt-2 font-semibold">
+                {isResting ? "REST" : "EXERCISE"}
+              </p>
+            </div>
+            
+            {/* Skip button */}
+            {isResting && (
+              <button 
+                onClick={skipRest}
+                className="absolute bottom-[-60px] text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-6 py-3 rounded-full text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
+              >
+                <SkipForward size={16} />
+                Skip Rest
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -276,77 +335,87 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             Set {currentSet} of {enhancedCurrentExercise.sets} | Target Reps: {enhancedCurrentExercise.reps}
           </p>
         </div>
-
-        {(isResting || isTimedExerciseActive) && timerActive && (
-          <div className="my-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10 text-center">
-            <p className="text-lg font-semibold text-theme-gold mb-1">
-              {isResting ? "Resting" : "Exercise In Progress"}
-            </p>
-            <p className="text-5xl font-bold text-theme-gold">{formatTime(timerSeconds)}</p>
-            {isResting && (
-              <IconButton onClick={skipRest} ariaLabel="Skip Rest" className="mt-3 text-sm py-2 px-3">
-                <SkipForward size={18} className="mr-1" /> Skip Rest
-              </IconButton>
-            )}
-          </div>
-        )}
         
         {!isTimedExerciseActive && !isResting && (
           <div className="space-y-4 mb-6">
             {enhancedCurrentExercise.type === 'weight_reps' && (
-              <div className="flex items-center space-x-3">
-                <Dumbbell size={20} className="text-theme-gold-dark" />
-                <label htmlFor="weight" className="w-16 text-theme-gold">Weight:</label>
-                <input
-                  type="number"
-                  id="weight"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="e.g., 25"
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Weight
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Dumbbell size={20} />
+                  </span>
+                  <input
+                    type="number"
+                    id="weight"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="e.g., 25"
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
             {(enhancedCurrentExercise.type === 'weight_reps' || enhancedCurrentExercise.type === 'reps_only' || enhancedCurrentExercise.type === 'reps_only_with_optional_weight') && (
-              <div className="flex items-center space-x-3">
-                <Repeat size={20} className="text-theme-gold-dark" />
-                <label htmlFor="reps" className="w-16 text-theme-gold">Reps:</label>
-                <input
-                  type={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "text" : "number"}
-                  id="reps"
-                  value={reps}
-                  onChange={(e) => setReps(e.target.value)}
-                  placeholder={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "AMRAP" : "e.g., 10"}
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="reps" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Reps
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Repeat size={20} />
+                  </span>
+                  <input
+                    type={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "text" : "number"}
+                    id="reps"
+                    value={reps}
+                    onChange={(e) => setReps(e.target.value)}
+                    placeholder={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "AMRAP" : "e.g., 10"}
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
              {enhancedCurrentExercise.type === 'reps_only_with_optional_weight' && (
-              <div className="flex items-center space-x-3">
-                <Dumbbell size={20} className="text-theme-gold-dark" />
-                <label htmlFor="optional_weight" className="w-16 text-theme-gold">Weight (Opt):</label>
-                <input
-                  type="number"
-                  id="optional_weight"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="e.g., 10 (optional)"
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="optional_weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Weight (Optional)
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Dumbbell size={20} />
+                  </span>
+                  <input
+                    type="number"
+                    id="optional_weight"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="e.g., 10 (optional)"
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
             {enhancedCurrentExercise.type === 'timed' && (
-              <div className="flex items-center space-x-3">
-                <Clock size={20} className="text-theme-gold-dark" />
-                <label htmlFor="duration" className="w-16 text-theme-gold">Duration (s):</label>
-                <input
-                  type="number"
-                  id="duration"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="e.g., 60"
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="duration" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Duration (seconds)
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Clock size={20} />
+                  </span>
+                  <input
+                    type="number"
+                    id="duration"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    placeholder="e.g., 60"
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
           </div>
