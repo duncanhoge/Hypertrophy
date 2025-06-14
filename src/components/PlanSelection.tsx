@@ -21,7 +21,7 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
             onClick={() => onSelectPlan(plan.id)}
           >
             <div className="flex flex-col md:flex-row gap-6">
-              <div className="md:w-1/3 flex items-center justify-center bg-theme-black-lighter rounded-lg">
+              <div className="md:w-1/3 flex items-center justify-center bg-theme-black-lighter rounded-md">
                 <div className="w-16 h-16 flex items-center justify-center">
                   <Dumbbell className="w-8 h-8 text-theme-gold" />
                 </div>
@@ -37,7 +37,7 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(plan.workouts).map(([day, workout]) => (
-                    <span key={day} className="px-3 py-1 bg-theme-black-lighter rounded-full text-sm text-theme-gold-dark">
+                    <span key={day} className="px-3 py-1 bg-theme-black-lighter rounded-lg text-sm text-theme-gold-dark">
                       {day}
                     </span>
                   ))}
@@ -62,7 +62,7 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
               Object.entries(workoutHistory)
                 .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
                 .map(([date, logs]) => (
-                <div key={date} className="p-3 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
+                <div key={date} className="p-3 bg-theme-black-lighter rounded-md border border-theme-gold/10">
                   <h3 className="text-md font-semibold text-theme-gold-light mb-2">{date}</h3>
                   <ul className="space-y-1 text-sm">
                     {logs.map((log, index) => (

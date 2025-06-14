@@ -280,15 +280,15 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           </div>
         </div>
 
-        <div className="h-2 bg-theme-black-lighter rounded-full mb-4">
+        <div className="h-2 bg-theme-black-lighter rounded-lg mb-4">
           <div 
-            className="h-full bg-theme-gold rounded-full transition-all duration-300"
+            className="h-full bg-theme-gold rounded-lg transition-all duration-300"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
 
         {showWorkoutQueue && (
-          <div className="mb-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
+          <div className="mb-6 p-4 bg-theme-black-lighter rounded-md border border-theme-gold/10">
             <h3 className="text-lg font-medium text-theme-gold mb-3">Workout Queue</h3>
             <div className="space-y-2">
               {plan.exercises.map((exercise, index) => {
@@ -300,7 +300,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 return (
                   <div 
                     key={exercise.id}
-                    className={`p-2 rounded-lg border ${
+                    className={`p-2 rounded-sm border ${
                       isCurrentExercise 
                         ? 'bg-theme-gold/20 border-theme-gold' 
                         : isPastExercise
@@ -328,7 +328,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           </div>
         )}
 
-        <div className="mb-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
+        <div className="mb-6 p-4 bg-theme-black-lighter rounded-md border border-theme-gold/10">
           <h3 className="text-xl font-medium text-theme-gold">{enhancedCurrentExercise.name}</h3>
           <p className="text-sm text-theme-gold-dark flex items-center">
             <Target size={16} className="mr-2"/> 
@@ -453,7 +453,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             <h4 className="text-md font-semibold text-theme-gold mb-2">Logged Sets for {enhancedCurrentExercise.name}:</h4>
             <ul className="space-y-1 text-sm">
               {loggedSetsForExercise.map((log, index) => (
-                <li key={index} className="p-2 bg-theme-black-lighter rounded-lg border border-theme-gold/10 text-theme-gold-dark">
+                <li key={index} className="p-2 bg-theme-black-lighter rounded-sm border border-theme-gold/10 text-theme-gold-dark">
                   Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
                 </li>
               ))}

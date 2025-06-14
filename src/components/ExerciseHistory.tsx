@@ -13,7 +13,7 @@ interface ExerciseHistoryProps {
 
 function ExerciseHistoryItem({ entry }: { entry: ExerciseHistoryEntry }) {
   return (
-    <div className="p-3 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
+    <div className="p-3 bg-theme-black-lighter rounded-sm border border-theme-gold/10">
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-2 text-theme-gold-light">
           <Calendar size={14} />
@@ -69,7 +69,7 @@ export function ExerciseHistory({ isOpen, onClose, exerciseId, exerciseName }: E
     <Modal isOpen={isOpen} onClose={onClose} title={`${exerciseName} History`}>
       <div className="space-y-4">
         {mostRecentEntry && (
-          <div className="p-3 bg-theme-gold/10 rounded-lg border border-theme-gold/30">
+          <div className="p-3 bg-theme-gold/10 rounded-sm border border-theme-gold/30">
             <h4 className="text-sm font-semibold text-theme-gold mb-2">Most Recent Performance</h4>
             <div className="flex items-center gap-4 text-sm text-theme-gold">
               <span>{mostRecentEntry.date}</span>
