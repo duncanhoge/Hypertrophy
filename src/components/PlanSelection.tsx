@@ -62,7 +62,7 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
               Object.entries(workoutHistory)
                 .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
                 .map(([date, logs]) => (
-                <div key={date} className="p-3 bg-theme-black-lighter rounded-md border border-theme-gold/10">
+                <div key={date} className="p-3 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
                   <h3 className="text-md font-semibold text-theme-gold-light mb-2">{date}</h3>
                   <ul className="space-y-1 text-sm">
                     {logs.map((log, index) => (

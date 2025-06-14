@@ -242,7 +242,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             {isResting && (
               <button 
                 onClick={skipRest}
-                className="absolute bottom-[-60px] text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-6 py-3 rounded-full text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
+                className="absolute bottom-[-60px] text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-6 py-3 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
               >
                 <SkipForward size={16} />
                 Skip Rest
@@ -300,7 +300,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 return (
                   <div 
                     key={exercise.id}
-                    className={`p-2 rounded border ${
+                    className={`p-2 rounded-lg border ${
                       isCurrentExercise 
                         ? 'bg-theme-gold/20 border-theme-gold' 
                         : isPastExercise
@@ -444,7 +444,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             <h4 className="text-md font-semibold text-theme-gold mb-2">Logged Sets for {enhancedCurrentExercise.name}:</h4>
             <ul className="space-y-1 text-sm">
               {loggedSetsForExercise.map((log, index) => (
-                <li key={index} className="p-2 bg-theme-black-lighter rounded border border-theme-gold/10 text-theme-gold-dark">
+                <li key={index} className="p-2 bg-theme-black-lighter rounded-lg border border-theme-gold/10 text-theme-gold-dark">
                   Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
                 </li>
               ))}

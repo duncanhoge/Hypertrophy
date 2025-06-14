@@ -53,7 +53,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
           <div className="mt-4 space-y-4 max-h-96 overflow-y-auto pr-2">
             {Object.keys(workoutHistory).length > 0 ? (
               Object.entries(workoutHistory).map(([date, logs]) => (
-                <div key={date} className="p-3 bg-theme-black-lighter rounded-md border border-theme-gold/10">
+                <div key={date} className="p-3 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
                   <h3 className="text-md font-semibold text-theme-gold-light mb-2">{date}</h3>
                   <ul className="space-y-1 text-sm">
                     {logs.map((log, index) => (
