@@ -34,6 +34,9 @@ export default {
         'top-level-container': '48px',      // Level 1: Main cards, primary containers
         'nested-container': '32px',         // Level 2: Containers inside main cards
         '2x-nested-container': '8px',       // Level 3: Items inside nested containers
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
       }
     },
   },

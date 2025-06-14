@@ -5,6 +5,7 @@ import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
 import { ExerciseHistory } from './ExerciseHistory';
+import { PulsingTimerBackground } from './PulsingTimerBackground';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import type { Exercise, WorkoutDay } from '../data/workoutData';
@@ -197,57 +198,70 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative">
-      {/* Enhanced Timer Overlay */}
+      {/* Enhanced Timer Overlay with Pulsing Background */}
       {(isResting || isTimedExerciseActive) && timerActive && (
-        <div className="fixed inset-0 bg-theme-black/90 backdrop-blur-lg flex items-center justify-center z-50 transition-all duration-500 ease-in-out">
-          <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
-            {/* SVG for circular timer */}
-            <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              {/* Background track */}
-              <circle 
-                cx="50" 
-                cy="50" 
-                r="45" 
-                strokeWidth="6" 
-                fill="none" 
-                className="stroke-theme-gold/20"
-              />
-              {/* Progress ring */}
-              <circle 
-                cx="50" 
-                cy="50" 
-                r="45" 
-                strokeWidth="6" 
-                fill="none" 
-                className="stroke-theme-gold transition-all duration-1000 ease-linear"
-                strokeLinecap="round"
-                style={{
-                  strokeDasharray: `${2 * Math.PI * 45}`,
-                  strokeDashoffset: `${2 * Math.PI * 45 * (1 - timerProgress / 100)}`
-                }}
-              />
-            </svg>
-            
-            {/* Countdown Text */}
-            <div className="text-center">
-              <span className="text-5xl md:text-6xl font-bold text-theme-gold tracking-tighter font-mono">
-                {formatTime(timerSeconds)}
-              </span>
-              <p className="text-theme-gold-light uppercase tracking-widest text-sm mt-2 font-semibold">
-                {isResting ? "REST" : "EXERCISE"}
-              </p>
+        <div className="fixed inset-0 z-50 transition-all duration-500 ease-in-out">
+          {/* Pulsing Background Animation */}
+          <PulsingTimerBackground 
+            timeLeft={timerSeconds}
+            totalTime={isTimedExerciseActive ? parseInt(duration) : REST_DURATION_SECONDS}
+            isActive={timerActive}
+          />
+          
+          {/* Gradient Overlay for Text Readability */}
+          <div className="absolute inset-0 bg-gradient-radial from-transparent via-theme-black/20 to-theme-black/90" style={{ zIndex: 2 }} />
+          
+          {/* Timer Content */}
+          <div className="relative w-full h-full flex items-center justify-center" style={{ zIndex: 10 }}>
+            <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
+              {/* SVG for circular timer */}
+              <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                {/* Background track */}
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="45" 
+                  strokeWidth="6" 
+                  fill="none" 
+                  className="stroke-theme-gold/20"
+                />
+                {/* Progress ring */}
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="45" 
+                  strokeWidth="6" 
+                  fill="none" 
+                  className="stroke-theme-gold transition-all duration-1000 ease-linear"
+                  strokeLinecap="round"
+                  style={{
+                    strokeDasharray: `${2 * Math.PI * 45}`,
+                    strokeDashoffset: `${2 * Math.PI * 45 * (1 - timerProgress / 100)}`
+                  }}
+                />
+              </svg>
+              
+              {/* Countdown Text */}
+              <div className="text-center">
+                <span className="text-5xl md:text-6xl font-bold text-theme-gold tracking-tighter font-mono">
+                  {formatTime(timerSeconds)}
+                </span>
+                <p className="text-theme-gold-light uppercase tracking-widest text-sm mt-2 font-semibold">
+                  {isResting ? "REST" : "EXERCISE"}
+                </p>
+              </div>
+              
+              {/* Skip button */}
+              {isResting && (
+                <button 
+                  onClick={skipRest}
+                  className="absolute bottom-[-60px] text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-6 py-3 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
+                >
+                  <SkipForward size={16} />
+                  Skip Rest
+                </button>
+              )}
             </div>
-            
-            {/* Skip button */}
-            {isResting && (
-              <button 
-                onClick={skipRest}
-                className="absolute bottom-[-60px] text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-6 py-3 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
-              >
-                <SkipForward size={16} />
-                Skip Rest
-              </button>
-            )}
           </div>
         </div>
       )}
