@@ -25,7 +25,8 @@ export default {
         }
       },
       borderRadius: {
-        'lg': '64px', // Very rounded, pill-like appearance
+        'lg': '12px', // Reset to reasonable rounded value
+        'md': '8px'   // Medium rounded for buttons
       }
     },
   },

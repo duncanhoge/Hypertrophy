@@ -31,7 +31,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
             <button
               key={day}
               onClick={() => onStartWorkout(day)}
-              className="w-full bg-theme-black-lighter hover:bg-theme-gold/20 text-theme-gold font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 flex flex-col items-center space-y-2 border border-theme-gold/30"
+              className="w-full bg-theme-black-lighter hover:bg-theme-gold/20 text-theme-gold font-semibold py-4 px-6 rounded-md shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 flex flex-col items-center space-y-2 border border-theme-gold/30"
             >
               <CalendarDays size={28} />
               <span>{day}</span>
