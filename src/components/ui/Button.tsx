@@ -47,3 +47,28 @@ export const PrimaryButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => 
 export const SecondaryButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => (
   <Button {...props} variant="secondary" />
 );
+
+// Tile button that inherits primary styling but uses small border radius
+export const TilePrimaryButton: React.FC<Omit<ButtonProps, 'variant'>> = ({ 
+  onClick, 
+  children, 
+  className = '', 
+  ariaLabel, 
+  type = 'button',
+  disabled = false
+}) => {
+  const baseClasses = "inline-flex items-center justify-center gap-2 p-3 rounded-sm transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed";
+  const primaryClasses = "bg-theme-gold text-theme-black hover:bg-theme-gold-light font-semibold border border-theme-gold";
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      aria-label={ariaLabel}
+      disabled={disabled}
+      className={`${baseClasses} ${primaryClasses} ${className}`}
+    >
+      {children}
+    </button>
+  );
+};

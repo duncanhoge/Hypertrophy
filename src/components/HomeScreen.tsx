@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock } from 'lucide-react';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
-import { PrimaryButton } from './ui/Button';
+import { TilePrimaryButton } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { getCurrentLevelWorkouts, getCurrentLevel } from '../data/workoutData';
@@ -83,7 +83,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
         <h2 className="hero text-2xl mb-12 text-center">Select a workout</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {Object.entries(currentWorkouts).map(([day, workout]) => (
-            <PrimaryButton
+            <TilePrimaryButton
               key={day}
               onClick={() => onStartWorkout(day)}
               ariaLabel={`Start ${day} workout`}
@@ -92,7 +92,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
               <CalendarDays size={28} />
               <span>{day}</span>
               <span className="text-xs opacity-80">{workout.name.split(' - ')[1]}</span>
-            </PrimaryButton>
+            </TilePrimaryButton>
           ))}
         </div>
       </Card>
