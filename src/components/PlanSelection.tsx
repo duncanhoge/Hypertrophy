@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { WORKOUT_PLANS } from '../data/workoutData';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
+import { PrimaryButton, SecondaryButton } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { Dumbbell, Calendar, PlusCircle, MinusCircle, Play, Eye, Clock, CheckCircle } from 'lucide-react';
@@ -106,14 +107,13 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
                   <div className="flex flex-wrap gap-3 pt-2">
                     {!isActivePlan && (
                       <>
-                        <IconButton
+                        <PrimaryButton
                           onClick={() => handleStartPlan(plan.id)}
                           ariaLabel={hasActivePlan ? "Switch to This Plan" : "Start This Plan"}
-                          className="bg-theme-gold text-theme-black hover:bg-theme-gold-light font-semibold"
                         >
                           <Play size={16} className="mr-1" />
                           {hasActivePlan ? "Switch to This Plan" : "Start This Plan"}
-                        </IconButton>
+                        </PrimaryButton>
                         <IconButton
                           onClick={() => handleTryPlan(plan.id)}
                           ariaLabel="Try Plan"
@@ -125,14 +125,13 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
                       </>
                     )}
                     {isActivePlan && (
-                      <IconButton
+                      <PrimaryButton
                         onClick={() => onSelectPlan(plan.id)}
                         ariaLabel="Continue Plan"
-                        className="bg-theme-gold text-theme-black hover:bg-theme-gold-light font-semibold"
                       >
                         <Play size={16} className="mr-1" />
                         Continue Plan
-                      </IconButton>
+                      </PrimaryButton>
                     )}
                   </div>
                 </div>
@@ -188,14 +187,14 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
             Your workout history will be preserved, but your current progress will be reset.
           </p>
           <div className="flex gap-3 pt-4">
-            <IconButton
+            <PrimaryButton
               onClick={handleConfirmSwitch}
               ariaLabel="Confirm Switch"
-              className="flex-1 bg-theme-gold text-theme-black hover:bg-theme-gold-light font-semibold"
+              className="flex-1"
             >
               <CheckCircle size={16} className="mr-1" />
               Yes, Switch Plans
-            </IconButton>
+            </PrimaryButton>
             <IconButton
               onClick={() => setShowSwitchModal(false)}
               ariaLabel="Cancel"

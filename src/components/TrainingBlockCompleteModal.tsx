@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trophy, CheckCircle, Star } from 'lucide-react';
 import { Modal } from './ui/Modal';
-import { IconButton } from './ui/IconButton';
+import { PrimaryButton } from './ui/Button';
 
 interface TrainingBlockCompleteModalProps {
   isOpen: boolean;
@@ -63,14 +63,14 @@ export function TrainingBlockCompleteModal({
 
         {/* Action Button */}
         <div className="pt-4">
-          <IconButton
+          <PrimaryButton
             onClick={onClose}
             ariaLabel="Done"
-            className="w-full bg-theme-gold text-theme-black hover:bg-theme-gold-light font-bold text-lg py-4"
+            className="w-full text-lg py-4 font-bold"
           >
             <Trophy size={20} className="mr-2" />
             Done
-          </IconButton>
+          </PrimaryButton>
         </div>
 
         {/* Motivational Footer */}

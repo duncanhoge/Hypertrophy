@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
 import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise } from '../data/workoutData';
 import { IconButton } from './ui/IconButton';
+import { PrimaryButton } from './ui/Button';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
 import { ExerciseHistory } from './ExerciseHistory';
@@ -456,28 +457,31 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
         <div className="flex flex-col sm:flex-row gap-3">
           {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
-            <button 
+            <PrimaryButton 
               onClick={startTimedExercise}
-              className="flex-1 inline-flex items-center justify-center gap-2 p-4 bg-theme-gold text-theme-black font-semibold rounded-lg hover:bg-theme-gold-light transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50"
+              ariaLabel="Start Timer"
+              className="flex-1"
             >
-              <Play size={20} /> Start Timer
-            </button>
+              <Play size={20} className="mr-2" /> Start Timer
+            </PrimaryButton>
           )}
           {enhancedCurrentExercise.type !== 'timed' && !isResting && (
-            <button 
+            <PrimaryButton 
               onClick={handleLogSet}
-              className="flex-1 inline-flex items-center justify-center gap-2 p-4 bg-theme-gold text-theme-black font-semibold rounded-lg hover:bg-theme-gold-light transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50"
+              ariaLabel={`Log Set ${isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}`}
+              className="flex-1"
             >
-              <Save size={20} /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
-            </button>
+              <Save size={20} className="mr-2" /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
+            </PrimaryButton>
           )}
           {isLastSetForExercise && !isResting && (
-            <button 
+            <IconButton 
               onClick={moveToNextExercise}
-              className="flex-1 inline-flex items-center justify-center gap-2 p-4 bg-theme-black hover:bg-theme-black-lighter text-theme-gold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-theme-gold focus:ring-opacity-50 border border-theme-gold/30"
+              ariaLabel={isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'}
+              className="flex-1"
             >
               {isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'} <ChevronRight size={20} />
-            </button>
+            </IconButton>
           )}
         </div>
         
