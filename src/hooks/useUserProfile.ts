@@ -33,26 +33,26 @@ export function useUserProfile() {
         .from('user_profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .limit(1);
 
       if (fetchError) {
-        // If profile doesn't exist, create it
-        if (fetchError.code === 'PGRST116') {
-          const { data: newProfile, error: createError } = await supabase
-            .from('user_profiles')
-            .insert([{ id: user.id }])
-            .select()
-            .single();
+        throw fetchError;
+      }
 
-          if (createError) {
-            throw createError;
-          }
-          setProfile(newProfile);
-        } else {
-          throw fetchError;
+      // If no profile exists, create one
+      if (!data || data.length === 0) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([{ id: user.id }])
+          .select()
+          .single();
+
+        if (createError) {
+          throw createError;
         }
+        setProfile(newProfile);
       } else {
-        setProfile(data);
+        setProfile(data[0]);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch profile');
