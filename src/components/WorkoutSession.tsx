@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
-import { REST_DURATION_SECONDS, getEnhancedExercise } from '../data/workoutData';
+import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise } from '../data/workoutData';
 import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
@@ -8,11 +8,12 @@ import { ExerciseHistory } from './ExerciseHistory';
 import { PulsingTimerBackground } from './PulsingTimerBackground';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import type { Exercise, WorkoutDay } from '../data/workoutData';
+import { useUserProfile } from '../hooks/useUserProfile';
+import type { Exercise, WorkoutPlan } from '../data/workoutData';
 
 interface WorkoutSessionProps {
   day: string;
-  plan: WorkoutDay;
+  plan: WorkoutPlan;
   onGoHome: () => void;
   onLogWorkout: (log: any) => void;
 }
@@ -36,7 +37,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showExerciseHistory, setShowExerciseHistory] = useState(false);
 
   const { user } = useAuth();
-  const currentExercise = plan.exercises[currentExerciseIndex];
+  const { profile } = useUserProfile();
+  
+  // Get current level workouts
+  const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
+  const currentWorkout = currentWorkouts[day];
+  const currentExercise = currentWorkout?.exercises[currentExerciseIndex];
   const enhancedCurrentExercise = currentExercise ? getEnhancedExercise(currentExercise) : null;
 
   useEffect(() => {
@@ -72,7 +78,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   }, [timerActive, timerSeconds, isResting, isTimedExerciseActive]);
 
   const handleLogSet = async () => {
-    if (!enhancedCurrentExercise || !user) return;
+    if (!enhancedCurrentExercise || !user || !currentWorkout) return;
 
     let repsLogged = reps;
     if (enhancedCurrentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
@@ -98,6 +104,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       duration_seconds: enhancedCurrentExercise.type === 'timed' ? (duration ? parseInt(duration) : parseInt(enhancedCurrentExercise.reps.match(/\d+/)?.[0] || '0')) : null,
       target_reps: enhancedCurrentExercise.reps,
       target_sets: enhancedCurrentExercise.sets,
+      current_plan_id: profile?.current_plan_id || null,
+      current_level_index: profile?.current_level_index || 0,
       created_at: new Date().toISOString(),
     };
 
@@ -128,7 +136,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           setTimerActive(true);
         }
       } else {
-        if (currentExerciseIndex < plan.exercises.length - 1) {
+        if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
           // User will need to click next
         } else {
           setShowCompletionModal(true);
@@ -149,7 +157,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   };
 
   const moveToNextExercise = () => {
-    if (currentExerciseIndex < plan.exercises.length - 1) {
+    if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
       setCurrentExerciseIndex(prev => prev + 1);
       setIsResting(false);
       setTimerActive(false);
@@ -169,18 +177,16 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
 
-  // Calculate total sets in workout
-  const totalSets = plan.exercises.reduce((acc, ex) => acc + ex.sets, 0);
-  
-  // Calculate completed sets
-  const completedSets = plan.exercises.slice(0, currentExerciseIndex).reduce((acc, ex) => acc + ex.sets, 0) + (currentSet - 1);
-  
-  // Calculate progress percentage
-  const progressPercentage = (completedSets / totalSets) * 100;
-
-  // Timer progress calculation for SVG circle
-  const timerProgress = isResting || isTimedExerciseActive ? 
-    ((REST_DURATION_SECONDS - timerSeconds) / REST_DURATION_SECONDS) * 100 : 0;
+  if (!currentWorkout) {
+    return (
+      <Card className="bg-theme-black-light border border-theme-gold/20 text-center">
+        <p className="text-xl text-red-400">Error: Workout not found for {day}.</p>
+        <IconButton onClick={onGoHome} ariaLabel="Go Home" className="mt-4">
+          <ChevronLeft size={20} className="mr-1" /> Go Home
+        </IconButton>
+      </Card>
+    );
+  }
 
   if (!enhancedCurrentExercise) {
     return (
@@ -193,8 +199,21 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     );
   }
 
+  // Calculate total sets in workout
+  const totalSets = currentWorkout.exercises.reduce((acc, ex) => acc + ex.sets, 0);
+  
+  // Calculate completed sets
+  const completedSets = currentWorkout.exercises.slice(0, currentExerciseIndex).reduce((acc, ex) => acc + ex.sets, 0) + (currentSet - 1);
+  
+  // Calculate progress percentage
+  const progressPercentage = (completedSets / totalSets) * 100;
+
+  // Timer progress calculation for SVG circle
+  const timerProgress = isResting || isTimedExerciseActive ? 
+    ((REST_DURATION_SECONDS - timerSeconds) / REST_DURATION_SECONDS) * 100 : 0;
+
   const isLastSetForExercise = currentSet >= enhancedCurrentExercise.sets;
-  const isLastExerciseOverall = currentExerciseIndex >= plan.exercises.length - 1;
+  const isLastExerciseOverall = currentExerciseIndex >= currentWorkout.exercises.length - 1;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative">
@@ -269,7 +288,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-2xl font-semibold text-theme-gold">{plan.name}</h2>
+            <h2 className="text-2xl font-semibold text-theme-gold">{currentWorkout.name}</h2>
             <p className="text-sm text-theme-gold-dark mt-1">
               Set {completedSets + 1} of {totalSets} Total Sets
             </p>
@@ -305,7 +324,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           <div className="mb-6 p-4 bg-theme-black-lighter rounded-nested-container border border-theme-gold/10">
             <h3 className="text-lg font-medium text-theme-gold mb-3">Workout Queue</h3>
             <div className="space-y-2">
-              {plan.exercises.map((exercise, index) => {
+              {currentWorkout.exercises.map((exercise, index) => {
                 const enhancedExercise = getEnhancedExercise(exercise);
                 const isCurrentExercise = index === currentExerciseIndex;
                 const isPastExercise = index < currentExerciseIndex;

@@ -26,10 +26,13 @@ Visit the live application: [https://weights.duncanhoge.com](https://weights.dun
 - 🔐 **User Authentication**: Secure email/password authentication with Supabase
 - 📈 **Exercise History**: View detailed performance history for each exercise
 - 🎮 **Interactive Workout Queue**: Visual progress tracking during workouts
-- ⏰ **Smart Rest Timer**: Automatic rest periods between sets
+- ⏰ **Smart Rest Timer**: Automatic rest periods between sets with pulsing background animation
 - 💾 **Cloud Data Persistence**: All workout data synced to Supabase
 - 🔄 **Real-time Updates**: Instant data synchronization across sessions
 - 📚 **Centralized Exercise Dictionary**: Single source of truth for all exercise data
+- 🎯 **Training Block System**: Structured 6-week programs with completion tracking
+- ⚙️ **Flexible Duration**: User-configurable training block lengths
+- 🏆 **Achievement Celebration**: Success screens for completed training blocks
 
 ### User Experience
 - 🎨 Premium "Apple-level" design aesthetics with gold/black theme
@@ -37,6 +40,7 @@ Visit the live application: [https://weights.duncanhoge.com](https://weights.dun
 - 🎯 Intuitive navigation with clear visual hierarchy
 - 📊 Comprehensive workout completion tracking
 - 🏆 Motivational progress indicators
+- 📅 Time-bound training programs with progress tracking
 
 ## 🏗️ Architecture
 
@@ -53,9 +57,12 @@ src/
 │   ├── ExerciseHistory.tsx # Exercise performance history
 │   ├── HomeScreen.tsx   # Workout plan selection
 │   ├── PlanSelection.tsx # Main plan selection screen
-│   └── WorkoutSession.tsx # Active workout interface
+│   ├── WorkoutSession.tsx # Active workout interface
+│   ├── TrainingBlockCompleteModal.tsx # Completion celebration
+│   └── PulsingTimerBackground.tsx # Animated timer background
 ├── hooks/               # Custom React hooks
 │   ├── useAuth.ts       # Authentication state management
+│   ├── useUserProfile.ts # Training block state management
 │   └── useExerciseHistory.ts # Exercise history data fetching
 ├── lib/                 # External service integrations
 │   └── supabase.ts      # Supabase client configuration
@@ -63,7 +70,8 @@ src/
 │   ├── exerciseDictionary.ts # Centralized exercise definitions
 │   └── workoutData.ts   # Workout plans and exercise references
 ├── docs/                # Architecture documentation
-│   └── exercise-dictionary.md # Exercise Dictionary documentation
+│   ├── exercise-dictionary.md # Exercise Dictionary documentation
+│   └── training-block-completion.md # Training Block system documentation
 ├── App.tsx              # Main application component
 ├── main.tsx             # Application entry point
 └── index.css            # Global styles and Tailwind imports
@@ -80,10 +88,30 @@ The application uses a **Centralized Exercise Dictionary** as the single source 
 
 For detailed information about the Exercise Dictionary, see: [Exercise Dictionary Documentation](docs/exercise-dictionary.md)
 
+### Training Block System
+
+The **Training Block Duration & Completion** system provides structured, time-bound workout programs:
+
+- **Time-Bound Programs**: Default 6-week duration with user customization
+- **Progress Tracking**: Visual indicators showing weeks remaining
+- **Completion Celebration**: Success screens acknowledging user achievements
+- **Flexible Management**: Settings panel for duration adjustments
+- **Multi-Level Support**: Architecture ready for program progression
+
+For detailed information about the Training Block system, see: [Training Block Documentation](docs/training-block-completion.md)
+
 ### Backend Architecture (Supabase)
 ```
 Database Schema:
-├── users (managed by Supabase Auth)
+├── auth.users (managed by Supabase Auth)
+├── user_profiles
+│   ├── id (uuid, primary key, references auth.users)
+│   ├── current_plan_id (text, nullable)
+│   ├── current_level_index (integer, default 0)
+│   ├── block_start_date (timestamptz, nullable)
+│   ├── block_duration_weeks (integer, default 6)
+│   ├── created_at (timestamptz)
+│   └── updated_at (timestamptz)
 └── workout_logs
     ├── id (uuid, primary key)
     ├── user_id (uuid, foreign key)
@@ -96,6 +124,8 @@ Database Schema:
     ├── duration_seconds (integer, nullable)
     ├── target_reps (text)
     ├── target_sets (integer)
+    ├── current_plan_id (text, nullable) # Training block tracking
+    ├── current_level_index (integer, default 0) # Training block tracking
     └── created_at (timestamp)
 
 Security:
@@ -113,23 +143,46 @@ Security:
 - Provides loading states during auth checks
 - Conditionally renders auth screen or main app
 
+#### `PlanSelection`
+- **Enhanced plan selection** with training block integration:
+  - Conditional buttons based on active plan status
+  - "Start This Plan" vs "Switch to This Plan" logic
+  - Plan switching confirmation modals
+  - Active plan visual indicators with progress display
+  - "Try Plan" option for exploration without commitment
+
+#### `HomeScreen`
+- **Plan management interface** with training block controls:
+  - Current level display and navigation
+  - Weeks remaining indicator for active blocks
+  - Settings panel access for duration management
+  - Contextual workout selection based on current level
+
 #### `WorkoutSession`
 - **Primary workout interface** with comprehensive features:
   - Real-time set logging with validation
-  - Automatic rest timer between sets
+  - Automatic rest timer with pulsing background animation
   - Exercise queue with visual progress tracking
   - Exercise history modal integration
   - Support for all exercise types (weight/reps, timed, AMRAP)
   - Smart navigation between exercises
   - Workout completion celebration
   - Integration with Exercise Dictionary for rich exercise metadata
+  - Training block context tracking in workout logs
 
-#### `ExerciseHistory`
-- **Modal component** displaying exercise performance history
-- Chronologically sorted data (most recent first)
-- Grouped by date for better organization
-- Quick reference to most recent performance
-- Handles loading states and error conditions
+#### `TrainingBlockCompleteModal`
+- **Celebration interface** for completed training blocks:
+  - Trophy and achievement graphics with animations
+  - Personalized completion message with plan name and duration
+  - Achievement highlights and motivational content
+  - Single action flow to acknowledge completion
+
+#### `PulsingTimerBackground`
+- **Animated background** for rest and timed exercise periods:
+  - Canvas-based pulsing animation synchronized with timer
+  - Dynamic pulse frequency based on remaining time
+  - Smooth gradient overlays for text readability
+  - Responsive design adapting to screen size
 
 ### UI Components
 
@@ -158,6 +211,14 @@ Security:
 - Handles session persistence and state changes
 - Loading state management during auth operations
 
+#### `useUserProfile`
+- **Training block state management**:
+  - Fetches and manages user profile data
+  - Provides training block lifecycle methods
+  - Calculates weeks remaining and completion status
+  - Handles block duration updates and early termination
+  - Automatic profile creation for new users
+
 #### `useExerciseHistory`
 - Fetches exercise-specific performance data
 - Optimized queries with user and exercise filtering
@@ -172,11 +233,19 @@ Security:
 3. User signs in → Supabase handles authentication
 4. Session established → Main app renders
 
+### Training Block Flow
+1. User visits plan selection → `useUserProfile` loads current state
+2. User clicks "Start This Plan" → Profile updated with block details
+3. Plan home screen shows → Current level workouts and progress
+4. Settings accessible → Duration adjustments and early termination
+5. Completion check on load → Success modal if block complete
+6. User acknowledges completion → Block state cleared, return to selection
+
 ### Workout Logging Flow
-1. User selects plan → `PlanSelection`
-2. User selects workout day → `HomeScreen`
+1. User selects plan → `PlanSelection` (with training block context)
+2. User selects workout day → `HomeScreen` (current level aware)
 3. User starts workout → `WorkoutSession`
-4. User logs sets → Data saved to Supabase
+4. User logs sets → Data saved to Supabase with training block context
 5. Real-time updates → UI reflects changes immediately
 
 ### Exercise Data Flow
@@ -259,7 +328,7 @@ Security:
      ```
 
 4. **Set up the database**
-   - Run the SQL migration to create the `workout_logs` table
+   - Run the SQL migrations to create the required tables
    - Enable Row Level Security
    - Set up authentication policies
 
@@ -270,8 +339,22 @@ Security:
 
 ### Database Setup
 
-The application requires a `workout_logs` table with the following structure:
+The application requires the following database structure:
 
+#### User Profiles Table
+```sql
+CREATE TABLE user_profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  current_plan_id text,
+  current_level_index integer DEFAULT 0,
+  block_start_date timestamptz,
+  block_duration_weeks integer DEFAULT 6 CHECK (block_duration_weeks > 0),
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+```
+
+#### Enhanced Workout Logs Table
 ```sql
 CREATE TABLE workout_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -285,30 +368,49 @@ CREATE TABLE workout_logs (
   duration_seconds integer CHECK (duration_seconds IS NULL OR duration_seconds > 0),
   target_reps text NOT NULL,
   target_sets integer NOT NULL CHECK (target_sets > 0),
+  current_plan_id text,
+  current_level_index integer DEFAULT 0,
   created_at timestamptz DEFAULT now()
 );
+```
 
+#### Security Setup
+```sql
 -- Enable RLS
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workout_logs ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
+CREATE POLICY "Users can read own profile" ON user_profiles
+  FOR SELECT TO authenticated USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile" ON user_profiles
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON user_profiles
+  FOR UPDATE TO authenticated USING (auth.uid() = id);
+
 CREATE POLICY "Users can read own logs" ON workout_logs
-  FOR SELECT TO authenticated
-  USING (auth.uid() = user_id);
+  FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can insert own logs" ON workout_logs
-  FOR INSERT TO authenticated
-  WITH CHECK (auth.uid() = user_id);
+  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 ```
 
 ## 📱 Usage
 
-### Starting a Workout
+### Starting a Training Block
 1. **Select a Plan** - Choose from available workout programs
-2. **Pick a Day** - Select which workout to perform
-3. **Log Sets** - Enter weight, reps, or duration for each set
-4. **Track Progress** - View real-time progress through the workout
-5. **Review History** - Check previous performance for any exercise
+2. **Start Training Block** - Click "Start This Plan" to begin 6-week commitment
+3. **Track Progress** - View weeks remaining and access settings
+4. **Complete Workouts** - Log sets with automatic training block context
+5. **Celebrate Completion** - Receive achievement recognition after 6 weeks
+
+### Managing Training Blocks
+- **Adjust Duration**: Use settings panel to modify block length
+- **Switch Plans**: Confirmation required to prevent accidental progress loss
+- **End Early**: Option to terminate block before completion
+- **Try Plans**: Explore without starting formal training block
 
 ### Exercise Types
 - **Weight + Reps**: Standard strength training exercises
@@ -317,7 +419,7 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 - **AMRAP**: As Many Reps As Possible with manual entry
 
 ### Features During Workout
-- **Rest Timer**: Automatic countdown between sets
+- **Rest Timer**: Automatic countdown with pulsing background animation
 - **Exercise Queue**: Visual progress through the workout
 - **History Access**: Quick reference to previous performance
 - **Smart Navigation**: Seamless flow between exercises
@@ -326,11 +428,12 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 ## 🔧 Configuration
 
 ### Workout Plans
-Workout plans are defined in `src/data/workoutData.ts` and reference exercises from the centralized Exercise Dictionary. Plans include:
+Workout plans are defined in `src/data/workoutData.ts` with multi-level structure:
 - Exercise IDs referencing dictionary entries
 - Set and rep schemes
 - Exercise types and configurations
 - Plan metadata and descriptions
+- Multiple levels for progression
 
 ### Exercise Dictionary
 The Exercise Dictionary (`src/data/exerciseDictionary.ts`) contains:
@@ -340,6 +443,12 @@ The Exercise Dictionary (`src/data/exerciseDictionary.ts`) contains:
 - Movement patterns
 - Alternative exercise suggestions
 - Form cues and descriptions
+
+### Training Block Settings
+- **Default Duration**: 6 weeks (user configurable)
+- **Minimum Duration**: 1 week
+- **Completion Check**: Every app load
+- **Progress Calculation**: Based on start date and duration
 
 ### Styling
 The application uses a custom Tailwind theme defined in `tailwind.config.js`:
@@ -378,6 +487,7 @@ Ensure the following environment variables are set in your deployment platform:
 - Test authentication flows thoroughly
 - When adding exercises, update the Exercise Dictionary
 - Follow the established ID naming conventions
+- Consider training block context in new features
 
 ## 📄 License
 
