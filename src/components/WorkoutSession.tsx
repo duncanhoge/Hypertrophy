@@ -6,7 +6,6 @@ import { PrimaryButton } from './ui/Button';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
 import { ExerciseHistory } from './ExerciseHistory';
-import { PulsingTimerBackground } from './PulsingTimerBackground';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -17,6 +16,174 @@ interface WorkoutSessionProps {
   plan: WorkoutPlan;
   onGoHome: () => void;
   onLogWorkout: (log: any) => void;
+}
+
+interface InlineTimerProps {
+  timeLeft: number;
+  totalTime: number;
+  isActive: boolean;
+  onSkip: () => void;
+}
+
+function InlineTimer({ timeLeft, totalTime, isActive, onSkip }: InlineTimerProps) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const animationRef = React.useRef<number>();
+  const pulsesRef = React.useRef<Array<{
+    x: number;
+    y: number;
+    radius: number;
+    lifespan: number;
+    speed: number;
+  }>>([]);
+  const frameCountRef = React.useRef(0);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resizeCanvas = () => {
+      const rect = canvas.parentElement?.getBoundingClientRect();
+      if (rect) {
+        canvas.width = rect.width;
+        canvas.height = 200; // Fixed height for inline display
+      }
+    };
+
+    resizeCanvas();
+
+    const createPulse = () => {
+      const pulse = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 0,
+        lifespan: 255,
+        speed: Math.max(0.5, (timeLeft / totalTime) * 2.5)
+      };
+      pulsesRef.current.push(pulse);
+    };
+
+    const updatePulse = (pulse: any) => {
+      pulse.radius += pulse.speed;
+      pulse.lifespan -= 1.5;
+    };
+
+    const drawPulse = (pulse: any) => {
+      ctx.strokeStyle = `rgba(255, 215, 0, ${pulse.lifespan / 255})`;
+      ctx.lineWidth = Math.max(0, (pulse.lifespan / 255) * 3);
+      ctx.beginPath();
+      ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+      ctx.stroke();
+    };
+
+    const animate = () => {
+      if (!isActive) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      frameCountRef.current++;
+
+      // Clear canvas with dark background
+      ctx.fillStyle = 'rgba(26, 26, 26, 1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Create new pulses
+      const pulseFrequency = Math.floor(Math.max(30, Math.min(150, (timeLeft / totalTime) * 120 + 30)));
+      if (frameCountRef.current % pulseFrequency === 0 && timeLeft > 0) {
+        createPulse();
+      }
+
+      // Update and draw pulses
+      pulsesRef.current = pulsesRef.current.filter(pulse => {
+        updatePulse(pulse);
+        drawPulse(pulse);
+        return pulse.lifespan > 0;
+      });
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [timeLeft, totalTime, isActive]);
+
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+
+  const timerProgress = ((totalTime - timeLeft) / totalTime) * 100;
+
+  return (
+    <div className="relative w-full h-48 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20 overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+      />
+      
+      {/* Timer Content Overlay */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative flex items-center justify-center">
+          {/* SVG for circular timer */}
+          <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+            {/* Background track */}
+            <circle 
+              cx="50" 
+              cy="50" 
+              r="45" 
+              strokeWidth="6" 
+              fill="none" 
+              className="stroke-theme-gold/20"
+            />
+            {/* Progress ring */}
+            <circle 
+              cx="50" 
+              cy="50" 
+              r="45" 
+              strokeWidth="6" 
+              fill="none" 
+              className="stroke-theme-gold transition-all duration-1000 ease-linear"
+              strokeLinecap="round"
+              style={{
+                strokeDasharray: `${2 * Math.PI * 45}`,
+                strokeDashoffset: `${2 * Math.PI * 45 * (1 - timerProgress / 100)}`
+              }}
+            />
+          </svg>
+          
+          {/* Countdown Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-3xl font-bold text-theme-gold tracking-tighter font-mono">
+              {formatTime(timeLeft)}
+            </span>
+            <p className="text-theme-gold-light uppercase tracking-widest text-xs mt-1 font-semibold">
+              REST
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Skip button */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+        <button 
+          onClick={onSkip}
+          className="text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-4 py-2 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
+        >
+          <SkipForward size={16} />
+          Skip Rest
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionProps) {
@@ -172,12 +339,6 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setTimerActive(false);
   };
 
-  const formatTime = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  };
-
   if (!currentWorkout) {
     return (
       <Card className="bg-theme-black-light border border-theme-gold/20 text-center">
@@ -209,83 +370,11 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   // Calculate progress percentage
   const progressPercentage = (completedSets / totalSets) * 100;
 
-  // Timer progress calculation for SVG circle
-  const timerProgress = isResting || isTimedExerciseActive ? 
-    ((REST_DURATION_SECONDS - timerSeconds) / REST_DURATION_SECONDS) * 100 : 0;
-
   const isLastSetForExercise = currentSet >= enhancedCurrentExercise.sets;
   const isLastExerciseOverall = currentExerciseIndex >= currentWorkout.exercises.length - 1;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative">
-      {/* Enhanced Timer Overlay with Pulsing Background */}
-      {(isResting || isTimedExerciseActive) && timerActive && (
-        <div className="fixed inset-0 z-50 transition-all duration-500 ease-in-out">
-          {/* Pulsing Background Animation */}
-          <PulsingTimerBackground 
-            timeLeft={timerSeconds}
-            totalTime={isTimedExerciseActive ? parseInt(duration) : REST_DURATION_SECONDS}
-            isActive={timerActive}
-          />
-          
-          {/* Gradient Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-radial from-transparent via-theme-black/20 to-theme-black/90" style={{ zIndex: 2 }} />
-          
-          {/* Timer Content */}
-          <div className="relative w-full h-full flex items-center justify-center" style={{ zIndex: 10 }}>
-            <div className="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center">
-              {/* SVG for circular timer */}
-              <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                {/* Background track */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="45" 
-                  strokeWidth="6" 
-                  fill="none" 
-                  className="stroke-theme-gold/20"
-                />
-                {/* Progress ring */}
-                <circle 
-                  cx="50" 
-                  cy="50" 
-                  r="45" 
-                  strokeWidth="6" 
-                  fill="none" 
-                  className="stroke-theme-gold transition-all duration-1000 ease-linear"
-                  strokeLinecap="round"
-                  style={{
-                    strokeDasharray: `${2 * Math.PI * 45}`,
-                    strokeDashoffset: `${2 * Math.PI * 45 * (1 - timerProgress / 100)}`
-                  }}
-                />
-              </svg>
-              
-              {/* Countdown Text */}
-              <div className="text-center">
-                <span className="text-5xl md:text-6xl font-bold text-theme-gold tracking-tighter font-mono">
-                  {formatTime(timerSeconds)}
-                </span>
-                <p className="text-theme-gold-light uppercase tracking-widest text-sm mt-2 font-semibold">
-                  {isResting ? "REST" : "EXERCISE"}
-                </p>
-              </div>
-              
-              {/* Skip button */}
-              {isResting && (
-                <button 
-                  onClick={skipRest}
-                  className="absolute bottom-[-60px] text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-6 py-3 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
-                >
-                  <SkipForward size={16} />
-                  Skip Rest
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -370,7 +459,17 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           </p>
         </div>
         
-        {!isTimedExerciseActive && !isResting && (
+        {/* Input fields or timer display */}
+        {isResting && timerActive ? (
+          <div className="mb-6">
+            <InlineTimer
+              timeLeft={timerSeconds}
+              totalTime={REST_DURATION_SECONDS}
+              isActive={timerActive}
+              onSkip={skipRest}
+            />
+          </div>
+        ) : !isTimedExerciseActive && (
           <div className="space-y-4 mb-6">
             {enhancedCurrentExercise.type === 'weight_reps' && (
               <div className="relative">
