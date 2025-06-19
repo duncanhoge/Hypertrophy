@@ -1,19 +1,189 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
-import { REST_DURATION_SECONDS, getEnhancedExercise } from '../data/workoutData';
+import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise } from '../data/workoutData';
 import { IconButton } from './ui/IconButton';
+import { PrimaryButton } from './ui/Button';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
 import { ExerciseHistory } from './ExerciseHistory';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import type { Exercise, WorkoutDay } from '../data/workoutData';
+import { useUserProfile } from '../hooks/useUserProfile';
+import type { Exercise, WorkoutPlan } from '../data/workoutData';
 
 interface WorkoutSessionProps {
   day: string;
-  plan: WorkoutDay;
+  plan: WorkoutPlan;
   onGoHome: () => void;
   onLogWorkout: (log: any) => void;
+}
+
+interface InlineTimerProps {
+  timeLeft: number;
+  totalTime: number;
+  isActive: boolean;
+  onSkip: () => void;
+}
+
+function InlineTimer({ timeLeft, totalTime, isActive, onSkip }: InlineTimerProps) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const animationRef = React.useRef<number>();
+  const pulsesRef = React.useRef<Array<{
+    x: number;
+    y: number;
+    radius: number;
+    lifespan: number;
+    speed: number;
+  }>>([]);
+  const frameCountRef = React.useRef(0);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resizeCanvas = () => {
+      const rect = canvas.parentElement?.getBoundingClientRect();
+      if (rect) {
+        canvas.width = rect.width;
+        canvas.height = 200; // Fixed height for inline display
+      }
+    };
+
+    resizeCanvas();
+
+    const createPulse = () => {
+      const pulse = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: 0,
+        lifespan: 255,
+        speed: Math.max(0.5, (timeLeft / totalTime) * 2.5)
+      };
+      pulsesRef.current.push(pulse);
+    };
+
+    const updatePulse = (pulse: any) => {
+      pulse.radius += pulse.speed;
+      pulse.lifespan -= 1.5;
+    };
+
+    const drawPulse = (pulse: any) => {
+      ctx.strokeStyle = `rgba(255, 215, 0, ${pulse.lifespan / 255})`;
+      ctx.lineWidth = Math.max(0, (pulse.lifespan / 255) * 3);
+      ctx.beginPath();
+      ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+      ctx.stroke();
+    };
+
+    const animate = () => {
+      if (!isActive) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+
+      frameCountRef.current++;
+
+      // Clear canvas with dark background
+      ctx.fillStyle = 'rgba(26, 26, 26, 1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Create new pulses
+      const pulseFrequency = Math.floor(Math.max(30, Math.min(150, (timeLeft / totalTime) * 120 + 30)));
+      if (frameCountRef.current % pulseFrequency === 0 && timeLeft > 0) {
+        createPulse();
+      }
+
+      // Update and draw pulses
+      pulsesRef.current = pulsesRef.current.filter(pulse => {
+        updatePulse(pulse);
+        drawPulse(pulse);
+        return pulse.lifespan > 0;
+      });
+
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [timeLeft, totalTime, isActive]);
+
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+
+  const timerProgress = ((totalTime - timeLeft) / totalTime) * 100;
+
+  return (
+    <div className="relative w-full h-48 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20 overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+      />
+      
+      {/* Timer Content Overlay */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative flex items-center justify-center">
+          {/* SVG for circular timer */}
+          <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+            {/* Background track */}
+            <circle 
+              cx="50" 
+              cy="50" 
+              r="45" 
+              strokeWidth="6" 
+              fill="none" 
+              className="stroke-theme-gold/20"
+            />
+            {/* Progress ring */}
+            <circle 
+              cx="50" 
+              cy="50" 
+              r="45" 
+              strokeWidth="6" 
+              fill="none" 
+              className="stroke-theme-gold transition-all duration-1000 ease-linear"
+              strokeLinecap="round"
+              style={{
+                strokeDasharray: `${2 * Math.PI * 45}`,
+                strokeDashoffset: `${2 * Math.PI * 45 * (1 - timerProgress / 100)}`
+              }}
+            />
+          </svg>
+          
+          {/* Countdown Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-3xl font-bold text-theme-gold tracking-tighter font-mono">
+              {formatTime(timeLeft)}
+            </span>
+            <p className="text-theme-gold-light uppercase tracking-widest text-xs mt-1 font-semibold">
+              REST
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Skip button */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+        <button 
+          onClick={onSkip}
+          className="text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-4 py-2 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
+        >
+          <SkipForward size={16} />
+          Skip Rest
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionProps) {
@@ -35,7 +205,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showExerciseHistory, setShowExerciseHistory] = useState(false);
 
   const { user } = useAuth();
-  const currentExercise = plan.exercises[currentExerciseIndex];
+  const { profile } = useUserProfile();
+  
+  // Get current level workouts
+  const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
+  const currentWorkout = currentWorkouts[day];
+  const currentExercise = currentWorkout?.exercises[currentExerciseIndex];
   const enhancedCurrentExercise = currentExercise ? getEnhancedExercise(currentExercise) : null;
 
   useEffect(() => {
@@ -71,7 +246,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   }, [timerActive, timerSeconds, isResting, isTimedExerciseActive]);
 
   const handleLogSet = async () => {
-    if (!enhancedCurrentExercise || !user) return;
+    if (!enhancedCurrentExercise || !user || !currentWorkout) return;
 
     let repsLogged = reps;
     if (enhancedCurrentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
@@ -97,6 +272,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       duration_seconds: enhancedCurrentExercise.type === 'timed' ? (duration ? parseInt(duration) : parseInt(enhancedCurrentExercise.reps.match(/\d+/)?.[0] || '0')) : null,
       target_reps: enhancedCurrentExercise.reps,
       target_sets: enhancedCurrentExercise.sets,
+      current_plan_id: profile?.current_plan_id || null,
+      current_level_index: profile?.current_level_index || 0,
       created_at: new Date().toISOString(),
     };
 
@@ -127,7 +304,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           setTimerActive(true);
         }
       } else {
-        if (currentExerciseIndex < plan.exercises.length - 1) {
+        if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
           // User will need to click next
         } else {
           setShowCompletionModal(true);
@@ -148,7 +325,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   };
 
   const moveToNextExercise = () => {
-    if (currentExerciseIndex < plan.exercises.length - 1) {
+    if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
       setCurrentExerciseIndex(prev => prev + 1);
       setIsResting(false);
       setTimerActive(false);
@@ -162,20 +339,16 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setTimerActive(false);
   };
 
-  const formatTime = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  };
-
-  // Calculate total sets in workout
-  const totalSets = plan.exercises.reduce((acc, ex) => acc + ex.sets, 0);
-  
-  // Calculate completed sets
-  const completedSets = plan.exercises.slice(0, currentExerciseIndex).reduce((acc, ex) => acc + ex.sets, 0) + (currentSet - 1);
-  
-  // Calculate progress percentage
-  const progressPercentage = (completedSets / totalSets) * 100;
+  if (!currentWorkout) {
+    return (
+      <Card className="bg-theme-black-light border border-theme-gold/20 text-center">
+        <p className="text-xl text-red-400">Error: Workout not found for {day}.</p>
+        <IconButton onClick={onGoHome} ariaLabel="Go Home" className="mt-4">
+          <ChevronLeft size={20} className="mr-1" /> Go Home
+        </IconButton>
+      </Card>
+    );
+  }
 
   if (!enhancedCurrentExercise) {
     return (
@@ -188,15 +361,24 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     );
   }
 
+  // Calculate total sets in workout
+  const totalSets = currentWorkout.exercises.reduce((acc, ex) => acc + ex.sets, 0);
+  
+  // Calculate completed sets
+  const completedSets = currentWorkout.exercises.slice(0, currentExerciseIndex).reduce((acc, ex) => acc + ex.sets, 0) + (currentSet - 1);
+  
+  // Calculate progress percentage
+  const progressPercentage = (completedSets / totalSets) * 100;
+
   const isLastSetForExercise = currentSet >= enhancedCurrentExercise.sets;
-  const isLastExerciseOverall = currentExerciseIndex >= plan.exercises.length - 1;
+  const isLastExerciseOverall = currentExerciseIndex >= currentWorkout.exercises.length - 1;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6 relative">
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-2xl font-semibold text-theme-gold">{plan.name}</h2>
+            <h2 className="text-2xl font-semibold text-theme-gold">{currentWorkout.name}</h2>
             <p className="text-sm text-theme-gold-dark mt-1">
               Set {completedSets + 1} of {totalSets} Total Sets
             </p>
@@ -221,18 +403,18 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           </div>
         </div>
 
-        <div className="h-2 bg-theme-black-lighter rounded-full mb-4">
+        <div className="h-2 bg-theme-black-lighter rounded-lg mb-4">
           <div 
-            className="h-full bg-theme-gold rounded-full transition-all duration-300"
+            className="h-full bg-theme-gold rounded-lg transition-all duration-300"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
 
         {showWorkoutQueue && (
-          <div className="mb-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
+          <div className="mb-6 p-4 bg-theme-black-lighter rounded-nested-container border border-theme-gold/10">
             <h3 className="text-lg font-medium text-theme-gold mb-3">Workout Queue</h3>
             <div className="space-y-2">
-              {plan.exercises.map((exercise, index) => {
+              {currentWorkout.exercises.map((exercise, index) => {
                 const enhancedExercise = getEnhancedExercise(exercise);
                 const isCurrentExercise = index === currentExerciseIndex;
                 const isPastExercise = index < currentExerciseIndex;
@@ -241,7 +423,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 return (
                   <div 
                     key={exercise.id}
-                    className={`p-2 rounded border ${
+                    className={`p-2 rounded-2x-nested-container border ${
                       isCurrentExercise 
                         ? 'bg-theme-gold/20 border-theme-gold' 
                         : isPastExercise
@@ -269,84 +451,104 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           </div>
         )}
 
-        <div className="mb-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10">
+        <div className="mb-6 p-4 bg-theme-black-lighter rounded-nested-container border border-theme-gold/10">
           <h3 className="text-xl font-medium text-theme-gold">{enhancedCurrentExercise.name}</h3>
           <p className="text-sm text-theme-gold-dark flex items-center">
             <Target size={16} className="mr-2"/> 
             Set {currentSet} of {enhancedCurrentExercise.sets} | Target Reps: {enhancedCurrentExercise.reps}
           </p>
         </div>
-
-        {(isResting || isTimedExerciseActive) && timerActive && (
-          <div className="my-6 p-4 bg-theme-black-lighter rounded-lg border border-theme-gold/10 text-center">
-            <p className="text-lg font-semibold text-theme-gold mb-1">
-              {isResting ? "Resting" : "Exercise In Progress"}
-            </p>
-            <p className="text-5xl font-bold text-theme-gold">{formatTime(timerSeconds)}</p>
-            {isResting && (
-              <IconButton onClick={skipRest} ariaLabel="Skip Rest" className="mt-3 text-sm py-2 px-3">
-                <SkipForward size={18} className="mr-1" /> Skip Rest
-              </IconButton>
-            )}
-          </div>
-        )}
         
-        {!isTimedExerciseActive && !isResting && (
+        {/* Input fields or timer display */}
+        {isResting && timerActive ? (
+          <div className="mb-6">
+            <InlineTimer
+              timeLeft={timerSeconds}
+              totalTime={REST_DURATION_SECONDS}
+              isActive={timerActive}
+              onSkip={skipRest}
+            />
+          </div>
+        ) : !isTimedExerciseActive && (
           <div className="space-y-4 mb-6">
             {enhancedCurrentExercise.type === 'weight_reps' && (
-              <div className="flex items-center space-x-3">
-                <Dumbbell size={20} className="text-theme-gold-dark" />
-                <label htmlFor="weight" className="w-16 text-theme-gold">Weight:</label>
-                <input
-                  type="number"
-                  id="weight"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="e.g., 25"
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Weight
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Dumbbell size={20} />
+                  </span>
+                  <input
+                    type="number"
+                    id="weight"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="e.g., 25"
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
             {(enhancedCurrentExercise.type === 'weight_reps' || enhancedCurrentExercise.type === 'reps_only' || enhancedCurrentExercise.type === 'reps_only_with_optional_weight') && (
-              <div className="flex items-center space-x-3">
-                <Repeat size={20} className="text-theme-gold-dark" />
-                <label htmlFor="reps" className="w-16 text-theme-gold">Reps:</label>
-                <input
-                  type={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "text" : "number"}
-                  id="reps"
-                  value={reps}
-                  onChange={(e) => setReps(e.target.value)}
-                  placeholder={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "AMRAP" : "e.g., 10"}
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="reps" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Reps
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Repeat size={20} />
+                  </span>
+                  <input
+                    type={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "text" : "number"}
+                    id="reps"
+                    value={reps}
+                    onChange={(e) => setReps(e.target.value)}
+                    placeholder={enhancedCurrentExercise.reps.toUpperCase() === 'AMRAP' ? "AMRAP" : "e.g., 10"}
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
              {enhancedCurrentExercise.type === 'reps_only_with_optional_weight' && (
-              <div className="flex items-center space-x-3">
-                <Dumbbell size={20} className="text-theme-gold-dark" />
-                <label htmlFor="optional_weight" className="w-16 text-theme-gold">Weight (Opt):</label>
-                <input
-                  type="number"
-                  id="optional_weight"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="e.g., 10 (optional)"
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="optional_weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Weight (Optional)
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Dumbbell size={20} />
+                  </span>
+                  <input
+                    type="number"
+                    id="optional_weight"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    placeholder="e.g., 10 (optional)"
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
             {enhancedCurrentExercise.type === 'timed' && (
-              <div className="flex items-center space-x-3">
-                <Clock size={20} className="text-theme-gold-dark" />
-                <label htmlFor="duration" className="w-16 text-theme-gold">Duration (s):</label>
-                <input
-                  type="number"
-                  id="duration"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="e.g., 60"
-                  className="flex-grow p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
-                />
+              <div className="relative">
+                <label htmlFor="duration" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                  Duration (seconds)
+                </label>
+                <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                  <span className="pl-4 text-theme-gold-dark">
+                    <Clock size={20} />
+                  </span>
+                  <input
+                    type="number"
+                    id="duration"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    placeholder="e.g., 60"
+                    className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -354,18 +556,30 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
         <div className="flex flex-col sm:flex-row gap-3">
           {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
-            <IconButton onClick={startTimedExercise} ariaLabel="Start Timed Exercise" className="flex-1">
+            <PrimaryButton 
+              onClick={startTimedExercise}
+              ariaLabel="Start Timer"
+              className="flex-1"
+            >
               <Play size={20} className="mr-2" /> Start Timer
-            </IconButton>
+            </PrimaryButton>
           )}
           {enhancedCurrentExercise.type !== 'timed' && !isResting && (
-             <IconButton onClick={handleLogSet} ariaLabel="Log Set" className="flex-1">
+            <PrimaryButton 
+              onClick={handleLogSet}
+              ariaLabel={`Log Set ${isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}`}
+              className="flex-1"
+            >
               <Save size={20} className="mr-2" /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
-            </IconButton>
+            </PrimaryButton>
           )}
           {isLastSetForExercise && !isResting && (
-            <IconButton onClick={moveToNextExercise} ariaLabel="Next Exercise" className="flex-1">
-              {isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'} <ChevronRight size={20} className="ml-2" />
+            <IconButton 
+              onClick={moveToNextExercise}
+              ariaLabel={isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'}
+              className="flex-1"
+            >
+              {isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'} <ChevronRight size={20} />
             </IconButton>
           )}
         </div>
@@ -375,7 +589,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             <h4 className="text-md font-semibold text-theme-gold mb-2">Logged Sets for {enhancedCurrentExercise.name}:</h4>
             <ul className="space-y-1 text-sm">
               {loggedSetsForExercise.map((log, index) => (
-                <li key={index} className="p-2 bg-theme-black-lighter rounded border border-theme-gold/10 text-theme-gold-dark">
+                <li key={index} className="p-2 bg-theme-black-lighter rounded-2x-nested-container border border-theme-gold/10 text-theme-gold-dark">
                   Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
                 </li>
               ))}

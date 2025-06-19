@@ -3,8 +3,10 @@ import { TimerIcon } from 'lucide-react';
 import PlanSelection from './components/PlanSelection';
 import HomeScreen from './components/HomeScreen';
 import WorkoutSession from './components/WorkoutSession';
+import { TrainingBlockCompleteModal } from './components/TrainingBlockCompleteModal';
 import { AuthWrapper } from './components/AuthWrapper';
-import { WORKOUT_PLANS } from './data/workoutData';
+import { useUserProfile } from './hooks/useUserProfile';
+import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
 
 type Page = 'plans' | 'workouts' | 'session';
 
@@ -13,6 +15,9 @@ function App() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [workoutHistory, setWorkoutHistory] = useState<Record<string, any[]>>({});
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+
+  const { profile, isBlockComplete, endTrainingBlock } = useUserProfile();
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('workoutHistory');
@@ -20,6 +25,13 @@ function App() {
       setWorkoutHistory(JSON.parse(savedHistory));
     }
   }, []);
+
+  // Check for training block completion on app load
+  useEffect(() => {
+    if (profile && isBlockComplete() && profile.current_plan_id) {
+      setShowCompletionModal(true);
+    }
+  }, [profile, isBlockComplete]);
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
@@ -55,6 +67,20 @@ function App() {
     localStorage.setItem('workoutHistory', JSON.stringify(updatedHistory));
   };
 
+  const handleCompletionModalClose = async () => {
+    setShowCompletionModal(false);
+    await endTrainingBlock();
+    setCurrentPage('plans');
+    setSelectedPlanId(null);
+    setSelectedDay(null);
+  };
+
+  // Get current plan for workout session
+  const currentPlan = selectedPlanId ? WORKOUT_PLANS[selectedPlanId] : null;
+  const currentWorkouts = currentPlan && profile ? 
+    getCurrentLevelWorkouts(currentPlan, profile.current_level_index || 0) : 
+    currentPlan?.levels[0]?.workouts || {};
+
   return (
     <AuthWrapper>
       <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8 flex items-center justify-center">
@@ -72,23 +98,31 @@ function App() {
             />
           )}
 
-          {currentPage === 'workouts' && selectedPlanId && (
+          {currentPage === 'workouts' && selectedPlanId && currentPlan && (
             <HomeScreen 
-              plan={WORKOUT_PLANS[selectedPlanId]}
+              plan={currentPlan}
               onStartWorkout={startWorkout}
               onBack={goToPlans}
               workoutHistory={workoutHistory}
             />
           )}
           
-          {currentPage === 'session' && selectedPlanId && selectedDay && (
+          {currentPage === 'session' && selectedPlanId && selectedDay && currentPlan && (
             <WorkoutSession
               day={selectedDay}
-              plan={WORKOUT_PLANS[selectedPlanId].workouts[selectedDay]}
+              plan={currentPlan}
               onGoHome={goToWorkouts}
               onLogWorkout={updateWorkoutHistory}
             />
           )}
+
+          {/* Training Block Completion Modal */}
+          <TrainingBlockCompleteModal
+            isOpen={showCompletionModal}
+            onClose={handleCompletionModalClose}
+            planName={profile?.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id]?.name || 'Your Plan' : 'Your Plan'}
+            weeksCompleted={profile?.block_duration_weeks || 6}
+          />
         </div>
       </div>
     </AuthWrapper>

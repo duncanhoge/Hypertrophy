@@ -52,6 +52,35 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export type Database = {
   public: {
     Tables: {
+      user_profiles: {
+        Row: {
+          id: string;
+          current_plan_id: string | null;
+          current_level_index: number;
+          block_start_date: string | null;
+          block_duration_weeks: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          current_plan_id?: string | null;
+          current_level_index?: number;
+          block_start_date?: string | null;
+          block_duration_weeks?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          current_plan_id?: string | null;
+          current_level_index?: number;
+          block_start_date?: string | null;
+          block_duration_weeks?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       workout_logs: {
         Row: {
           id: string;
@@ -65,6 +94,8 @@ export type Database = {
           duration_seconds: number | null;
           target_reps: string;
           target_sets: number;
+          current_plan_id: string | null;
+          current_level_index: number;
           created_at: string;
         };
         Insert: {
@@ -79,6 +110,8 @@ export type Database = {
           duration_seconds?: number | null;
           target_reps: string;
           target_sets: number;
+          current_plan_id?: string | null;
+          current_level_index?: number;
           created_at?: string;
         };
         Update: {
@@ -93,6 +126,8 @@ export type Database = {
           duration_seconds?: number | null;
           target_reps?: string;
           target_sets?: number;
+          current_plan_id?: string | null;
+          current_level_index?: number;
           created_at?: string;
         };
       };

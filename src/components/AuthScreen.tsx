@@ -101,7 +101,7 @@ export function AuthScreen() {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
+                  className="w-full pl-10 pr-4 py-3 bg-theme-black-lighter border border-theme-gold/30 rounded-sm focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
                   placeholder="Enter your email"
                   required
                 />
@@ -120,7 +120,7 @@ export function AuthScreen() {
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-theme-black-lighter border border-theme-gold/30 rounded-md focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
+                    className="w-full pl-10 pr-4 py-3 bg-theme-black-lighter border border-theme-gold/30 rounded-sm focus:ring-2 focus:ring-theme-gold focus:border-theme-gold outline-none text-theme-gold placeholder-theme-gold-dark/50"
                     placeholder="Enter your password"
                     required
                     minLength={6}
@@ -136,7 +136,7 @@ export function AuthScreen() {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-theme-gold bg-theme-black-lighter border-theme-gold/30 rounded focus:ring-theme-gold focus:ring-2"
+                    className="w-4 h-4 text-theme-gold bg-theme-black-lighter border-theme-gold/30 rounded-sm focus:ring-theme-gold focus:ring-2"
                   />
                   <span className="ml-2 text-sm text-theme-gold-dark">Remember me</span>
                 </label>
@@ -154,13 +154,13 @@ export function AuthScreen() {
             )}
 
             {error && (
-              <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-md">
+              <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-sm">
                 <p className="text-red-400 text-sm">{error}</p>
               </div>
             )}
 
             {message && (
-              <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md">
+              <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-sm">
                 <p className="text-green-400 text-sm">{message}</p>
               </div>
             )}
