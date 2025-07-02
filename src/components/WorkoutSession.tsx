@@ -373,6 +373,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const isLastSetForExercise = currentSet >= enhancedCurrentExercise.sets;
   const isLastExerciseOverall = currentExerciseIndex >= currentWorkout.exercises.length - 1;
 
+  // Determine if we should show input fields
+  const shouldShowInputs = !isResting && !isTimedExerciseActive;
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative">
       <Card className="bg-theme-black-light border border-theme-gold/20">
@@ -459,8 +462,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           </p>
         </div>
         
-        {/* Input fields or timer display */}
-        {isResting && timerActive ? (
+        {/* Rest timer display */}
+        {isResting && timerActive && (
           <div className="mb-6">
             <InlineTimer
               timeLeft={timerSeconds}
@@ -469,7 +472,74 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
               onSkip={skipRest}
             />
           </div>
-        ) : !isTimedExerciseActive && (
+        )}
+
+        {/* Timed exercise timer display */}
+        {isTimedExerciseActive && timerActive && (
+          <div className="mb-6">
+            <div className="relative w-full h-48 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20 overflow-hidden">
+              {/* Timer Content */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative flex items-center justify-center">
+                  {/* SVG for circular timer */}
+                  <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                    {/* Background track */}
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="45" 
+                      strokeWidth="6" 
+                      fill="none" 
+                      className="stroke-theme-gold/20"
+                    />
+                    {/* Progress ring */}
+                    <circle 
+                      cx="50" 
+                      cy="50" 
+                      r="45" 
+                      strokeWidth="6" 
+                      fill="none" 
+                      className="stroke-theme-gold transition-all duration-1000 ease-linear"
+                      strokeLinecap="round"
+                      style={{
+                        strokeDasharray: `${2 * Math.PI * 45}`,
+                        strokeDashoffset: `${2 * Math.PI * 45 * (1 - ((parseInt(duration) - timerSeconds) / parseInt(duration)))}`
+                      }}
+                    />
+                  </svg>
+                  
+                  {/* Countdown Text */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-theme-gold tracking-tighter font-mono">
+                      {Math.floor(timerSeconds / 60).toString().padStart(2, '0')}:{(timerSeconds % 60).toString().padStart(2, '0')}
+                    </span>
+                    <p className="text-theme-gold-light uppercase tracking-widest text-xs mt-1 font-semibold">
+                      {enhancedCurrentExercise.name.toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Skip button */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+                <button 
+                  onClick={() => {
+                    setIsTimedExerciseActive(false);
+                    setTimerActive(false);
+                    handleLogSet();
+                  }}
+                  className="text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-4 py-2 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
+                >
+                  <CheckCircle size={16} />
+                  Finish Early
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Input fields - always show when not resting or doing timed exercise */}
+        {shouldShowInputs && (
           <div className="space-y-4 mb-6">
             {enhancedCurrentExercise.type === 'weight_reps' && (
               <div className="relative">
@@ -560,6 +630,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
               onClick={startTimedExercise}
               ariaLabel="Start Timer"
               className="flex-1"
+              disabled={!duration || parseInt(duration) <= 0}
             >
               <Play size={20} className="mr-2" /> Start Timer
             </PrimaryButton>
