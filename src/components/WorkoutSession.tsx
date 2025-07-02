@@ -242,7 +242,7 @@ function TimedExerciseTimer({ timeElapsed, targetTime, exerciseName, onFinish }:
           }`}
         >
           <CheckCircle size={16} />
-          {isComplete ? 'Complete Exercise' : 'Finish Early'}
+          {isComplete ? 'Complete Exercise' : 'End Set'}
         </button>
       </div>
     </div>
