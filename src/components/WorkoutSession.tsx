@@ -657,11 +657,11 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
             <PrimaryButton 
               onClick={startTimedExercise}
-              ariaLabel="Start Timer"
+              ariaLabel="Start Stopwatch"
               className="flex-1"
               disabled={!duration || parseInt(duration) <= 0}
             >
-              <Play size={20} className="mr-2" /> Start Timer
+              <Play size={20} className="mr-2" /> Start Stopwatch
             </PrimaryButton>
           )}
           {enhancedCurrentExercise.type !== 'timed' && !isResting && (
