@@ -373,15 +373,21 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
       if (currentSet < enhancedCurrentExercise.sets) {
         setCurrentSet(prev => prev + 1);
+        // Start rest timer for all exercise types except timed
         if (enhancedCurrentExercise.type !== 'timed') {
           setIsResting(true);
           setTimerSeconds(REST_DURATION_SECONDS);
           setTimerActive(true);
         }
       } else {
+        // Last set completed - check if there are more exercises
         if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
-          // User will need to click next
+          // More exercises remaining - start rest timer before next exercise
+          setIsResting(true);
+          setTimerSeconds(REST_DURATION_SECONDS);
+          setTimerActive(true);
         } else {
+          // This was the last exercise - show completion modal
           setShowCompletionModal(true);
         }
       }
@@ -418,6 +424,11 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const skipRest = () => {
     setIsResting(false);
     setTimerActive(false);
+    
+    // If we just finished the last set of an exercise, move to next exercise
+    if (currentSet > enhancedCurrentExercise?.sets && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+      moveToNextExercise();
+    }
   };
 
   if (!currentWorkout) {
@@ -456,6 +467,17 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
   // Determine if we should show input fields
   const shouldShowInputs = !isResting && !isTimedExerciseActive;
+
+  // Determine button text and behavior
+  const getLogButtonText = () => {
+    if (isLastSetForExercise && isLastExerciseOverall) {
+      return "Log Set & Finish Workout";
+    } else if (isLastSetForExercise) {
+      return "Log Set & Next Exercise";
+    } else {
+      return "Log Set & Start Rest";
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative">
@@ -667,19 +689,20 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           {enhancedCurrentExercise.type !== 'timed' && !isResting && (
             <PrimaryButton 
               onClick={handleLogSet}
-              ariaLabel={`Log Set ${isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}`}
+              ariaLabel={getLogButtonText()}
               className="flex-1"
             >
-              <Save size={20} className="mr-2" /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
+              <Save size={20} className="mr-2" /> {getLogButtonText()}
             </PrimaryButton>
           )}
-          {isLastSetForExercise && !isResting && (
+          {/* Show Next Exercise button only during rest period after completing a set (but not the last exercise) */}
+          {isResting && isLastSetForExercise && !isLastExerciseOverall && (
             <IconButton 
               onClick={moveToNextExercise}
-              ariaLabel={isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'}
+              ariaLabel="Next Exercise"
               className="flex-1"
             >
-              {isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'} <ChevronRight size={20} />
+              Next Exercise <ChevronRight size={20} />
             </IconButton>
           )}
         </div>
