@@ -14,13 +14,44 @@ Visit the live application: [https://weights.duncanhoge.com](https://weights.dun
 - 🏋️‍♂️ Multiple workout plans to choose from (Duncan's Plan & Ryan's Plan)
 - ⏱️ Built-in rest timer with customizable durations
 - 📊 Real-time workout history tracking with Supabase integration
-- 💪 Support for various exercise types:
-  - Weight and reps exercises
-  - Bodyweight exercises (with optional weight)
-  - Timed exercises with countdown timer
-  - AMRAP (As Many Reps As Possible) exercises
+- 💪 Support for various exercise types (see Exercise Types section below)
 - 📱 Responsive design optimized for all devices
 - 🎯 Progress tracking for each workout session
+
+#### Exercise Types
+
+The application supports three distinct exercise types, each with specific input requirements and user interactions:
+
+##### 1. Weight & Reps Based (`weight_reps`)
+- **Description**: Traditional strength training exercises that require both weight and repetition tracking
+- **Input Fields**: 
+  - Weight (required): Amount of weight lifted in lbs/kg
+  - Reps (required): Number of repetitions performed
+- **Examples**: Dumbbell Bench Press, Barbell Squats, Overhead Press
+- **Usage**: User enters the weight used and reps completed for each set
+
+##### 2. Repetition Based (`reps_only`, `reps_only_with_optional_weight`)
+- **Description**: Bodyweight or rep-focused exercises, including AMRAP (As Many Reps As Possible) exercises
+- **Input Fields**:
+  - Reps (required): Number of repetitions performed
+  - Weight (optional): Additional weight if applicable (for `reps_only_with_optional_weight`)
+- **Examples**: Push-ups, Pull-ups, Crunches, Weighted Dips
+- **Usage**: 
+  - For standard rep exercises: User enters reps completed
+  - For AMRAP exercises: User enters "AMRAP" initially, then logs actual reps achieved via prompt
+  - Optional weight can be added for exercises like weighted push-ups
+
+##### 3. Timed Based (`timed`)
+- **Description**: Duration-based exercises with integrated timer functionality
+- **Input Fields**:
+  - Duration (required): Target time in seconds
+- **Timer Features**:
+  - Visual countdown timer with circular progress indicator
+  - Exercise name displayed during timer
+  - "Finish Early" option to stop timer before completion
+  - Automatic logging when timer completes
+- **Examples**: Plank, Wall Sit, Dead Hang
+- **Usage**: User sets target duration, starts timer, and can either let it complete or finish early
 
 ### Advanced Features
 - 🔐 **User Authentication**: Secure email/password authentication with Supabase
@@ -413,10 +444,9 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 - **Try Plans**: Explore without starting formal training block
 
 ### Exercise Types
-- **Weight + Reps**: Standard strength training exercises
-- **Reps Only**: Bodyweight exercises with rep counting
-- **Timed**: Duration-based exercises with countdown timer
-- **AMRAP**: As Many Reps As Possible with manual entry
+- **Weight + Reps**: Standard strength training exercises with weight and rep inputs
+- **Reps Only**: Bodyweight exercises with rep counting (including AMRAP support)
+- **Timed**: Duration-based exercises with integrated countdown timer and early finish option
 
 ### Features During Workout
 - **Rest Timer**: Automatic countdown with pulsing background animation
