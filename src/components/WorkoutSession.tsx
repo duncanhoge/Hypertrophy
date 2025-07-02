@@ -695,16 +695,6 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
               <Save size={20} className="mr-2" /> {getLogButtonText()}
             </PrimaryButton>
           )}
-          {/* Show Next Exercise button only during rest period after completing a set (but not the last exercise) */}
-          {isResting && isLastSetForExercise && !isLastExerciseOverall && (
-            <IconButton 
-              onClick={moveToNextExercise}
-              ariaLabel="Next Exercise"
-              className="flex-1"
-            >
-              Next Exercise <ChevronRight size={20} />
-            </IconButton>
-          )}
         </div>
         
         {loggedSetsForExercise.length > 0 && (
