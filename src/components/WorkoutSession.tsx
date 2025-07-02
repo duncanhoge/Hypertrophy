@@ -319,6 +319,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
     if (enhancedCurrentExercise.type === 'timed') {
       durationLogged = timedExerciseElapsed;
+      // Auto-fill the duration field with the elapsed time
+      setDuration(timedExerciseElapsed.toString());
     } else if (enhancedCurrentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
       const amrapReps = prompt("Enter AMRAP reps achieved:");
       if (amrapReps === null || isNaN(parseInt(amrapReps))) {
