@@ -383,12 +383,10 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         setCurrentSet(prev => prev + 1);
         setJustCompletedFinalSet(false);
         
-        // Start rest timer for all exercise types except timed
-        if (enhancedCurrentExercise.type !== 'timed') {
-          setIsResting(true);
-          setTimerSeconds(REST_DURATION_SECONDS);
-          setTimerActive(true);
-        }
+        // Start rest timer for all exercise types
+        setIsResting(true);
+        setTimerSeconds(REST_DURATION_SECONDS);
+        setTimerActive(true);
       } else {
         // Final set completed - mark it and handle next steps
         setJustCompletedFinalSet(true);
@@ -602,9 +600,22 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           </div>
         )}
 
-        {/* Input fields - always show when not resting or doing timed exercise */}
+        {/* Input fields and buttons - reorganized for timed exercises */}
         {shouldShowInputs && (
           <div className="space-y-4 mb-6">
+            {/* For timed exercises: Start Stopwatch button first */}
+            {enhancedCurrentExercise.type === 'timed' && (
+              <PrimaryButton 
+                onClick={startTimedExercise}
+                ariaLabel="Start Stopwatch"
+                className="w-full"
+                disabled={!duration || parseInt(duration) <= 0}
+              >
+                <Play size={20} className="mr-2" /> Start Stopwatch
+              </PrimaryButton>
+            )}
+
+            {/* Weight input for weight-based exercises */}
             {enhancedCurrentExercise.type === 'weight_reps' && (
               <div className="relative">
                 <label htmlFor="weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
@@ -625,6 +636,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
+
+            {/* Reps input for rep-based exercises */}
             {(enhancedCurrentExercise.type === 'weight_reps' || enhancedCurrentExercise.type === 'reps_only' || enhancedCurrentExercise.type === 'reps_only_with_optional_weight') && (
               <div className="relative">
                 <label htmlFor="reps" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
@@ -645,7 +658,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
-             {enhancedCurrentExercise.type === 'reps_only_with_optional_weight' && (
+
+            {/* Optional weight for reps_only_with_optional_weight */}
+            {enhancedCurrentExercise.type === 'reps_only_with_optional_weight' && (
               <div className="relative">
                 <label htmlFor="optional_weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
                   Weight (Optional)
@@ -665,6 +680,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
+
+            {/* Duration input for timed exercises */}
             {enhancedCurrentExercise.type === 'timed' && (
               <div className="relative">
                 <label htmlFor="duration" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
@@ -685,30 +702,30 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
+
+            {/* Log Set button for all exercise types (below inputs) */}
+            {enhancedCurrentExercise.type !== 'timed' && (
+              <PrimaryButton 
+                onClick={handleLogSet}
+                ariaLabel={getLogButtonText()}
+                className="w-full"
+              >
+                <Save size={20} className="mr-2" /> {getLogButtonText()}
+              </PrimaryButton>
+            )}
+
+            {/* For timed exercises: Log Set and Start Rest button below duration input */}
+            {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && (
+              <PrimaryButton 
+                onClick={handleLogSet}
+                ariaLabel={getLogButtonText()}
+                className="w-full"
+              >
+                <Save size={20} className="mr-2" /> {getLogButtonText()}
+              </PrimaryButton>
+            )}
           </div>
         )}
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
-            <PrimaryButton 
-              onClick={startTimedExercise}
-              ariaLabel="Start Stopwatch"
-              className="flex-1"
-              disabled={!duration || parseInt(duration) <= 0}
-            >
-              <Play size={20} className="mr-2" /> Start Stopwatch
-            </PrimaryButton>
-          )}
-          {enhancedCurrentExercise.type !== 'timed' && !isResting && (
-            <PrimaryButton 
-              onClick={handleLogSet}
-              ariaLabel={getLogButtonText()}
-              className="flex-1"
-            >
-              <Save size={20} className="mr-2" /> {getLogButtonText()}
-            </PrimaryButton>
-          )}
-        </div>
         
         {loggedSetsForExercise.length > 0 && (
           <div className="mt-6 pt-4 border-t border-theme-gold/20">
