@@ -262,6 +262,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [isResting, setIsResting] = useState(false);
   const [isTimedExerciseActive, setIsTimedExerciseActive] = useState(false);
   const [timedExerciseElapsed, setTimedExerciseElapsed] = useState(0);
+  const [justCompletedFinalSet, setJustCompletedFinalSet] = useState(false);
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showExerciseInfoModal, setShowExerciseInfoModal] = useState(false);
@@ -289,6 +290,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setTimerActive(false);
     setIsTimedExerciseActive(false);
     setTimedExerciseElapsed(0);
+    setJustCompletedFinalSet(false);
   }, [currentExerciseIndex, enhancedCurrentExercise?.type, enhancedCurrentExercise?.reps]);
 
   useEffect(() => {
@@ -309,12 +311,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setIsResting(false);
       
       // If we just finished resting after the final set, move to next exercise
-      if (currentSet > enhancedCurrentExercise?.sets && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+      if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
         moveToNextExercise();
       }
     }
     return () => clearInterval(interval);
-  }, [timerActive, timerSeconds, isResting, isTimedExerciseActive, currentSet, enhancedCurrentExercise?.sets, currentExerciseIndex, currentWorkout?.exercises.length]);
+  }, [timerActive, timerSeconds, isResting, isTimedExerciseActive, justCompletedFinalSet, currentExerciseIndex, currentWorkout?.exercises.length]);
 
   const handleLogSet = async () => {
     if (!enhancedCurrentExercise || !user || !currentWorkout) return;
@@ -377,7 +379,10 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setTimerActive(false);
 
       if (currentSet < enhancedCurrentExercise.sets) {
+        // Not the final set - increment and start rest timer
         setCurrentSet(prev => prev + 1);
+        setJustCompletedFinalSet(false);
+        
         // Start rest timer for all exercise types except timed
         if (enhancedCurrentExercise.type !== 'timed') {
           setIsResting(true);
@@ -385,7 +390,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           setTimerActive(true);
         }
       } else {
-        // Last set completed - check if there are more exercises
+        // Final set completed - mark it and handle next steps
+        setJustCompletedFinalSet(true);
+        
         if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
           // More exercises remaining - start rest timer before next exercise
           setIsResting(true);
@@ -421,6 +428,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setCurrentExerciseIndex(prev => prev + 1);
       setIsResting(false);
       setTimerActive(false);
+      setJustCompletedFinalSet(false);
     } else {
       setShowCompletionModal(true);
     }
@@ -430,8 +438,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setIsResting(false);
     setTimerActive(false);
     
-    // Check if we just finished the last set of an exercise
-    if (currentSet >= enhancedCurrentExercise?.sets && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+    // Check if we just finished the final set of an exercise
+    if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
       moveToNextExercise();
     }
   };
