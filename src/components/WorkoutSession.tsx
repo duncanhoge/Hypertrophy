@@ -304,12 +304,17 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         setTimedExerciseElapsed((prevElapsed) => prevElapsed + 1);
       }, 1000);
     } else if (timerActive && timerSeconds === 0 && isResting) {
-      // Rest timer finished
+      // Rest timer finished - check if we need to move to next exercise
       setTimerActive(false);
       setIsResting(false);
+      
+      // If we just finished resting after the final set, move to next exercise
+      if (currentSet > enhancedCurrentExercise?.sets && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+        moveToNextExercise();
+      }
     }
     return () => clearInterval(interval);
-  }, [timerActive, timerSeconds, isResting, isTimedExerciseActive]);
+  }, [timerActive, timerSeconds, isResting, isTimedExerciseActive, currentSet, enhancedCurrentExercise?.sets, currentExerciseIndex, currentWorkout?.exercises.length]);
 
   const handleLogSet = async () => {
     if (!enhancedCurrentExercise || !user || !currentWorkout) return;
@@ -425,8 +430,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setIsResting(false);
     setTimerActive(false);
     
-    // If we just finished the last set of an exercise, move to next exercise
-    if (currentSet > enhancedCurrentExercise?.sets && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+    // Check if we just finished the last set of an exercise
+    if (currentSet >= enhancedCurrentExercise?.sets && currentExerciseIndex < currentWorkout.exercises.length - 1) {
       moveToNextExercise();
     }
   };
