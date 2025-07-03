@@ -257,11 +257,18 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [duration, setDuration] = useState('');
   const [loggedSetsForExercise, setLoggedSetsForExercise] = useState<any[]>([]);
   
+  // Timer state with timestamp-based tracking
   const [timerActive, setTimerActive] = useState(false);
+  const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
+  const [timerDuration, setTimerDuration] = useState(REST_DURATION_SECONDS);
   const [timerSeconds, setTimerSeconds] = useState(REST_DURATION_SECONDS);
   const [isResting, setIsResting] = useState(false);
+  
+  // Timed exercise state with timestamp-based tracking
   const [isTimedExerciseActive, setIsTimedExerciseActive] = useState(false);
+  const [timedExerciseStartTime, setTimedExerciseStartTime] = useState<number | null>(null);
   const [timedExerciseElapsed, setTimedExerciseElapsed] = useState(0);
+  
   const [justCompletedFinalSet, setJustCompletedFinalSet] = useState(false);
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -288,35 +295,47 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setLoggedSetsForExercise([]);
     setIsResting(false);
     setTimerActive(false);
+    setTimerStartTime(null);
     setIsTimedExerciseActive(false);
+    setTimedExerciseStartTime(null);
     setTimedExerciseElapsed(0);
     setJustCompletedFinalSet(false);
   }, [currentExerciseIndex, enhancedCurrentExercise?.type, enhancedCurrentExercise?.reps]);
 
+  // Timer effect with timestamp-based calculation
   useEffect(() => {
     let interval: number | undefined;
-    if (timerActive && timerSeconds > 0 && isResting) {
-      // Rest timer countdown
+    
+    if (timerActive && timerStartTime) {
       interval = window.setInterval(() => {
-        setTimerSeconds((prevSeconds) => prevSeconds - 1);
-      }, 1000);
-    } else if (timerActive && isTimedExerciseActive) {
-      // Timed exercise count-up
-      interval = window.setInterval(() => {
-        setTimedExerciseElapsed((prevElapsed) => prevElapsed + 1);
-      }, 1000);
-    } else if (timerActive && timerSeconds === 0 && isResting) {
-      // Rest timer finished - check if we need to move to next exercise
-      setTimerActive(false);
-      setIsResting(false);
-      
-      // If we just finished resting after the final set, move to next exercise
-      if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
-        moveToNextExercise();
-      }
+        const now = Date.now();
+        const elapsed = Math.floor((now - timerStartTime) / 1000);
+        
+        if (isResting) {
+          // Rest timer countdown
+          const remaining = Math.max(0, timerDuration - elapsed);
+          setTimerSeconds(remaining);
+          
+          if (remaining === 0) {
+            // Rest timer finished
+            setTimerActive(false);
+            setTimerStartTime(null);
+            setIsResting(false);
+            
+            // If we just finished resting after the final set, move to next exercise
+            if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+              moveToNextExercise();
+            }
+          }
+        } else if (isTimedExerciseActive) {
+          // Timed exercise count-up
+          setTimedExerciseElapsed(elapsed);
+        }
+      }, 100); // Update more frequently for better accuracy
     }
+    
     return () => clearInterval(interval);
-  }, [timerActive, timerSeconds, isResting, isTimedExerciseActive, justCompletedFinalSet, currentExerciseIndex, currentWorkout?.exercises.length]);
+  }, [timerActive, timerStartTime, timerDuration, isResting, isTimedExerciseActive, justCompletedFinalSet, currentExerciseIndex, currentWorkout?.exercises.length]);
 
   const handleLogSet = async () => {
     if (!enhancedCurrentExercise || !user || !currentWorkout) return;
@@ -380,7 +399,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setReps('');
       setTimedExerciseElapsed(0);
       setIsTimedExerciseActive(false);
+      setTimedExerciseStartTime(null);
       setTimerActive(false);
+      setTimerStartTime(null);
 
       if (currentSet < enhancedCurrentExercise.sets) {
         // Not the final set - increment and start rest timer
@@ -388,18 +409,14 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         setJustCompletedFinalSet(false);
         
         // Start rest timer for all exercise types
-        setIsResting(true);
-        setTimerSeconds(REST_DURATION_SECONDS);
-        setTimerActive(true);
+        startRestTimer();
       } else {
         // Final set completed - mark it and handle next steps
         setJustCompletedFinalSet(true);
         
         if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
           // More exercises remaining - start rest timer before next exercise
-          setIsResting(true);
-          setTimerSeconds(REST_DURATION_SECONDS);
-          setTimerActive(true);
+          startRestTimer();
         } else {
           // This was the last exercise - show completion modal
           setShowCompletionModal(true);
@@ -410,18 +427,32 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       alert('Failed to save workout log. Please try again.');
     }
   };
+
+  const startRestTimer = () => {
+    const now = Date.now();
+    setIsResting(true);
+    setTimerDuration(REST_DURATION_SECONDS);
+    setTimerSeconds(REST_DURATION_SECONDS);
+    setTimerStartTime(now);
+    setTimerActive(true);
+  };
   
   const startTimedExercise = () => {
     if (enhancedCurrentExercise?.type === 'timed' && duration) {
+      const now = Date.now();
       setIsTimedExerciseActive(true);
+      setTimedExerciseStartTime(now);
       setTimedExerciseElapsed(0);
+      setTimerStartTime(now);
       setTimerActive(true);
     }
   };
 
   const finishTimedExercise = () => {
     setIsTimedExerciseActive(false);
+    setTimedExerciseStartTime(null);
     setTimerActive(false);
+    setTimerStartTime(null);
     // Update the duration field with the elapsed time from the stopwatch
     setDuration(timedExerciseElapsed.toString());
   };
@@ -431,6 +462,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setCurrentExerciseIndex(prev => prev + 1);
       setIsResting(false);
       setTimerActive(false);
+      setTimerStartTime(null);
       setJustCompletedFinalSet(false);
     } else {
       setShowCompletionModal(true);
@@ -440,6 +472,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const skipRest = () => {
     setIsResting(false);
     setTimerActive(false);
+    setTimerStartTime(null);
     
     // Check if we just finished the final set of an exercise
     if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
@@ -586,7 +619,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           <div className="mb-6">
             <InlineTimer
               timeLeft={timerSeconds}
-              totalTime={REST_DURATION_SECONDS}
+              totalTime={timerDuration}
               isActive={timerActive}
               onSkip={skipRest}
             />
