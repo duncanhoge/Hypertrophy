@@ -42,16 +42,23 @@ The application supports three distinct exercise types, each with specific input
   - Optional weight can be added for exercises like weighted push-ups
 
 ##### 3. Timed Based (`timed`)
-- **Description**: Duration-based exercises with integrated timer functionality
+- **Description**: Duration-based exercises with integrated timer functionality and flexible input options
 - **Input Fields**:
   - Duration (required): Target time in seconds
-- **Timer Features**:
-  - Visual countdown timer with circular progress indicator
-  - Exercise name displayed during timer
-  - "Finish Early" option to stop timer before completion
-  - Automatic logging when timer completes
+- **Enhanced Timer Features**:
+  - **Start Stopwatch**: Interactive count-up timer with real-time display
+  - **Manual Duration Entry**: Option to enter duration directly without using the stopwatch
+  - **Flexible Workflow**: Users can use the stopwatch to time their exercise, then manually adjust the duration before logging
+  - **Visual Progress**: Large, clear timer display with exercise name and target time reference
+  - **Early Completion**: "End Set" option to stop timer before target time is reached
+  - **Automatic Population**: Stopwatch results automatically populate the duration field for easy editing
+- **User Flow**:
+  1. **Start Stopwatch** (optional): Begin timing the exercise with visual feedback
+  2. **End Set**: Stop the timer when exercise is complete (populates duration field)
+  3. **Adjust Duration** (optional): Manually edit the duration field if needed
+  4. **Log Set & Start Rest**: Record the set and begin rest period
 - **Examples**: Plank, Wall Sit, Dead Hang
-- **Usage**: User sets target duration, starts timer, and can either let it complete or finish early
+- **Usage**: Provides maximum flexibility - users can time exercises with the stopwatch for accuracy, or enter durations manually for convenience
 
 ### Advanced Features
 - 🔐 **User Authentication**: Secure email/password authentication with Supabase
@@ -72,6 +79,7 @@ The application supports three distinct exercise types, each with specific input
 - 📊 Comprehensive workout completion tracking
 - 🏆 Motivational progress indicators
 - 📅 Time-bound training programs with progress tracking
+- ⏱️ **Enhanced Timed Exercise Experience**: Intuitive stopwatch interface with flexible manual override options
 
 ## 🏗️ Architecture
 
@@ -88,7 +96,7 @@ src/
 │   ├── ExerciseHistory.tsx # Exercise performance history
 │   ├── HomeScreen.tsx   # Workout plan selection
 │   ├── PlanSelection.tsx # Main plan selection screen
-│   ├── WorkoutSession.tsx # Active workout interface
+│   ├── WorkoutSession.tsx # Active workout interface with enhanced timed exercise support
 │   ├── TrainingBlockCompleteModal.tsx # Completion celebration
 │   └── PulsingTimerBackground.tsx # Animated timer background
 ├── hooks/               # Custom React hooks
@@ -195,6 +203,12 @@ Security:
   - Automatic rest timer with pulsing background animation
   - Exercise queue with visual progress tracking
   - Exercise history modal integration
+  - **Enhanced timed exercise support**:
+    - Interactive stopwatch with count-up timer
+    - Manual duration entry with validation
+    - Flexible workflow allowing stopwatch + manual adjustment
+    - Clear visual feedback during timed exercises
+    - Automatic duration field population from stopwatch
   - Support for all exercise types (weight/reps, timed, AMRAP)
   - Smart navigation between exercises
   - Workout completion celebration
@@ -278,6 +292,19 @@ Security:
 3. User starts workout → `WorkoutSession`
 4. User logs sets → Data saved to Supabase with training block context
 5. Real-time updates → UI reflects changes immediately
+
+### Enhanced Timed Exercise Flow
+1. User encounters timed exercise → Duration input field and "Start Stopwatch" button displayed
+2. **Option A - Stopwatch Flow**:
+   - User clicks "Start Stopwatch" → Interactive timer begins
+   - User performs exercise while timer counts up
+   - User clicks "End Set" → Timer stops, duration field populated with elapsed time
+   - User can manually adjust duration if needed
+   - User clicks "Log Set & Start Rest" → Set logged, rest timer begins
+3. **Option B - Manual Entry Flow**:
+   - User enters duration directly in input field
+   - User clicks "Log Set & Start Rest" → Set logged with manual duration, rest timer begins
+4. **Validation**: All duration entries validated for positive values before database insertion
 
 ### Exercise Data Flow
 1. Workout plans reference exercises by ID
@@ -446,7 +473,11 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 ### Exercise Types
 - **Weight + Reps**: Standard strength training exercises with weight and rep inputs
 - **Reps Only**: Bodyweight exercises with rep counting (including AMRAP support)
-- **Timed**: Duration-based exercises with integrated countdown timer and early finish option
+- **Timed**: Duration-based exercises with enhanced timer functionality:
+  - **Interactive Stopwatch**: Count-up timer with real-time visual feedback
+  - **Manual Entry**: Direct duration input for convenience
+  - **Flexible Workflow**: Use stopwatch then adjust duration before logging
+  - **Validation**: Ensures positive duration values for database integrity
 
 ### Features During Workout
 - **Rest Timer**: Automatic countdown with pulsing background animation
@@ -454,6 +485,11 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 - **History Access**: Quick reference to previous performance
 - **Smart Navigation**: Seamless flow between exercises
 - **Exercise Information**: Rich metadata from Exercise Dictionary
+- **Enhanced Timed Exercise Experience**: 
+  - Large, clear timer display during stopwatch use
+  - Target time reference for goal-oriented training
+  - Flexible completion options (reach target or end early)
+  - Automatic duration field population with manual override capability
 
 ## 🔧 Configuration
 
@@ -518,6 +554,7 @@ Ensure the following environment variables are set in your deployment platform:
 - When adding exercises, update the Exercise Dictionary
 - Follow the established ID naming conventions
 - Consider training block context in new features
+- **Timed Exercise Development**: Ensure proper validation for duration inputs and maintain the flexible stopwatch + manual entry workflow
 
 ## 📄 License
 
