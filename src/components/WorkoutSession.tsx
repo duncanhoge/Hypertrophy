@@ -325,21 +325,13 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     let durationLogged = null;
 
     if (enhancedCurrentExercise.type === 'timed') {
-      // For timed exercises, use the elapsed time from stopwatch if it was used,
-      // otherwise use the manually entered duration
-      if (isTimedExerciseActive || timedExerciseElapsed > 0) {
-        durationLogged = timedExerciseElapsed;
-      } else {
-        // Validate manually entered duration
-        const manualDuration = parseInt(duration);
-        if (isNaN(manualDuration) || manualDuration <= 0) {
-          alert("Please enter a valid duration in seconds (greater than 0).");
-          return;
-        }
-        durationLogged = manualDuration;
+      // For timed exercises, ONLY use the manually entered duration from the input field
+      const manualDuration = parseInt(duration);
+      if (isNaN(manualDuration) || manualDuration <= 0) {
+        alert("Please enter a valid duration in seconds (greater than 0).");
+        return;
       }
-      // Auto-fill the duration field with the logged duration
-      setDuration(durationLogged.toString());
+      durationLogged = manualDuration;
     } else if (enhancedCurrentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
       const amrapReps = prompt("Enter AMRAP reps achieved:");
       if (amrapReps === null || isNaN(parseInt(amrapReps))) {
@@ -430,7 +422,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const finishTimedExercise = () => {
     setIsTimedExerciseActive(false);
     setTimerActive(false);
-    handleLogSet();
+    // Update the duration field with the elapsed time from the stopwatch
+    setDuration(timedExerciseElapsed.toString());
   };
 
   const moveToNextExercise = () => {
