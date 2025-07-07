@@ -302,7 +302,6 @@ export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
         }
       }
     ]
-  }
   },
   'back-arms-core-2day': {
     id: 'back-arms-core-2day',
