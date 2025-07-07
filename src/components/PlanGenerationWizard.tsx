@@ -77,7 +77,7 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
 
     try {
       await startGeneratedPlan(generatedPlan);
-      onPlanGenerated(generatedPlan.id);
+      onPlanGenerated('generated'); // Use 'generated' as the plan ID for navigation
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start plan');
     }

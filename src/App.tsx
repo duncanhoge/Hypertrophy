@@ -45,7 +45,7 @@ function App() {
   };
 
   const handlePlanGenerated = (planId: string) => {
-    setSelectedPlanId('generated');
+    setSelectedPlanId(planId);
     setCurrentPage('workouts');
   };
 
@@ -101,7 +101,7 @@ function App() {
   };
   // Get current plan for workout session (handle both pre-made and generated plans)
   const getCurrentPlan = () => {
-    if (selectedPlanId === 'generated' && profile?.active_generated_plan) {
+    if (profile?.active_generated_plan && (selectedPlanId === profile.active_generated_plan.id || selectedPlanId === 'generated')) {
       return profile.active_generated_plan as GeneratedPlan;
     }
     return selectedPlanId ? WORKOUT_PLANS[selectedPlanId] : null;
@@ -169,7 +169,7 @@ function App() {
                   : 'Your Plan'
             }
             weeksCompleted={profile?.block_duration_weeks || 6}
-            currentPlanId={profile?.current_plan_id || ''}
+            currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
             currentLevelIndex={profile?.current_level_index || 0}
           />
         </div>
