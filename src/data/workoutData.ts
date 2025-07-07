@@ -167,6 +167,53 @@ export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
             ]
           }
         }
+      },
+      {
+        level: 2,
+        name: "Intermediate",
+        description: "Advance your training with increased volume and intensity for continued muscle growth.",
+        workouts: {
+          Monday: {
+            name: "Monday - Chest & Triceps Intensified",
+            exercises: [
+              { id: "db_press_bench", sets: 5, reps: "6-10", type: "weight_reps" },
+              { id: "db_press_incline", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "db_flyes", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "bw_pushup", sets: 4, reps: "AMRAP", type: "reps_only" },
+              { id: "db_extension_overhead", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "db_skullcrusher", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "bw_dips_chair", sets: 4, reps: "AMRAP", type: "reps_only" },
+              { id: "db_kickback", sets: 3, reps: "12-15", type: "weight_reps" },
+            ]
+          },
+          Wednesday: {
+            name: "Wednesday - Shoulders & Abs Advanced",
+            exercises: [
+              { id: "db_press_overhead", sets: 5, reps: "6-10", type: "weight_reps" },
+              { id: "db_raise_lateral", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "db_raise_front", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "db_flyes_reverse", sets: 4, reps: "12-18", type: "weight_reps" },
+              { id: "bw_plank", sets: 4, reps: "45-90s", type: "timed" },
+              { id: "bw_crunch", sets: 4, reps: "15-25", type: "reps_only_with_optional_weight" },
+              { id: "bw_leg_raise", sets: 4, reps: "12-20", type: "reps_only" },
+              { id: "bw_russian_twist", sets: 4, reps: "15-25", type: "reps_only_with_optional_weight" },
+              { id: "db_shrug_standing", sets: 3, reps: "12-15", type: "weight_reps" },
+            ]
+          },
+          Friday: {
+            name: "Friday - Arms & Secondary Chest Enhanced",
+            exercises: [
+              { id: "db_curl_bicep", sets: 5, reps: "6-10", type: "weight_reps" },
+              { id: "db_curl_hammer", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "db_curl_concentration", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "db_press_close_grip", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "db_kickback", sets: 4, reps: "12-18", type: "weight_reps" },
+              { id: "bw_pushup_variations", sets: 4, reps: "AMRAP", type: "reps_only" },
+              { id: "db_pullover", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "db_curl_supinating", sets: 3, reps: "10-12", type: "weight_reps" },
+            ]
+          }
+        }
       }
     ]
   },
@@ -210,6 +257,46 @@ export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
               { id: "tricep_pressdown", sets: 3, reps: "8-12", type: "weight_reps" },
               { id: "calf_raise_standing", sets: 3, reps: "8-12", type: "weight_reps" },
               { id: "bw_situp_decline", sets: 3, reps: "30-100", type: "reps_only" }
+            ]
+          }
+        }
+      },
+      {
+        level: 2,
+        name: "Strength Builder",
+        description: "Intensify your training with heavier loads and advanced compound movements for maximum strength gains.",
+        workouts: {
+          'Day 1': {
+            name: "Day 1 - Full Body Strength",
+            exercises: [
+              { id: "bb_squat", sets: 4, reps: "6-10", type: "weight_reps" },
+              { id: "bb_press_incline", sets: 4, reps: "6-10", type: "weight_reps" },
+              { id: "bb_row", sets: 4, reps: "6-10", type: "weight_reps" },
+              { id: "db_shrug_standing", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "db_flyes_rear_delt", sets: 3, reps: "10-15", type: "weight_reps" },
+              { id: "db_raise_lateral", sets: 3, reps: "10-15", type: "weight_reps" },
+              { id: "db_curl_supinating", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "bw_dips_weighted", sets: 4, reps: "6-10", type: "weight_reps" },
+              { id: "calf_raise_seated", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "bw_leg_raise_hanging", sets: 4, reps: "10-25", type: "reps_only" },
+              { id: "db_press_overhead", sets: 3, reps: "8-12", type: "weight_reps" }
+            ]
+          },
+          'Day 2': {
+            name: "Day 2 - Power & Strength",
+            exercises: [
+              { id: "bb_deadlift", sets: 4, reps: "3-6", type: "weight_reps" },
+              { id: "leg_curl_lying", sets: 2, reps: "10-15", type: "weight_reps" },
+              { id: "bb_shrug", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "db_press_flat", sets: 4, reps: "6-10", type: "weight_reps" },
+              { id: "db_pullover", sets: 2, reps: "10-15", type: "weight_reps" },
+              { id: "bw_chinup", sets: 3, reps: "6-15", type: "reps_only" },
+              { id: "db_press_shoulder", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "bb_curl", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "tricep_pressdown", sets: 4, reps: "8-12", type: "weight_reps" },
+              { id: "calf_raise_standing", sets: 4, reps: "10-15", type: "weight_reps" },
+              { id: "bw_situp_decline", sets: 4, reps: "40-120", type: "reps_only" },
+              { id: "db_curl_hammer", sets: 3, reps: "10-12", type: "weight_reps" }
             ]
           }
         }

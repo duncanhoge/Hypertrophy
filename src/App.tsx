@@ -17,7 +17,7 @@ function App() {
   const [workoutHistory, setWorkoutHistory] = useState<Record<string, any[]>>({});
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
-  const { profile, isBlockComplete, endTrainingBlock } = useUserProfile();
+  const { profile, isBlockComplete, endTrainingBlock, startNextLevel, restartCurrentLevel } = useUserProfile();
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('workoutHistory');
@@ -75,6 +75,19 @@ function App() {
     setSelectedDay(null);
   };
 
+  const handleStartNextLevel = async () => {
+    await startNextLevel();
+    setShowCompletionModal(false);
+    // Stay on current plan but refresh to show new level
+    setCurrentPage('workouts');
+  };
+
+  const handleRestartLevel = async () => {
+    await restartCurrentLevel();
+    setShowCompletionModal(false);
+    // Stay on current plan
+    setCurrentPage('workouts');
+  };
   // Get current plan for workout session
   const currentPlan = selectedPlanId ? WORKOUT_PLANS[selectedPlanId] : null;
   const currentWorkouts = currentPlan && profile ? 
@@ -119,9 +132,13 @@ function App() {
           {/* Training Block Completion Modal */}
           <TrainingBlockCompleteModal
             isOpen={showCompletionModal}
-            onClose={handleCompletionModalClose}
+            onStartNextLevel={handleStartNextLevel}
+            onRestartLevel={handleRestartLevel}
+            onDecideLater={handleCompletionModalClose}
             planName={profile?.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id]?.name || 'Your Plan' : 'Your Plan'}
             weeksCompleted={profile?.block_duration_weeks || 6}
+            currentPlanId={profile?.current_plan_id || ''}
+            currentLevelIndex={profile?.current_level_index || 0}
           />
         </div>
       </div>

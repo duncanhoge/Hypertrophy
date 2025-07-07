@@ -93,6 +93,24 @@ export function useUserProfile() {
     });
   };
 
+  const startNextLevel = async () => {
+    if (!profile?.current_plan_id) return null;
+    
+    return updateProfile({
+      current_level_index: (profile.current_level_index || 0) + 1,
+      block_start_date: new Date().toISOString(),
+      block_duration_weeks: 6 // Reset to default duration
+    });
+  };
+
+  const restartCurrentLevel = async () => {
+    if (!profile?.current_plan_id) return null;
+    
+    return updateProfile({
+      block_start_date: new Date().toISOString(),
+      block_duration_weeks: 6 // Reset to default duration
+    });
+  };
   const endTrainingBlock = async () => {
     return updateProfile({
       current_plan_id: null,
@@ -137,6 +155,8 @@ export function useUserProfile() {
     error,
     updateProfile,
     startTrainingBlock,
+    startNextLevel,
+    restartCurrentLevel,
     endTrainingBlock,
     updateBlockDuration,
     getWeeksRemaining,
