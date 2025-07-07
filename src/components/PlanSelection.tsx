@@ -10,13 +10,13 @@ import { Dumbbell, Calendar, PlusCircle, MinusCircle, Play, Eye, Clock, CheckCir
 
 interface PlanSelectionProps {
   onSelectPlan: (planId: string) => void;
+  onCreatePlan: () => void;
   workoutHistory: Record<string, any[]>;
 }
 
-function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
+function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelectionProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
-  const [showGenerationWizard, setShowGenerationWizard] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
   const { profile, startTrainingBlock, getWeeksRemaining } = useUserProfile();
 
@@ -44,12 +44,6 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
   const handleTryPlan = (planId: string) => {
     // Try plan without starting a training block
     onSelectPlan(planId);
-  };
-
-  const handlePlanGenerated = (planId: string) => {
-    // The generated plan is already saved in the user profile
-    // We need to navigate to it using the special generated plan ID
-    onSelectPlan('generated');
   };
 
   const weeksRemaining = getWeeksRemaining();
@@ -87,7 +81,7 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
             
             <div className="flex flex-wrap gap-3 pt-2">
               <PrimaryButton
-                onClick={() => setShowGenerationWizard(true)}
+                onClick={onCreatePlan}
                 ariaLabel="Create Your Own Plan"
               >
                 <Sparkles size={16} className="mr-1" />
@@ -282,13 +276,6 @@ function PlanSelection({ onSelectPlan, workoutHistory }: PlanSelectionProps) {
           </div>
         )}
       </Card>
-
-      {/* Plan Generation Wizard */}
-      <PlanGenerationWizard
-        isOpen={showGenerationWizard}
-        onClose={() => setShowGenerationWizard(false)}
-        onPlanGenerated={handlePlanGenerated}
-      />
 
       {/* Switch Plan Confirmation Modal */}
       <Modal 

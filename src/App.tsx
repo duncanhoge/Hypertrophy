@@ -9,7 +9,7 @@ import { useUserProfile } from './hooks/useUserProfile';
 import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
 import type { GeneratedPlan } from './lib/planGenerationEngine';
 
-type Page = 'plans' | 'workouts' | 'session';
+type Page = 'plans' | 'workouts' | 'session' | 'create-plan';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('plans');
@@ -36,6 +36,15 @@ function App() {
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
+    setCurrentPage('workouts');
+  };
+
+  const handleCreatePlan = () => {
+    setCurrentPage('create-plan');
+  };
+
+  const handlePlanGenerated = (planId: string) => {
+    setSelectedPlanId('generated');
     setCurrentPage('workouts');
   };
 
@@ -115,7 +124,15 @@ function App() {
           {currentPage === 'plans' && (
             <PlanSelection 
               onSelectPlan={handleSelectPlan} 
+              onCreatePlan={handleCreatePlan}
               workoutHistory={workoutHistory}
+            />
+          )}
+
+          {currentPage === 'create-plan' && (
+            <PlanGenerationWizard 
+              onBack={goToPlans}
+              onPlanGenerated={handlePlanGenerated}
             />
           )}
 
