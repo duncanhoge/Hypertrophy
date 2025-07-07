@@ -5,6 +5,7 @@ import HomeScreen from './components/HomeScreen';
 import WorkoutSession from './components/WorkoutSession';
 import { TrainingBlockCompleteModal } from './components/TrainingBlockCompleteModal';
 import { AuthWrapper } from './components/AuthWrapper';
+import PlanGenerationWizard from './components/PlanGenerationWizard';
 import { useUserProfile } from './hooks/useUserProfile';
 import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
 import type { GeneratedPlan } from './lib/planGenerationEngine';
