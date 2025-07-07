@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
 import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise } from '../data/workoutData';
+import { getExerciseById } from '../data/exerciseDictionary';
 import { IconButton } from './ui/IconButton';
 import { PrimaryButton } from './ui/Button';
 import { Card } from './ui/Card';
@@ -186,6 +187,69 @@ function InlineTimer({ timeLeft, totalTime, isActive, onSkip }: InlineTimerProps
   );
 }
 
+interface TimedExerciseTimerProps {
+  timeElapsed: number;
+  targetTime: number;
+  exerciseName: string;
+  onFinish: () => void;
+}
+
+function TimedExerciseTimer({ timeElapsed, targetTime, exerciseName, onFinish }: TimedExerciseTimerProps) {
+  const formatTime = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
+
+  const isComplete = timeElapsed >= targetTime;
+
+  return (
+    <div className="relative w-full h-48 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20 overflow-hidden">
+      {/* Timer Content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-center">
+          {/* Timer Display */}
+          <div className="mb-4">
+            <span className="text-6xl font-bold text-theme-gold tracking-tighter font-mono block">
+              {formatTime(timeElapsed)}
+            </span>
+            <div className="text-sm text-theme-gold-dark mt-2">
+              Target: {formatTime(targetTime)}
+            </div>
+          </div>
+          
+          {/* Exercise Name */}
+          <p className="text-theme-gold-light uppercase tracking-widest text-sm font-semibold mb-4">
+            {exerciseName.toUpperCase()}
+          </p>
+
+          {/* Status Indicator */}
+          {isComplete && (
+            <div className="text-theme-gold text-sm font-medium mb-2">
+              ✓ Target Time Reached!
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Finish button */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+        <button 
+          onClick={onFinish}
+          className={`transition-all duration-200 px-6 py-2 rounded-lg text-sm font-medium border backdrop-blur-sm flex items-center gap-2 ${
+            isComplete 
+              ? 'text-theme-gold bg-theme-gold/20 hover:bg-theme-gold/30 border-theme-gold/50' 
+              : 'text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold border-theme-gold/30'
+          }`}
+        >
+          <CheckCircle size={16} />
+          {isComplete ? 'Complete Exercise' : 'End Set'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionProps) {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
@@ -194,10 +258,19 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [duration, setDuration] = useState('');
   const [loggedSetsForExercise, setLoggedSetsForExercise] = useState<any[]>([]);
   
+  // Timer state with timestamp-based tracking
   const [timerActive, setTimerActive] = useState(false);
+  const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
+  const [timerDuration, setTimerDuration] = useState(REST_DURATION_SECONDS);
   const [timerSeconds, setTimerSeconds] = useState(REST_DURATION_SECONDS);
   const [isResting, setIsResting] = useState(false);
+  
+  // Timed exercise state with timestamp-based tracking
   const [isTimedExerciseActive, setIsTimedExerciseActive] = useState(false);
+  const [timedExerciseStartTime, setTimedExerciseStartTime] = useState<number | null>(null);
+  const [timedExerciseElapsed, setTimedExerciseElapsed] = useState(0);
+  
+  const [justCompletedFinalSet, setJustCompletedFinalSet] = useState(false);
 
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showExerciseInfoModal, setShowExerciseInfoModal] = useState(false);
@@ -223,42 +296,72 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setLoggedSetsForExercise([]);
     setIsResting(false);
     setTimerActive(false);
+    setTimerStartTime(null);
     setIsTimedExerciseActive(false);
+    setTimedExerciseStartTime(null);
+    setTimedExerciseElapsed(0);
+    setJustCompletedFinalSet(false);
   }, [currentExerciseIndex, enhancedCurrentExercise?.type, enhancedCurrentExercise?.reps]);
 
+  // Timer effect with timestamp-based calculation
   useEffect(() => {
     let interval: number | undefined;
-    if (timerActive && timerSeconds > 0) {
+    
+    if (timerActive && timerStartTime) {
       interval = window.setInterval(() => {
-        setTimerSeconds((prevSeconds) => prevSeconds - 1);
-      }, 1000);
-    } else if (timerActive && timerSeconds === 0) {
-      setTimerActive(false);
-      if (isResting) {
-        setIsResting(false);
-      }
-      if (isTimedExerciseActive) {
-        setIsTimedExerciseActive(false);
-        handleLogSet();
-      }
+        const now = Date.now();
+        const elapsed = Math.floor((now - timerStartTime) / 1000);
+        
+        if (isResting) {
+          // Rest timer countdown
+          const remaining = Math.max(0, timerDuration - elapsed);
+          setTimerSeconds(remaining);
+          
+          if (remaining === 0) {
+            // Rest timer finished
+            setTimerActive(false);
+            setTimerStartTime(null);
+            setIsResting(false);
+            
+            // If we just finished resting after the final set, move to next exercise
+            if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+              moveToNextExercise();
+            }
+          }
+        } else if (isTimedExerciseActive) {
+          // Timed exercise count-up
+          setTimedExerciseElapsed(elapsed);
+        }
+      }, 100); // Update more frequently for better accuracy
     }
+    
     return () => clearInterval(interval);
-  }, [timerActive, timerSeconds, isResting, isTimedExerciseActive]);
+  }, [timerActive, timerStartTime, timerDuration, isResting, isTimedExerciseActive, justCompletedFinalSet, currentExerciseIndex, currentWorkout?.exercises.length]);
 
   const handleLogSet = async () => {
     if (!enhancedCurrentExercise || !user || !currentWorkout) return;
 
     let repsLogged = reps;
-    if (enhancedCurrentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
-        const amrapReps = prompt("Enter AMRAP reps achieved:");
-        if (amrapReps === null || isNaN(parseInt(amrapReps))) {
-            alert("Valid number required for AMRAP reps.");
-            return;
-        }
-        repsLogged = parseInt(amrapReps).toString();
-    } else if (enhancedCurrentExercise.type !== 'timed' && (isNaN(parseInt(repsLogged)) || parseInt(repsLogged) <= 0)) {
-        alert("Please enter a valid number of reps.");
+    let durationLogged = null;
+
+    if (enhancedCurrentExercise.type === 'timed') {
+      // For timed exercises, ONLY use the manually entered duration from the input field
+      const manualDuration = parseInt(duration);
+      if (isNaN(manualDuration) || manualDuration <= 0) {
+        alert("Please enter a valid duration in seconds (greater than 0).");
         return;
+      }
+      durationLogged = manualDuration;
+    } else if (enhancedCurrentExercise.type === 'reps_only' && reps.toUpperCase() === 'AMRAP') {
+      const amrapReps = prompt("Enter AMRAP reps achieved:");
+      if (amrapReps === null || isNaN(parseInt(amrapReps))) {
+        alert("Valid number required for AMRAP reps.");
+        return;
+      }
+      repsLogged = parseInt(amrapReps).toString();
+    } else if (enhancedCurrentExercise.type !== 'timed' && (isNaN(parseInt(repsLogged)) || parseInt(repsLogged) <= 0)) {
+      alert("Please enter a valid number of reps.");
+      return;
     }
     
     const logEntry = {
@@ -269,7 +372,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       set_number: currentSet,
       weight: enhancedCurrentExercise.type.includes('weight') ? (weight ? parseFloat(weight) : null) : null,
       reps_logged: enhancedCurrentExercise.type === 'timed' ? null : parseInt(repsLogged),
-      duration_seconds: enhancedCurrentExercise.type === 'timed' ? (duration ? parseInt(duration) : parseInt(enhancedCurrentExercise.reps.match(/\d+/)?.[0] || '0')) : null,
+      duration_seconds: durationLogged,
       target_reps: enhancedCurrentExercise.reps,
       target_sets: enhancedCurrentExercise.sets,
       current_plan_id: profile?.current_plan_id || null,
@@ -295,18 +398,28 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       
       setWeight('');
       setReps('');
+      setTimedExerciseElapsed(0);
+      setIsTimedExerciseActive(false);
+      setTimedExerciseStartTime(null);
+      setTimerActive(false);
+      setTimerStartTime(null);
 
       if (currentSet < enhancedCurrentExercise.sets) {
+        // Not the final set - increment and start rest timer
         setCurrentSet(prev => prev + 1);
-        if (enhancedCurrentExercise.type !== 'timed') {
-          setIsResting(true);
-          setTimerSeconds(REST_DURATION_SECONDS);
-          setTimerActive(true);
-        }
+        setJustCompletedFinalSet(false);
+        
+        // Start rest timer for all exercise types
+        startRestTimer();
       } else {
+        // Final set completed - mark it and handle next steps
+        setJustCompletedFinalSet(true);
+        
         if (currentExerciseIndex < currentWorkout.exercises.length - 1) {
-          // User will need to click next
+          // More exercises remaining - start rest timer before next exercise
+          startRestTimer();
         } else {
+          // This was the last exercise - show completion modal
           setShowCompletionModal(true);
         }
       }
@@ -315,13 +428,34 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       alert('Failed to save workout log. Please try again.');
     }
   };
+
+  const startRestTimer = () => {
+    const now = Date.now();
+    setIsResting(true);
+    setTimerDuration(REST_DURATION_SECONDS);
+    setTimerSeconds(REST_DURATION_SECONDS);
+    setTimerStartTime(now);
+    setTimerActive(true);
+  };
   
   const startTimedExercise = () => {
     if (enhancedCurrentExercise?.type === 'timed' && duration) {
+      const now = Date.now();
       setIsTimedExerciseActive(true);
-      setTimerSeconds(parseInt(duration));
+      setTimedExerciseStartTime(now);
+      setTimedExerciseElapsed(0);
+      setTimerStartTime(now);
       setTimerActive(true);
     }
+  };
+
+  const finishTimedExercise = () => {
+    setIsTimedExerciseActive(false);
+    setTimedExerciseStartTime(null);
+    setTimerActive(false);
+    setTimerStartTime(null);
+    // Update the duration field with the elapsed time from the stopwatch
+    setDuration(timedExerciseElapsed.toString());
   };
 
   const moveToNextExercise = () => {
@@ -329,6 +463,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setCurrentExerciseIndex(prev => prev + 1);
       setIsResting(false);
       setTimerActive(false);
+      setTimerStartTime(null);
+      setJustCompletedFinalSet(false);
     } else {
       setShowCompletionModal(true);
     }
@@ -337,6 +473,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const skipRest = () => {
     setIsResting(false);
     setTimerActive(false);
+    setTimerStartTime(null);
+    
+    // Check if we just finished the final set of an exercise
+    if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
+      moveToNextExercise();
+    }
   };
 
   if (!currentWorkout) {
@@ -375,6 +517,17 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
   // Determine if we should show input fields
   const shouldShowInputs = !isResting && !isTimedExerciseActive;
+
+  // Determine button text and behavior
+  const getLogButtonText = () => {
+    if (isLastSetForExercise && isLastExerciseOverall) {
+      return "Log Set & Finish Workout";
+    } else if (isLastSetForExercise) {
+      return "Log Set & Next Exercise";
+    } else {
+      return "Log Set & Start Rest";
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 relative">
@@ -467,7 +620,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           <div className="mb-6">
             <InlineTimer
               timeLeft={timerSeconds}
-              totalTime={REST_DURATION_SECONDS}
+              totalTime={timerDuration}
               isActive={timerActive}
               onSkip={skipRest}
             />
@@ -477,70 +630,31 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         {/* Timed exercise timer display */}
         {isTimedExerciseActive && timerActive && (
           <div className="mb-6">
-            <div className="relative w-full h-48 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20 overflow-hidden">
-              {/* Timer Content */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative flex items-center justify-center">
-                  {/* SVG for circular timer */}
-                  <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
-                    {/* Background track */}
-                    <circle 
-                      cx="50" 
-                      cy="50" 
-                      r="45" 
-                      strokeWidth="6" 
-                      fill="none" 
-                      className="stroke-theme-gold/20"
-                    />
-                    {/* Progress ring */}
-                    <circle 
-                      cx="50" 
-                      cy="50" 
-                      r="45" 
-                      strokeWidth="6" 
-                      fill="none" 
-                      className="stroke-theme-gold transition-all duration-1000 ease-linear"
-                      strokeLinecap="round"
-                      style={{
-                        strokeDasharray: `${2 * Math.PI * 45}`,
-                        strokeDashoffset: `${2 * Math.PI * 45 * (1 - ((parseInt(duration) - timerSeconds) / parseInt(duration)))}`
-                      }}
-                    />
-                  </svg>
-                  
-                  {/* Countdown Text */}
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-theme-gold tracking-tighter font-mono">
-                      {Math.floor(timerSeconds / 60).toString().padStart(2, '0')}:{(timerSeconds % 60).toString().padStart(2, '0')}
-                    </span>
-                    <p className="text-theme-gold-light uppercase tracking-widest text-xs mt-1 font-semibold">
-                      {enhancedCurrentExercise.name.toUpperCase()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Skip button */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-                <button 
-                  onClick={() => {
-                    setIsTimedExerciseActive(false);
-                    setTimerActive(false);
-                    handleLogSet();
-                  }}
-                  className="text-theme-gold-dark bg-theme-black-lighter/80 hover:bg-theme-gold/20 hover:text-theme-gold transition-all duration-200 px-4 py-2 rounded-lg text-sm font-medium border border-theme-gold/30 backdrop-blur-sm flex items-center gap-2"
-                >
-                  <CheckCircle size={16} />
-                  Finish Early
-                </button>
-              </div>
-            </div>
+            <TimedExerciseTimer
+              timeElapsed={timedExerciseElapsed}
+              targetTime={parseInt(duration)}
+              exerciseName={enhancedCurrentExercise.name}
+              onFinish={finishTimedExercise}
+            />
           </div>
         )}
 
-        {/* Input fields - always show when not resting or doing timed exercise */}
+        {/* Input fields and buttons - reorganized for timed exercises */}
         {shouldShowInputs && (
           <div className="space-y-4 mb-6">
+            {/* For timed exercises: Start Stopwatch button first */}
+            {enhancedCurrentExercise.type === 'timed' && (
+              <PrimaryButton 
+                onClick={startTimedExercise}
+                ariaLabel="Start Stopwatch"
+                className="w-full"
+                disabled={!duration || parseInt(duration) <= 0}
+              >
+                <Play size={20} className="mr-2" /> Start Stopwatch
+              </PrimaryButton>
+            )}
+
+            {/* Weight input for weight-based exercises */}
             {enhancedCurrentExercise.type === 'weight_reps' && (
               <div className="relative">
                 <label htmlFor="weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
@@ -561,6 +675,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
+
+            {/* Reps input for rep-based exercises */}
             {(enhancedCurrentExercise.type === 'weight_reps' || enhancedCurrentExercise.type === 'reps_only' || enhancedCurrentExercise.type === 'reps_only_with_optional_weight') && (
               <div className="relative">
                 <label htmlFor="reps" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
@@ -581,7 +697,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
-             {enhancedCurrentExercise.type === 'reps_only_with_optional_weight' && (
+
+            {/* Optional weight for reps_only_with_optional_weight */}
+            {enhancedCurrentExercise.type === 'reps_only_with_optional_weight' && (
               <div className="relative">
                 <label htmlFor="optional_weight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
                   Weight (Optional)
@@ -601,6 +719,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
+
+            {/* Duration input for timed exercises */}
             {enhancedCurrentExercise.type === 'timed' && (
               <div className="relative">
                 <label htmlFor="duration" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
@@ -621,39 +741,30 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 </div>
               </div>
             )}
+
+            {/* Log Set button for all exercise types (below inputs) */}
+            {enhancedCurrentExercise.type !== 'timed' && (
+              <PrimaryButton 
+                onClick={handleLogSet}
+                ariaLabel={getLogButtonText()}
+                className="w-full"
+              >
+                <Save size={20} className="mr-2" /> {getLogButtonText()}
+              </PrimaryButton>
+            )}
+
+            {/* For timed exercises: Log Set and Start Rest button below duration input */}
+            {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && (
+              <PrimaryButton 
+                onClick={handleLogSet}
+                ariaLabel={getLogButtonText()}
+                className="w-full"
+              >
+                <Save size={20} className="mr-2" /> {getLogButtonText()}
+              </PrimaryButton>
+            )}
           </div>
         )}
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          {enhancedCurrentExercise.type === 'timed' && !isTimedExerciseActive && !isResting && (
-            <PrimaryButton 
-              onClick={startTimedExercise}
-              ariaLabel="Start Timer"
-              className="flex-1"
-              disabled={!duration || parseInt(duration) <= 0}
-            >
-              <Play size={20} className="mr-2" /> Start Timer
-            </PrimaryButton>
-          )}
-          {enhancedCurrentExercise.type !== 'timed' && !isResting && (
-            <PrimaryButton 
-              onClick={handleLogSet}
-              ariaLabel={`Log Set ${isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}`}
-              className="flex-1"
-            >
-              <Save size={20} className="mr-2" /> Log Set {isLastSetForExercise ? '& Next Exercise' : '& Start Rest'}
-            </PrimaryButton>
-          )}
-          {isLastSetForExercise && !isResting && (
-            <IconButton 
-              onClick={moveToNextExercise}
-              ariaLabel={isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'}
-              className="flex-1"
-            >
-              {isLastExerciseOverall ? 'Finish Workout' : 'Next Exercise'} <ChevronRight size={20} />
-            </IconButton>
-          )}
-        </div>
         
         {loggedSetsForExercise.length > 0 && (
           <div className="mt-6 pt-4 border-t border-theme-gold/20">
@@ -661,7 +772,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             <ul className="space-y-1 text-sm">
               {loggedSetsForExercise.map((log, index) => (
                 <li key={index} className="p-2 bg-theme-black-lighter rounded-2x-nested-container border border-theme-gold/10 text-theme-gold-dark">
-                  Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
+                  Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged ? `${log.reps_logged} reps` : ''} {log.duration_seconds ? `${log.duration_seconds}s` : ''}
                 </li>
               ))}
             </ul>
@@ -685,21 +796,64 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       </Modal>
 
       <Modal isOpen={showExerciseInfoModal} onClose={() => setShowExerciseInfoModal(false)} title={enhancedCurrentExercise.name + " Info"}>
-        <div className="space-y-3 text-theme-gold">
-          <p><strong className="text-theme-gold-light">Target Sets:</strong> {enhancedCurrentExercise.sets}</p>
-          <p><strong className="text-theme-gold-light">Target Reps/Duration:</strong> {enhancedCurrentExercise.reps}</p>
-          <p><strong className="text-theme-gold-light">Type:</strong> {enhancedCurrentExercise.type.replace('_', ' ')}</p>
-          {enhancedCurrentExercise.primaryMuscle && (
-            <p><strong className="text-theme-gold-light">Primary Muscle:</strong> {enhancedCurrentExercise.primaryMuscle}</p>
+        <div className="space-y-4 text-theme-gold">
+          {/* Workout Plan Information */}
+          <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+            <h3 className="text-lg font-semibold text-theme-gold mb-3">Workout Information</h3>
+            <div className="space-y-2">
+              <p><strong className="text-theme-gold-light">Target Sets:</strong> {enhancedCurrentExercise.sets}</p>
+              <p><strong className="text-theme-gold-light">Target Reps/Duration:</strong> {enhancedCurrentExercise.reps}</p>
+              <p><strong className="text-theme-gold-light">Exercise Type:</strong> {enhancedCurrentExercise.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+            </div>
+          </div>
+
+          {/* Exercise Dictionary Information */}
+          <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+            <h3 className="text-lg font-semibold text-theme-gold mb-3">Exercise Details</h3>
+            <div className="space-y-2">
+              <p><strong className="text-theme-gold-light">Exercise ID:</strong> <code className="text-theme-gold-dark bg-theme-black px-2 py-1 rounded text-sm">{enhancedCurrentExercise.id}</code></p>
+              
+              {enhancedCurrentExercise.primaryMuscle && (
+                <p><strong className="text-theme-gold-light">Primary Muscle:</strong> {enhancedCurrentExercise.primaryMuscle}</p>
+              )}
+              
+              {enhancedCurrentExercise.secondaryMuscle && enhancedCurrentExercise.secondaryMuscle.length > 0 && (
+                <p><strong className="text-theme-gold-light">Secondary Muscles:</strong> {enhancedCurrentExercise.secondaryMuscle.join(', ')}</p>
+              )}
+              
+              {enhancedCurrentExercise.equipment && enhancedCurrentExercise.equipment.length > 0 && (
+                <p><strong className="text-theme-gold-light">Equipment Required:</strong> {enhancedCurrentExercise.equipment.map(eq => eq.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ')}</p>
+              )}
+              
+              {enhancedCurrentExercise.movementPattern && (
+                <p><strong className="text-theme-gold-light">Movement Pattern:</strong> {enhancedCurrentExercise.movementPattern.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Alternative Exercises */}
+          {enhancedCurrentExercise.alternatives && enhancedCurrentExercise.alternatives.length > 0 && (
+            <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+              <h3 className="text-lg font-semibold text-theme-gold mb-3">Alternative Exercises</h3>
+              <div className="space-y-1">
+                {enhancedCurrentExercise.alternatives.map((altId, index) => {
+                  const altExercise = getEnhancedExercise({ id: altId, sets: 0, reps: '', type: '' });
+                  return (
+                    <p key={index} className="text-theme-gold-dark">
+                      • {altExercise.name}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
           )}
-          {enhancedCurrentExercise.secondaryMuscle && enhancedCurrentExercise.secondaryMuscle.length > 0 && (
-            <p><strong className="text-theme-gold-light">Secondary Muscles:</strong> {enhancedCurrentExercise.secondaryMuscle.join(', ')}</p>
-          )}
-          {enhancedCurrentExercise.equipment && enhancedCurrentExercise.equipment.length > 0 && (
-            <p><strong className="text-theme-gold-light">Equipment:</strong> {enhancedCurrentExercise.equipment.join(', ')}</p>
-          )}
+
+          {/* Exercise Description/Notes */}
           {enhancedCurrentExercise.description && (
-            <p><strong className="text-theme-gold-light">Notes:</strong> {enhancedCurrentExercise.description}</p>
+            <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+              <h3 className="text-lg font-semibold text-theme-gold mb-3">Form & Notes</h3>
+              <p className="text-theme-gold-dark leading-relaxed">{enhancedCurrentExercise.description}</p>
+            </div>
           )}
         </div>
       </Modal>
