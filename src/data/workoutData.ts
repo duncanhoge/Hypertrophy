@@ -337,4 +337,5 @@ export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
         }
       }
     ]
-};
+  };
+}
