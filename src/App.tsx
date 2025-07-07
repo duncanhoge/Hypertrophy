@@ -7,6 +7,7 @@ import { TrainingBlockCompleteModal } from './components/TrainingBlockCompleteMo
 import { AuthWrapper } from './components/AuthWrapper';
 import { useUserProfile } from './hooks/useUserProfile';
 import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
+import type { GeneratedPlan } from './lib/planGenerationEngine';
 
 type Page = 'plans' | 'workouts' | 'session';
 
@@ -88,8 +89,15 @@ function App() {
     // Stay on current plan
     setCurrentPage('workouts');
   };
-  // Get current plan for workout session
-  const currentPlan = selectedPlanId ? WORKOUT_PLANS[selectedPlanId] : null;
+  // Get current plan for workout session (handle both pre-made and generated plans)
+  const getCurrentPlan = () => {
+    if (selectedPlanId === 'generated' && profile?.active_generated_plan) {
+      return profile.active_generated_plan as GeneratedPlan;
+    }
+    return selectedPlanId ? WORKOUT_PLANS[selectedPlanId] : null;
+  };
+
+  const currentPlan = getCurrentPlan();
   const currentWorkouts = currentPlan && profile ? 
     getCurrentLevelWorkouts(currentPlan, profile.current_level_index || 0) : 
     currentPlan?.levels[0]?.workouts || {};
@@ -135,7 +143,13 @@ function App() {
             onStartNextLevel={handleStartNextLevel}
             onRestartLevel={handleRestartLevel}
             onDecideLater={handleCompletionModalClose}
-            planName={profile?.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id]?.name || 'Your Plan' : 'Your Plan'}
+            planName={
+              profile?.active_generated_plan 
+                ? profile.active_generated_plan.name 
+                : profile?.current_plan_id 
+                  ? WORKOUT_PLANS[profile.current_plan_id]?.name || 'Your Plan' 
+                  : 'Your Plan'
+            }
             weeksCompleted={profile?.block_duration_weeks || 6}
             currentPlanId={profile?.current_plan_id || ''}
             currentLevelIndex={profile?.current_level_index || 0}
