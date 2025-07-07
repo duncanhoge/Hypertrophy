@@ -189,9 +189,107 @@ The `TrainingBlockCompleteModal` provides celebration and closure:
 
 1. App checks completion status on load
 2. If complete, shows celebration modal immediately
-3. User clicks "Done" to acknowledge
-4. System clears block state (returns to plan selection)
-5. User can start new block (same or different plan)
+3. User presented with progression options:
+   - **Start Next Level** (if available): Advances to next level in current plan
+   - **Restart This Level**: Repeats current level with fresh 6-week block
+   - **Decide Later**: Clears block state and returns to plan selection
+4. System updates user state based on selection
+5. User navigated to appropriate screen (plan home or plan selection)
+
+## Level Up Progression Flow
+
+The completion screen now serves as a dynamic decision point for user progression, transforming from a simple acknowledgment into an active progression system.
+
+### Progression Logic
+
+#### Start Next Level
+- **Availability**: Only shown if `plan.levels[currentLevelIndex + 1]` exists
+- **Button Label**: "Start Level [X]" (e.g., "Start Level 2")
+- **State Changes**:
+  - `current_level_index` incremented by 1
+  - `block_start_date` reset to current timestamp
+  - `block_duration_weeks` reset to 6 (default)
+- **Navigation**: User taken to plan home screen for new level
+- **Description**: Shows next level name and description for context
+
+#### Restart This Level
+- **Availability**: Always available
+- **Button Label**: "Restart This Level"
+- **State Changes**:
+  - `current_level_index` remains unchanged
+  - `block_start_date` reset to current timestamp
+  - `block_duration_weeks` reset to 6 (default)
+- **Navigation**: User taken to plan home screen for current level
+- **Use Case**: For users who want to master current level before progressing
+
+#### Decide Later
+- **Availability**: Always available as tertiary option
+- **Button Style**: Text link or less prominent button
+- **State Changes**: Clears all block state (legacy behavior)
+- **Navigation**: Returns to plan selection screen
+- **Use Case**: For users who want to explore other plans or take a break
+
+### Multi-Level Plan Structure
+
+The progression system leverages the existing multi-level architecture:
+
+```typescript
+interface TrainingLevel {
+  level: number;
+  name: string;
+  description: string;
+  workouts: Record<string, WorkoutDay>;
+}
+```
+
+#### Level Progression Design
+- **Level 1 (Foundation)**: Base program with moderate volume and intensity
+- **Level 2 (Intermediate/Advanced)**: Increased sets, reps, and exercise variety
+- **Future Levels**: Can be added to extend progression indefinitely
+
+#### Content Scaling
+- **Volume Increase**: More sets per exercise (3→4→5)
+- **Intensity Increase**: Lower rep ranges for strength focus
+- **Exercise Variety**: Additional exercises for comprehensive development
+- **Duration Increase**: Longer timed exercises for endurance progression
+
+### User Experience Enhancements
+
+#### Visual Feedback
+- **Level Achievement**: Clear indication of completed level
+- **Next Level Preview**: Name and description of upcoming level
+- **Progress Context**: Shows current level completion in celebration
+
+#### Motivational Elements
+- **Achievement Recognition**: Acknowledges specific level completion
+- **Forward Momentum**: Emphasizes progression and growth
+- **Choice Empowerment**: Gives users control over their progression path
+
+### Implementation Details
+
+#### Hook Methods
+```typescript
+const startNextLevel = async () => {
+  return updateProfile({
+    current_level_index: (profile.current_level_index || 0) + 1,
+    block_start_date: new Date().toISOString(),
+    block_duration_weeks: 6
+  });
+};
+
+const restartCurrentLevel = async () => {
+  return updateProfile({
+    block_start_date: new Date().toISOString(),
+    block_duration_weeks: 6
+  });
+};
+```
+
+#### Conditional UI Logic
+```typescript
+const hasNextLevel = currentPlan && currentPlan.levels[currentLevelIndex + 1];
+const nextLevel = hasNextLevel ? currentPlan.levels[currentLevelIndex + 1] : null;
+```
 
 ## Technical Implementation Details
 
@@ -228,11 +326,14 @@ CREATE POLICY "Users can read own profile" ON user_profiles
 
 This architecture enables several planned features:
 
-1. **Automatic Level Progression**: Move to next level on completion
+1. **Automatic Level Progression**: ✅ **IMPLEMENTED** - Users can progress to next level on completion
 2. **Program Periodization**: Different phases within training blocks
 3. **Achievement System**: Badges for consistency, completion streaks
 4. **Analytics Dashboard**: Progress visualization across blocks
 5. **Social Features**: Share completions, compare with friends
+6. **Adaptive Progression**: AI-suggested level advancement based on performance
+7. **Custom Level Creation**: User-generated training progressions
+8. **Cross-Plan Progression**: Transition between different workout programs
 
 ## Configuration
 
@@ -271,5 +372,7 @@ END $$;
 - User profiles auto-created on first access
 - Workout logs stamped with current block context
 - Plan data validated before block creation
+- Level progression validates next level existence
+- State transitions maintain data integrity
 
 This architecture provides a solid foundation for structured training programs while maintaining the flexibility and user experience that makes the application engaging and effective.
