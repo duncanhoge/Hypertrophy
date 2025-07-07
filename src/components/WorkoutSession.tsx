@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
 import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise } from '../data/workoutData';
+import { getExerciseById } from '../data/exerciseDictionary';
 import { IconButton } from './ui/IconButton';
 import { PrimaryButton } from './ui/Button';
 import { Card } from './ui/Card';
@@ -795,21 +796,64 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       </Modal>
 
       <Modal isOpen={showExerciseInfoModal} onClose={() => setShowExerciseInfoModal(false)} title={enhancedCurrentExercise.name + " Info"}>
-        <div className="space-y-3 text-theme-gold">
-          <p><strong className="text-theme-gold-light">Target Sets:</strong> {enhancedCurrentExercise.sets}</p>
-          <p><strong className="text-theme-gold-light">Target Reps/Duration:</strong> {enhancedCurrentExercise.reps}</p>
-          <p><strong className="text-theme-gold-light">Type:</strong> {enhancedCurrentExercise.type.replace('_', ' ')}</p>
-          {enhancedCurrentExercise.primaryMuscle && (
-            <p><strong className="text-theme-gold-light">Primary Muscle:</strong> {enhancedCurrentExercise.primaryMuscle}</p>
+        <div className="space-y-4 text-theme-gold">
+          {/* Workout Plan Information */}
+          <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+            <h3 className="text-lg font-semibold text-theme-gold mb-3">Workout Information</h3>
+            <div className="space-y-2">
+              <p><strong className="text-theme-gold-light">Target Sets:</strong> {enhancedCurrentExercise.sets}</p>
+              <p><strong className="text-theme-gold-light">Target Reps/Duration:</strong> {enhancedCurrentExercise.reps}</p>
+              <p><strong className="text-theme-gold-light">Exercise Type:</strong> {enhancedCurrentExercise.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+            </div>
+          </div>
+
+          {/* Exercise Dictionary Information */}
+          <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+            <h3 className="text-lg font-semibold text-theme-gold mb-3">Exercise Details</h3>
+            <div className="space-y-2">
+              <p><strong className="text-theme-gold-light">Exercise ID:</strong> <code className="text-theme-gold-dark bg-theme-black px-2 py-1 rounded text-sm">{enhancedCurrentExercise.id}</code></p>
+              
+              {enhancedCurrentExercise.primaryMuscle && (
+                <p><strong className="text-theme-gold-light">Primary Muscle:</strong> {enhancedCurrentExercise.primaryMuscle}</p>
+              )}
+              
+              {enhancedCurrentExercise.secondaryMuscle && enhancedCurrentExercise.secondaryMuscle.length > 0 && (
+                <p><strong className="text-theme-gold-light">Secondary Muscles:</strong> {enhancedCurrentExercise.secondaryMuscle.join(', ')}</p>
+              )}
+              
+              {enhancedCurrentExercise.equipment && enhancedCurrentExercise.equipment.length > 0 && (
+                <p><strong className="text-theme-gold-light">Equipment Required:</strong> {enhancedCurrentExercise.equipment.map(eq => eq.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', ')}</p>
+              )}
+              
+              {enhancedCurrentExercise.movementPattern && (
+                <p><strong className="text-theme-gold-light">Movement Pattern:</strong> {enhancedCurrentExercise.movementPattern.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Alternative Exercises */}
+          {enhancedCurrentExercise.alternatives && enhancedCurrentExercise.alternatives.length > 0 && (
+            <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+              <h3 className="text-lg font-semibold text-theme-gold mb-3">Alternative Exercises</h3>
+              <div className="space-y-1">
+                {enhancedCurrentExercise.alternatives.map((altId, index) => {
+                  const altExercise = getEnhancedExercise({ id: altId, sets: 0, reps: '', type: '' });
+                  return (
+                    <p key={index} className="text-theme-gold-dark">
+                      • {altExercise.name}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
           )}
-          {enhancedCurrentExercise.secondaryMuscle && enhancedCurrentExercise.secondaryMuscle.length > 0 && (
-            <p><strong className="text-theme-gold-light">Secondary Muscles:</strong> {enhancedCurrentExercise.secondaryMuscle.join(', ')}</p>
-          )}
-          {enhancedCurrentExercise.equipment && enhancedCurrentExercise.equipment.length > 0 && (
-            <p><strong className="text-theme-gold-light">Equipment:</strong> {enhancedCurrentExercise.equipment.join(', ')}</p>
-          )}
+
+          {/* Exercise Description/Notes */}
           {enhancedCurrentExercise.description && (
-            <p><strong className="text-theme-gold-light">Notes:</strong> {enhancedCurrentExercise.description}</p>
+            <div className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/20">
+              <h3 className="text-lg font-semibold text-theme-gold mb-3">Form & Notes</h3>
+              <p className="text-theme-gold-dark leading-relaxed">{enhancedCurrentExercise.description}</p>
+            </div>
           )}
         </div>
       </Modal>
