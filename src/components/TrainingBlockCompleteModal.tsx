@@ -1,7 +1,8 @@
 import React from 'react';
 import { Trophy, CheckCircle, Star, ArrowRight, RotateCcw, Clock } from 'lucide-react';
 import { Modal } from './ui/Modal';
-import { PrimaryButton, SecondaryButton, IconButton } from './ui/Button';
+import { PrimaryButton, SecondaryButton } from './ui/Button';
+import { IconButton } from './ui/IconButton';
 import { WORKOUT_PLANS } from '../data/workoutData';
 
 interface TrainingBlockCompleteModalProps {

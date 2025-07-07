@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, Dumbbell, Target, Zap } from 'lucide-react';
 import { Modal } from './ui/Modal';
-import { PrimaryButton, SecondaryButton, IconButton } from './ui/Button';
+import { PrimaryButton, SecondaryButton } from './ui/Button';
+import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { getAllTemplates, getTemplateById, type WorkoutTemplate } from '../data/workoutTemplates';
 import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, type GenerationOptions } from '../lib/planGenerationEngine';
