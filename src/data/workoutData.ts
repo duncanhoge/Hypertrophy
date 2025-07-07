@@ -303,4 +303,39 @@ export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
       }
     ]
   }
+  },
+  'back-arms-core-2day': {
+    id: 'back-arms-core-2day',
+    name: "Back & Arms Focus",
+    description: "A 2-day per week program designed to build a strong back, muscular arms, and a stable core using only dumbbells and bodyweight.",
+    image: "https://images.pexels.com/photos/1431282/pexels-photo-1431282.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    levels: [
+      {
+        level: 1,
+        name: "Foundation",
+        description: "Build a strong foundation with targeted back, arms, and core development.",
+        workouts: {
+          'Workout A': {
+            name: "Workout A - Back & Arms Power",
+            exercises: [
+              { id: "db_row_bent_over", sets: 3, reps: "8-12", type: "weight_reps" },
+              { id: "db_pullover", sets: 3, reps: "10-15", type: "weight_reps" },
+              { id: "db_curl_hammer", sets: 3, reps: "8-12", type: "weight_reps" },
+              { id: "db_ext_overhead", sets: 3, reps: "10-15", type: "weight_reps" },
+              { id: "bw_plank", sets: 3, reps: "60s", type: "timed" },
+            ]
+          },
+          'Workout B': {
+            name: "Workout B - Back & Arms Volume",
+            exercises: [
+              { id: "db_flyes_reverse", sets: 3, reps: "12-15", type: "weight_reps" },
+              { id: "db_row_bent_over", sets: 3, reps: "10-15", type: "weight_reps" },
+              { id: "db_curl_bicep", sets: 3, reps: "10-15", type: "weight_reps" },
+              { id: "db_kickback", sets: 3, reps: "12-15", type: "weight_reps" },
+              { id: "bw_leg_raises", sets: 3, reps: "15-20", type: "reps_only" },
+            ]
+          }
+        }
+      }
+    ]
 };
