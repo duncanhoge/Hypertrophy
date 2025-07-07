@@ -59,6 +59,7 @@ export type Database = {
           current_level_index: number;
           block_start_date: string | null;
           block_duration_weeks: number;
+          active_generated_plan: any | null;
           created_at: string;
           updated_at: string;
         };
@@ -68,6 +69,7 @@ export type Database = {
           current_level_index?: number;
           block_start_date?: string | null;
           block_duration_weeks?: number;
+          active_generated_plan?: any | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -77,6 +79,7 @@ export type Database = {
           current_level_index?: number;
           block_start_date?: string | null;
           block_duration_weeks?: number;
+          active_generated_plan?: any | null;
           created_at?: string;
           updated_at?: string;
         };

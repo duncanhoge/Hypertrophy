@@ -9,6 +9,7 @@ export interface UserProfile {
   block_start_date: string | null;
   block_duration_weeks: number;
   active_generated_plan: any | null;
+  active_generated_plan: any | null;
   created_at: string;
   updated_at: string;
 }
