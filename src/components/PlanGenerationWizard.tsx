@@ -22,6 +22,7 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
   const [planName, setPlanName] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { startGeneratedPlan } = useUserProfile();
@@ -85,6 +86,9 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
   const handleStartPlan = async () => {
     if (!generatedPlan) return;
 
+    setIsLoading(true);
+    setError(null);
+
     try {
       // Update the plan name before saving
       const finalPlan = {
@@ -92,10 +96,25 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
         name: planName || generatedPlan.name
       };
       
+      // Minimum loading time for better UX
+      const startTime = Date.now();
+      
       await startGeneratedPlan(finalPlan);
-      onPlanGenerated('generated'); // Use 'generated' as the plan ID for navigation
+      
+      // Ensure minimum loading time of 300ms
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 300 - elapsedTime);
+      
+      if (remainingTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
+      }
+      
+      // Navigate to the generated plan
+      onPlanGenerated('generated');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start plan');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -431,73 +450,88 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
 
         {currentStep === 'confirmation' && generatedPlan && (
           <div className="space-y-6">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-theme-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-theme-gold" />
-              </div>
-              <h3 className="text-xl font-bold text-theme-gold mb-2">Plan Generated Successfully!</h3>
-              <p className="text-theme-gold-dark">Your personalized workout plan is ready to start.</p>
-            </div>
-
-            <Card className="bg-theme-gold/10 border-theme-gold/30">
-              <div className="space-y-4">
-                {/* Plan Name Input */}
-                <div>
-                  <label htmlFor="planName" className="block text-sm font-medium text-theme-gold mb-2">
-                    Plan Name
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="planName"
-                      value={planName}
-                      onChange={(e) => setPlanName(e.target.value)}
-                      className="w-full p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-nested-container text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50"
-                      placeholder="Enter a name for your plan"
-                    />
-                    <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-theme-gold-dark" />
-                  </div>
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-theme-gold/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-gold"></div>
                 </div>
-                
-                <div className="pt-2 border-t border-theme-gold/20">
-                  <p className="text-theme-gold-dark text-lg">{generatedPlan.description}</p>
-                  
-                  <div className="space-y-2 mt-4">
-                    <h5 className="font-semibold text-theme-gold">Workout Schedule:</h5>
-                    {Object.entries(generatedPlan.levels[0].workouts).map(([day, workout]: [string, any]) => (
-                      <div key={day} className="flex justify-between items-center text-sm">
-                        <span className="text-theme-gold-light">{day}</span>
-                        <span className="text-theme-gold-dark">{workout.exercises.length} exercises</span>
+                <h3 className="text-2xl font-bold text-theme-gold mb-2">Generating your plan...</h3>
+                <p className="text-theme-gold-dark">Setting up your personalized workout program</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-theme-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-theme-gold" />
+                  </div>
+                  <h3 className="text-xl font-bold text-theme-gold mb-2">Plan Generated Successfully!</h3>
+                  <p className="text-theme-gold-dark">Your personalized workout plan is ready to start.</p>
+                </div>
+
+                <Card className="bg-theme-gold/10 border-theme-gold/30">
+                  <div className="space-y-4">
+                    {/* Plan Name Input */}
+                    <div>
+                      <label htmlFor="planName" className="block text-sm font-medium text-theme-gold mb-2">
+                        Plan Name
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="planName"
+                          value={planName}
+                          onChange={(e) => setPlanName(e.target.value)}
+                          className="w-full p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-nested-container text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50"
+                          placeholder="Enter a name for your plan"
+                          disabled={isLoading}
+                        />
+                        <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-theme-gold-dark" />
                       </div>
-                    ))}
+                    </div>
+                    
+                    <div className="pt-2 border-t border-theme-gold/20">
+                      <p className="text-theme-gold-dark text-lg">{generatedPlan.description}</p>
+                      
+                      <div className="space-y-2 mt-4">
+                        <h5 className="font-semibold text-theme-gold">Workout Schedule:</h5>
+                        {Object.entries(generatedPlan.levels[0].workouts).map(([day, workout]: [string, any]) => (
+                          <div key={day} className="flex justify-between items-center text-sm">
+                            <span className="text-theme-gold-light">{day}</span>
+                            <span className="text-theme-gold-dark">{workout.exercises.length} exercises</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
+                </Card>
+
+                {error && (
+                  <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-nested-container">
+                    <p className="text-red-400">{error}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <SecondaryButton
+                    onClick={() => setCurrentStep('generation')}
+                    ariaLabel="Generate Different Plan"
+                    className="flex-1"
+                    disabled={isLoading}
+                  >
+                    Generate Different Plan
+                  </SecondaryButton>
+                  <PrimaryButton
+                    onClick={handleStartPlan}
+                    ariaLabel="Start This Plan"
+                    className="flex-1"
+                    disabled={isLoading}
+                  >
+                    <CheckCircle size={16} className="mr-1" />
+                    Start This Plan
+                  </PrimaryButton>
                 </div>
-              </div>
-            </Card>
-
-            {error && (
-              <div className="p-3 bg-red-900/20 border border-red-500/30 rounded-nested-container">
-                <p className="text-red-400">{error}</p>
-              </div>
+              </>
             )}
-
-            <div className="flex gap-3 pt-4">
-              <SecondaryButton
-                onClick={() => setCurrentStep('generation')}
-                ariaLabel="Generate Different Plan"
-                className="flex-1"
-              >
-                Generate Different Plan
-              </SecondaryButton>
-              <PrimaryButton
-                onClick={handleStartPlan}
-                ariaLabel="Start This Plan"
-                className="flex-1"
-              >
-                <CheckCircle size={16} className="mr-1" />
-                Start This Plan
-              </PrimaryButton>
-            </div>
           </div>
         )}
       </div>
