@@ -10,8 +10,16 @@ Visit the live application: [https://weights.duncanhoge.com](https://weights.dun
 
 ## ✨ Features
 
+### 🆕 **NEW: Custom Plan Generation & Management**
+- 🎯 **Personalized Plan Creation**: Generate custom workout plans based on your goals and available equipment
+- ⏱️ **Volume Control**: Choose workout length (Short ~30-40min, Standard ~45-55min, Long ~60+min)
+- 🏷️ **Plan Naming & Management**: Rename and delete custom plans with intuitive controls
+- 🔧 **Equipment-Based Generation**: Plans adapt to your available equipment (dumbbells, barbells, bodyweight, etc.)
+- 📋 **Template System**: Built on proven workout templates with core/accessory exercise structure
+- 🎨 **Wizard Interface**: Step-by-step plan creation with progress tracking
+
 ### Core Workout Features
-- 🏋️‍♂️ Multiple workout plans to choose from (Duncan's Plan & Ryan's Plan)
+- 🏋️‍♂️ Multiple workout plans to choose from (Duncan's Plan, Ryan's Plan, + Custom Generated Plans)
 - ⏱️ Built-in rest timer with customizable durations
 - 📊 Real-time workout history tracking with Supabase integration
 - 💪 Support for various exercise types (see Exercise Types section below)
@@ -94,27 +102,54 @@ src/
 │   ├── AuthScreen.tsx   # Authentication interface
 │   ├── AuthWrapper.tsx  # Authentication state management
 │   ├── ExerciseHistory.tsx # Exercise performance history
-│   ├── HomeScreen.tsx   # Workout plan selection
-│   ├── PlanSelection.tsx # Main plan selection screen
+│   ├── HomeScreen.tsx   # Workout plan selection with custom plan management
+│   ├── PlanSelection.tsx # Main plan selection screen with custom plan creation
+│   ├── PlanGenerationWizard.tsx # 🆕 Step-by-step custom plan creation
 │   ├── WorkoutSession.tsx # Active workout interface with enhanced timed exercise support
 │   ├── TrainingBlockCompleteModal.tsx # Completion celebration
 │   └── PulsingTimerBackground.tsx # Animated timer background
 ├── hooks/               # Custom React hooks
 │   ├── useAuth.ts       # Authentication state management
-│   ├── useUserProfile.ts # Training block state management
+│   ├── useUserProfile.ts # Training block & custom plan state management
 │   └── useExerciseHistory.ts # Exercise history data fetching
-├── lib/                 # External service integrations
-│   └── supabase.ts      # Supabase client configuration
+├── lib/                 # External service integrations & core logic
+│   ├── supabase.ts      # Supabase client configuration
+│   └── planGenerationEngine.ts # 🆕 Custom plan generation logic
 ├── data/                # Static data and configurations
 │   ├── exerciseDictionary.ts # Centralized exercise definitions
-│   └── workoutData.ts   # Workout plans and exercise references
+│   ├── workoutData.ts   # Workout plans and exercise references
+│   └── workoutTemplates.ts # 🆕 Templates for plan generation
 ├── docs/                # Architecture documentation
 │   ├── exercise-dictionary.md # Exercise Dictionary documentation
-│   └── training-block-completion.md # Training Block system documentation
+│   ├── training-block-completion.md # Training Block system documentation
+│   └── plan-generation.md # 🆕 Custom Plan Generation architecture
 ├── App.tsx              # Main application component
 ├── main.tsx             # Application entry point
 └── index.css            # Global styles and Tailwind imports
 ```
+
+### 🆕 **Custom Plan Generation System**
+
+The application now features a comprehensive plan generation system that creates personalized workouts:
+
+#### **Plan Generation Engine** (`src/lib/planGenerationEngine.ts`)
+- **Template-Based Generation**: Uses proven workout templates as blueprints
+- **Equipment Filtering**: Adapts exercises based on available equipment
+- **Volume Control**: Adjusts workout length based on user preference
+- **Exercise Selection**: Intelligent matching of exercises to movement patterns
+- **Progression Support**: Foundation for future level advancement features
+
+#### **Workout Templates** (`src/data/workoutTemplates.ts`)
+- **Core/Accessory Structure**: Essential exercises + optional accessories
+- **Movement Patterns**: Organized by biomechanical movement types
+- **Exercise Types**: Support for all workout modalities (weight/reps, timed, bodyweight)
+- **Scalable Design**: Easy addition of new templates and goals
+
+#### **Plan Management Features**
+- **Custom Plan Storage**: JSONB field in user profiles for flexible plan data
+- **Rename Functionality**: Edit plan names with intuitive UI controls
+- **Delete Functionality**: Safe plan removal with confirmation dialogs
+- **Training Block Integration**: Custom plans work with existing 6-week block system
 
 ### Exercise Dictionary Architecture
 
@@ -139,6 +174,18 @@ The **Training Block Duration & Completion** system provides structured, time-bo
 
 For detailed information about the Training Block system, see: [Training Block Documentation](docs/training-block-completion.md)
 
+### 🆕 **Plan Generation Architecture**
+
+The **Custom Plan Generation & Management** system enables personalized workout creation:
+
+- **Template-Based Generation**: Proven workout structures adapted to user needs
+- **Volume Control**: Short (~30-40min), Standard (~45-55min), Long (~60+min) options
+- **Equipment Adaptation**: Plans automatically adjust to available equipment
+- **Plan Management**: Rename, delete, and organize custom plans
+- **Training Block Integration**: Custom plans work seamlessly with existing systems
+
+For detailed information about the Plan Generation system, see: [Plan Generation Documentation](docs/plan-generation.md)
+
 ### Backend Architecture (Supabase)
 ```
 Database Schema:
@@ -149,6 +196,7 @@ Database Schema:
 │   ├── current_level_index (integer, default 0)
 │   ├── block_start_date (timestamptz, nullable)
 │   ├── block_duration_weeks (integer, default 6)
+│   ├── active_generated_plan (jsonb, nullable) # 🆕 Custom plan storage
 │   ├── created_at (timestamptz)
 │   └── updated_at (timestamptz)
 └── workout_logs
@@ -182,19 +230,36 @@ Security:
 - Provides loading states during auth checks
 - Conditionally renders auth screen or main app
 
-#### `PlanSelection`
-- **Enhanced plan selection** with training block integration:
+#### 🆕 **`PlanGenerationWizard`**
+- **Step-by-step plan creation** with intuitive wizard interface:
+  - Template selection based on training goals
+  - Volume selection for workout duration preference
+  - Equipment selection with visual checkboxes
+  - Plan generation with progress feedback
+  - Plan naming and confirmation
+- **Progress tracking** with visual step indicators
+- **Error handling** with user-friendly messages
+- **Responsive design** optimized for all screen sizes
+
+#### **`PlanSelection`** (Enhanced)
+- **Enhanced plan selection** with custom plan integration:
+  - "Create Your Own Plan" prominent call-to-action
+  - Generated plan display with management options
+  - Pre-made plans section with clear organization
   - Conditional buttons based on active plan status
   - "Start This Plan" vs "Switch to This Plan" logic
   - Plan switching confirmation modals
   - Active plan visual indicators with progress display
   - "Try Plan" option for exploration without commitment
 
-#### `HomeScreen`
-- **Plan management interface** with training block controls:
+#### **`HomeScreen`** (Enhanced)
+- **Plan management interface** with custom plan controls:
   - Current level display and navigation
   - Weeks remaining indicator for active blocks
   - Settings panel access for duration management
+  - **Custom plan management**: Rename and delete icons for generated plans
+  - **Rename modal**: Text input with pre-filled current name
+  - **Delete confirmation**: Safety modal preventing accidental deletion
   - Contextual workout selection based on current level
 
 #### `WorkoutSession`
@@ -256,13 +321,18 @@ Security:
 - Handles session persistence and state changes
 - Loading state management during auth operations
 
-#### `useUserProfile`
+#### **`useUserProfile`** (Enhanced)
 - **Training block state management**:
   - Fetches and manages user profile data
   - Provides training block lifecycle methods
   - Calculates weeks remaining and completion status
   - Handles block duration updates and early termination
   - Automatic profile creation for new users
+- **🆕 Custom plan management**:
+  - `startGeneratedPlan()`: Activates a custom generated plan
+  - `updateGeneratedPlanName()`: Renames custom plans
+  - `deleteGeneratedPlan()`: Safely removes custom plans
+  - `addLevelToGeneratedPlan()`: Supports plan progression
 
 #### `useExerciseHistory`
 - Fetches exercise-specific performance data
@@ -278,9 +348,19 @@ Security:
 3. User signs in → Supabase handles authentication
 4. Session established → Main app renders
 
+### 🆕 **Custom Plan Generation Flow**
+1. User clicks "Create Your Own Plan" → `PlanGenerationWizard` opens
+2. **Template Selection** → User chooses training goal
+3. **Volume Selection** → User selects workout length preference
+4. **Equipment Selection** → User specifies available equipment
+5. **Plan Generation** → Engine creates personalized plan using templates
+6. **Plan Naming** → User customizes plan name
+7. **Plan Activation** → Plan becomes active training block
+8. **Plan Management** → User can rename/delete from home screen
+
 ### Training Block Flow
 1. User visits plan selection → `useUserProfile` loads current state
-2. User clicks "Start This Plan" → Profile updated with block details
+2. User clicks "Start This Plan" or starts custom plan → Profile updated with block details
 3. Plan home screen shows → Current level workouts and progress
 4. Settings accessible → Duration adjustments and early termination
 5. Completion check on load → Success modal if block complete
@@ -407,6 +487,7 @@ CREATE TABLE user_profiles (
   current_level_index integer DEFAULT 0,
   block_start_date timestamptz,
   block_duration_weeks integer DEFAULT 6 CHECK (block_duration_weeks > 0),
+  active_generated_plan jsonb, -- 🆕 Custom plan storage
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
@@ -457,8 +538,23 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 
 ## 📱 Usage
 
+### 🆕 **Creating Custom Plans**
+1. **Start Creation** - Click "Create Your Own Plan" on the main screen
+2. **Choose Template** - Select training goal (e.g., Full Body Hypertrophy)
+3. **Select Volume** - Choose workout length (Short/Standard/Long)
+4. **Pick Equipment** - Select all available equipment
+5. **Generate Plan** - System creates personalized plan
+6. **Name Plan** - Customize the plan name
+7. **Start Training** - Begin your 6-week training block
+
+### 🆕 **Managing Custom Plans**
+- **Rename**: Click edit icon next to plan name on home screen
+- **Delete**: Click delete icon with confirmation for safety
+- **Progress**: View weeks remaining and training block progress
+- **Settings**: Adjust duration and manage training block
+
 ### Starting a Training Block
-1. **Select a Plan** - Choose from available workout programs
+1. **Select a Plan** - Choose from pre-made or custom generated plans
 2. **Start Training Block** - Click "Start This Plan" to begin 6-week commitment
 3. **Track Progress** - View weeks remaining and access settings
 4. **Complete Workouts** - Log sets with automatic training block context
@@ -501,17 +597,34 @@ Workout plans are defined in `src/data/workoutData.ts` with multi-level structur
 - Plan metadata and descriptions
 - Multiple levels for progression
 
+### 🆕 **Workout Templates**
+Custom plan templates are defined in `src/data/workoutTemplates.ts`:
+- Core/accessory slot structure for intelligent exercise selection
+- Movement pattern requirements
+- Exercise type specifications
+- Volume-based accessory selection
+- Template metadata and descriptions
+
 ### Exercise Dictionary
 The Exercise Dictionary (`src/data/exerciseDictionary.ts`) contains:
 - Complete exercise definitions with metadata
 - Muscle group classifications
 - Equipment requirements
 - Movement patterns
+- Exercise type classifications (compound/isolation)
 - Alternative exercise suggestions
 - Form cues and descriptions
 
+### 🆕 **Plan Generation Engine**
+The generation engine (`src/lib/planGenerationEngine.ts`) provides:
+- Template-based plan creation
+- Equipment filtering logic
+- Volume control algorithms
+- Exercise selection intelligence
+- Progression support for future features
+
 ### Training Block Settings
-- **Default Duration**: 6 weeks (user configurable)
+- **Block Duration**: 6 weeks (user configurable)
 - **Minimum Duration**: 1 week
 - **Completion Check**: Every app load
 - **Progress Calculation**: Based on start date and duration
@@ -554,6 +667,7 @@ Ensure the following environment variables are set in your deployment platform:
 - When adding exercises, update the Exercise Dictionary
 - Follow the established ID naming conventions
 - Consider training block context in new features
+- **Custom Plan Development**: Ensure proper template structure and generation logic
 - **Timed Exercise Development**: Ensure proper validation for duration inputs and maintain the flexible stopwatch + manual entry workflow
 
 ## 📄 License
