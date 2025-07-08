@@ -8,6 +8,7 @@ export interface UserProfile {
   current_level_index: number;
   block_start_date: string | null;
   block_duration_weeks: number;
+  active_generated_plan: any | null;
   created_at: string;
   updated_at: string;
 }
@@ -84,8 +85,42 @@ export function useUserProfile() {
     }
   };
 
+  const startGeneratedPlan = async (generatedPlan: any) => {
+    return updateProfile({
+      active_generated_plan: generatedPlan,
+      current_plan_id: generatedPlan.templateId,
+      current_level_index: 0,
+      block_start_date: new Date().toISOString(),
+      block_duration_weeks: 6
+    });
+  };
+
+  const updateGeneratedPlanName = async (newName: string) => {
+    if (!profile?.active_generated_plan) return null;
+    
+    const updatedPlan = {
+      ...profile.active_generated_plan,
+      name: newName
+    };
+    
+    return updateProfile({
+      active_generated_plan: updatedPlan
+    });
+  };
+
+  const deleteGeneratedPlan = async () => {
+    return updateProfile({
+      active_generated_plan: null,
+      current_plan_id: null,
+      current_level_index: 0,
+      block_start_date: null,
+      block_duration_weeks: 6
+    });
+  };
+
   const startTrainingBlock = async (planId: string, levelIndex: number = 0) => {
     return updateProfile({
+      active_generated_plan: null, // Clear any generated plan when starting a pre-made plan
       current_plan_id: planId,
       current_level_index: levelIndex,
       block_start_date: new Date().toISOString(),
@@ -93,8 +128,44 @@ export function useUserProfile() {
     });
   };
 
+  const addLevelToGeneratedPlan = async (newLevel: any) => {
+    if (!profile?.active_generated_plan) return null;
+    
+    const updatedPlan = {
+      ...profile.active_generated_plan,
+      levels: [...profile.active_generated_plan.levels, newLevel]
+    };
+    
+    return updateProfile({
+      active_generated_plan: updatedPlan,
+      current_level_index: (profile.current_level_index || 0) + 1,
+      block_start_date: new Date().toISOString(),
+      block_duration_weeks: 6
+    });
+  };
+
+  const startNextLevel = async () => {
+    if (!profile?.current_plan_id) return null;
+    
+    return updateProfile({
+      current_level_index: (profile.current_level_index || 0) + 1,
+      block_start_date: new Date().toISOString(),
+      block_duration_weeks: 6 // Reset to default duration
+    });
+  };
+
+  const restartCurrentLevel = async () => {
+    if (!profile?.current_plan_id) return null;
+    
+    return updateProfile({
+      block_start_date: new Date().toISOString(),
+      block_duration_weeks: 6 // Reset to default duration
+    });
+  };
+
   const endTrainingBlock = async () => {
     return updateProfile({
+      active_generated_plan: null,
       current_plan_id: null,
       current_level_index: 0,
       block_start_date: null,
@@ -111,7 +182,7 @@ export function useUserProfile() {
 
   // Calculate weeks remaining in current block
   const getWeeksRemaining = (): number | null => {
-    if (!profile?.block_start_date || !profile.current_plan_id) return null;
+    if (!profile?.block_start_date || (!profile.current_plan_id && !profile.active_generated_plan)) return null;
 
     const startDate = new Date(profile.block_start_date);
     const currentDate = new Date();
@@ -136,7 +207,13 @@ export function useUserProfile() {
     loading,
     error,
     updateProfile,
+    startGeneratedPlan,
+    updateGeneratedPlanName,
+    deleteGeneratedPlan,
     startTrainingBlock,
+    addLevelToGeneratedPlan,
+    startNextLevel,
+    restartCurrentLevel,
     endTrainingBlock,
     updateBlockDuration,
     getWeeksRemaining,

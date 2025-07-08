@@ -5,10 +5,12 @@ import HomeScreen from './components/HomeScreen';
 import WorkoutSession from './components/WorkoutSession';
 import { TrainingBlockCompleteModal } from './components/TrainingBlockCompleteModal';
 import { AuthWrapper } from './components/AuthWrapper';
+import { PlanGenerationWizard } from './components/PlanGenerationWizard';
 import { useUserProfile } from './hooks/useUserProfile';
 import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
+import type { GeneratedPlan } from './lib/planGenerationEngine';
 
-type Page = 'plans' | 'workouts' | 'session';
+type Page = 'plans' | 'workouts' | 'session' | 'create-plan';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('plans');
@@ -17,7 +19,7 @@ function App() {
   const [workoutHistory, setWorkoutHistory] = useState<Record<string, any[]>>({});
   const [showCompletionModal, setShowCompletionModal] = useState(false);
 
-  const { profile, isBlockComplete, endTrainingBlock } = useUserProfile();
+  const { profile, isBlockComplete, endTrainingBlock, startNextLevel, restartCurrentLevel } = useUserProfile();
 
   useEffect(() => {
     const savedHistory = localStorage.getItem('workoutHistory');
@@ -34,6 +36,15 @@ function App() {
   }, [profile, isBlockComplete]);
 
   const handleSelectPlan = (planId: string) => {
+    setSelectedPlanId(planId);
+    setCurrentPage('workouts');
+  };
+
+  const handleCreatePlan = () => {
+    setCurrentPage('create-plan');
+  };
+
+  const handlePlanGenerated = (planId: string) => {
     setSelectedPlanId(planId);
     setCurrentPage('workouts');
   };
@@ -75,8 +86,28 @@ function App() {
     setSelectedDay(null);
   };
 
-  // Get current plan for workout session
-  const currentPlan = selectedPlanId ? WORKOUT_PLANS[selectedPlanId] : null;
+  const handleStartNextLevel = async () => {
+    await startNextLevel();
+    setShowCompletionModal(false);
+    // Stay on current plan but refresh to show new level
+    setCurrentPage('workouts');
+  };
+
+  const handleRestartLevel = async () => {
+    await restartCurrentLevel();
+    setShowCompletionModal(false);
+    // Stay on current plan
+    setCurrentPage('workouts');
+  };
+  // Get current plan for workout session (handle both pre-made and generated plans)
+  const getCurrentPlan = () => {
+    if (profile?.active_generated_plan && (selectedPlanId === profile.active_generated_plan.id || selectedPlanId === 'generated')) {
+      return profile.active_generated_plan as GeneratedPlan;
+    }
+    return selectedPlanId ? WORKOUT_PLANS[selectedPlanId] : null;
+  };
+
+  const currentPlan = getCurrentPlan();
   const currentWorkouts = currentPlan && profile ? 
     getCurrentLevelWorkouts(currentPlan, profile.current_level_index || 0) : 
     currentPlan?.levels[0]?.workouts || {};
@@ -94,7 +125,15 @@ function App() {
           {currentPage === 'plans' && (
             <PlanSelection 
               onSelectPlan={handleSelectPlan} 
+              onCreatePlan={handleCreatePlan}
               workoutHistory={workoutHistory}
+            />
+          )}
+
+          {currentPage === 'create-plan' && (
+            <PlanGenerationWizard 
+              onBack={goToPlans}
+              onPlanGenerated={handlePlanGenerated}
             />
           )}
 
@@ -119,9 +158,19 @@ function App() {
           {/* Training Block Completion Modal */}
           <TrainingBlockCompleteModal
             isOpen={showCompletionModal}
-            onClose={handleCompletionModalClose}
-            planName={profile?.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id]?.name || 'Your Plan' : 'Your Plan'}
+            onStartNextLevel={handleStartNextLevel}
+            onRestartLevel={handleRestartLevel}
+            onDecideLater={handleCompletionModalClose}
+            planName={
+              profile?.active_generated_plan 
+                ? profile.active_generated_plan.name 
+                : profile?.current_plan_id 
+                  ? WORKOUT_PLANS[profile.current_plan_id]?.name || 'Your Plan' 
+                  : 'Your Plan'
+            }
             weeksCompleted={profile?.block_duration_weeks || 6}
+            currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
+            currentLevelIndex={profile?.current_level_index || 0}
           />
         </div>
       </div>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock } from 'lucide-react';
+import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2 } from 'lucide-react';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
-import { TilePrimaryButton } from './ui/Button';
+import { TilePrimaryButton, PrimaryButton } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { getCurrentLevelWorkouts, getCurrentLevel } from '../data/workoutData';
@@ -18,12 +18,23 @@ interface HomeScreenProps {
 function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreenProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const { profile, updateBlockDuration, endTrainingBlock, getWeeksRemaining } = useUserProfile();
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [newPlanName, setNewPlanName] = useState('');
+  const { 
+    profile, 
+    updateBlockDuration, 
+    endTrainingBlock, 
+    getWeeksRemaining,
+    updateGeneratedPlanName,
+    deleteGeneratedPlan
+  } = useUserProfile();
 
   const currentLevel = getCurrentLevel(plan, profile?.current_level_index || 0);
   const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
   const weeksRemaining = getWeeksRemaining();
-  const isActivePlan = profile?.current_plan_id === plan.id;
+  const isActivePlan = profile?.current_plan_id === plan.id || (profile?.active_generated_plan && plan.id.startsWith('generated'));
+  const isGeneratedPlan = !!profile?.active_generated_plan && plan.id.startsWith('generated');
 
   const handleDurationChange = async (change: number) => {
     if (!profile) return;
@@ -42,6 +53,36 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
     }
   };
 
+  const handleRename = () => {
+    if (isGeneratedPlan && profile?.active_generated_plan) {
+      setNewPlanName(profile.active_generated_plan.name);
+      setShowRenameModal(true);
+    }
+  };
+
+  const handleConfirmRename = async () => {
+    if (newPlanName.trim() && isGeneratedPlan) {
+      await updateGeneratedPlanName(newPlanName.trim());
+      setShowRenameModal(false);
+      setNewPlanName('');
+    }
+  };
+
+  const handleDelete = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete this plan? This action cannot be undone."
+    );
+    if (confirmed) {
+      await deleteGeneratedPlan();
+      setShowDeleteModal(false);
+      onBack();
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -49,7 +90,27 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
           <ChevronLeft size={20} className="mr-1" /> Back to Plans
         </IconButton>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-theme-gold">{plan.name}</h2>
+          <div className="flex items-center gap-2 justify-center">
+            <h2 className="text-2xl font-bold text-theme-gold">{plan.name}</h2>
+            {isGeneratedPlan && (
+              <div className="flex gap-1">
+                <IconButton 
+                  onClick={handleRename} 
+                  ariaLabel="Rename Plan"
+                  className="p-1 text-xs"
+                >
+                  <Edit3 size={14} />
+                </IconButton>
+                <IconButton 
+                  onClick={handleDelete} 
+                  ariaLabel="Delete Plan"
+                  className="p-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                >
+                  <Trash2 size={14} />
+                </IconButton>
+              </div>
+            )}
+          </div>
           {currentLevel && (
             <p className="text-sm text-theme-gold-dark">Level {currentLevel.level}: {currentLevel.name}</p>
           )}
@@ -185,6 +246,79 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
             <p className="text-xs text-theme-gold-dark mt-2 text-center">
               This will end your current training block and reset your progress.
             </p>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Rename Plan Modal */}
+      <Modal 
+        isOpen={showRenameModal} 
+        onClose={() => setShowRenameModal(false)} 
+        title="Rename Plan"
+      >
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="newPlanName" className="block text-sm font-medium text-theme-gold mb-2">
+              Plan Name
+            </label>
+            <input
+              type="text"
+              id="newPlanName"
+              value={newPlanName}
+              onChange={(e) => setNewPlanName(e.target.value)}
+              className="w-full p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-nested-container text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50"
+              placeholder="Enter new plan name"
+              autoFocus
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <IconButton
+              onClick={() => setShowRenameModal(false)}
+              ariaLabel="Cancel"
+              className="flex-1 text-theme-gold-dark hover:text-theme-gold"
+            >
+              Cancel
+            </IconButton>
+            <PrimaryButton
+              onClick={handleConfirmRename}
+              ariaLabel="Save Name"
+              className="flex-1"
+              disabled={!newPlanName.trim()}
+            >
+              Save Name
+            </PrimaryButton>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Plan Modal */}
+      <Modal 
+        isOpen={showDeleteModal} 
+        onClose={() => setShowDeleteModal(false)} 
+        title="Delete Plan"
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <Trash2 className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <p className="text-theme-gold-dark">
+              Are you sure you want to permanently delete this plan? This action cannot be undone.
+            </p>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <IconButton
+              onClick={() => setShowDeleteModal(false)}
+              ariaLabel="Cancel"
+              className="flex-1 text-theme-gold-dark hover:text-theme-gold"
+            >
+              Cancel
+            </IconButton>
+            <IconButton
+              onClick={handleConfirmDelete}
+              ariaLabel="Delete Plan"
+              className="flex-1 bg-red-900/20 text-red-400 hover:bg-red-900/40 border-red-500/30"
+            >
+              Delete Plan
+            </IconButton>
           </div>
         </div>
       </Modal>
