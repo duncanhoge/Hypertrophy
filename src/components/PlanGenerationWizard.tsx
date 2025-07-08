@@ -6,6 +6,7 @@ import { Card } from './ui/Card';
 import { getAllTemplates, getTemplateById, type WorkoutTemplate } from '../data/workoutTemplates';
 import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, getVolumeDisplayInfo, type GenerationOptions, type VolumeLevel } from '../lib/planGenerationEngine';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { getEnhancedExercise } from '../data/workoutData';
 
 interface PlanGenerationWizardProps {
   onBack: () => void;
@@ -492,15 +493,39 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
                     <div className="pt-2 border-t border-theme-gold/20">
                       <p className="text-theme-gold-dark text-lg">{generatedPlan.description}</p>
                       
-                      <div className="space-y-2 mt-4">
+                      <div className="space-y-4 mt-6">
                         <h5 className="font-semibold text-theme-gold">Workout Schedule:</h5>
-                        {Object.entries(generatedPlan.levels[0].workouts).map(([day, workout]: [string, any]) => (
-                          <div key={day} className="flex justify-between items-center text-sm">
-                            <span className="text-theme-gold-light">{day}</span>
-                            <span className="text-theme-gold-dark">{workout.exercises.length} exercises</span>
+                        <div className="space-y-3">
+                          {Object.entries(generatedPlan.levels[0].workouts).map(([day, workout]: [string, any]) => (
+                            <div key={day} className="bg-theme-black-lighter rounded-nested-container p-4 border border-theme-gold/20">
+                              <div className="flex justify-between items-start mb-3">
+                                <div>
+                                  <h6 className="font-semibold text-theme-gold">{day}</h6>
+                                  <p className="text-sm text-theme-gold-light">{workout.name.split(' - ')[1] || workout.name}</p>
+                                </div>
+                                <span className="text-xs text-theme-gold-dark bg-theme-gold/20 px-2 py-1 rounded-2x-nested-container">
+                                  {workout.exercises.length} exercises
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <h7 className="text-xs font-medium text-theme-gold-dark uppercase tracking-wide">Exercises:</h7>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {workout.exercises.map((exercise: any, index: number) => {
+                                    const enhancedExercise = getEnhancedExercise(exercise);
+                                    return (
+                                      <div key={index} className="flex justify-between items-center text-xs">
+                                        <span className="text-theme-gold-light">{enhancedExercise.name}</span>
+                                        <span className="text-theme-gold-dark">{exercise.sets} × {exercise.reps}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                           </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </Card>
