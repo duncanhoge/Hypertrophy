@@ -2,10 +2,6 @@
 
 This document serves as the comprehensive reference for all frontend components, design tokens, and styling patterns used in the Hypertrophy Hub application.
 
-## Design System Overview
-
-The Hypertrophy Hub application follows a premium "Apple-level" design aesthetic with a sophisticated gold and black theme. The design emphasizes clean typography, consistent spacing, and thoughtful micro-interactions.
-
 ## Design Tokens
 
 ### Color Palette
