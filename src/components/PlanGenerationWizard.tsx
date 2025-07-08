@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle, Dumbbell, Target, Zap, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Dumbbell, Target, Zap, ChevronLeft, Clock, Edit3 } from 'lucide-react';
 import { PrimaryButton, SecondaryButton } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { getAllTemplates, getTemplateById, type WorkoutTemplate } from '../data/workoutTemplates';
-import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, type GenerationOptions } from '../lib/planGenerationEngine';
+import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, getVolumeDisplayInfo, type GenerationOptions, type VolumeLevel } from '../lib/planGenerationEngine';
 import { useUserProfile } from '../hooks/useUserProfile';
 
 interface PlanGenerationWizardProps {
@@ -12,13 +12,15 @@ interface PlanGenerationWizardProps {
   onPlanGenerated: (planId: string) => void;
 }
 
-type WizardStep = 'template' | 'equipment' | 'generation' | 'confirmation';
+type WizardStep = 'template' | 'volume' | 'equipment' | 'generation' | 'confirmation';
 
 export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGenerationWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<WorkoutTemplate | null>(null);
+  const [selectedVolume, setSelectedVolume] = useState<VolumeLevel>('standard');
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>(['bodyweight']); // Default to bodyweight
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+  const [planName, setPlanName] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,9 +28,16 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
 
   const availableTemplates = getAllTemplates();
   const availableEquipment = getAllAvailableEquipment();
+  const volumeOptions: VolumeLevel[] = ['short', 'standard', 'long'];
 
   const handleTemplateSelect = (template: WorkoutTemplate) => {
     setSelectedTemplate(template);
+    setPlanName(`My ${template.name}`); // Set default name
+    setCurrentStep('volume');
+  };
+
+  const handleVolumeSelect = (volume: VolumeLevel) => {
+    setSelectedVolume(volume);
     setCurrentStep('equipment');
   };
 
@@ -54,7 +63,8 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
       const options: GenerationOptions = {
         templateId: selectedTemplate.id,
         selectedEquipment,
-        planName: `My ${selectedTemplate.name}`
+        volume: selectedVolume,
+        planName: planName || `My ${selectedTemplate.name}`
       };
 
       const generated = generateWorkoutPlan(options);
@@ -76,7 +86,13 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
     if (!generatedPlan) return;
 
     try {
-      await startGeneratedPlan(generatedPlan);
+      // Update the plan name before saving
+      const finalPlan = {
+        ...generatedPlan,
+        name: planName || generatedPlan.name
+      };
+      
+      await startGeneratedPlan(finalPlan);
       onPlanGenerated('generated'); // Use 'generated' as the plan ID for navigation
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start plan');
@@ -101,61 +117,82 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
 
       {/* Progress Indicator */}
       <Card className="bg-theme-black-light border border-theme-gold/20">
-        <div className="flex items-center justify-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+        <div className="flex items-center justify-center space-x-2 md:space-x-4 overflow-x-auto">
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold ${
               currentStep === 'template' ? 'bg-theme-gold text-theme-black' : 
-              ['equipment', 'generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold/20 text-theme-gold' : 
+              ['volume', 'equipment', 'generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold/20 text-theme-gold' : 
               'bg-theme-black-lighter text-theme-gold-dark'
             }`}>
               1
             </div>
-            <span className={`text-sm font-medium ${
+            <span className={`text-xs md:text-sm font-medium ${
               currentStep === 'template' ? 'text-theme-gold' : 
-              ['equipment', 'generation', 'confirmation'].includes(currentStep) ? 'text-theme-gold-light' : 
+              ['volume', 'equipment', 'generation', 'confirmation'].includes(currentStep) ? 'text-theme-gold-light' : 
               'text-theme-gold-dark'
             }`}>
-              Choose Template
+              Template
             </span>
           </div>
           
-          <div className={`h-1 w-12 ${
-            ['equipment', 'generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold' : 'bg-theme-black-lighter'
+          <div className={`h-1 w-6 md:w-12 flex-shrink-0 ${
+            ['volume', 'equipment', 'generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold' : 'bg-theme-black-lighter'
           }`} />
           
-          <div className="flex items-center space-x-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-              currentStep === 'equipment' ? 'bg-theme-gold text-theme-black' : 
-              ['generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold/20 text-theme-gold' : 
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold ${
+              currentStep === 'volume' ? 'bg-theme-gold text-theme-black' : 
+              ['equipment', 'generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold/20 text-theme-gold' : 
               'bg-theme-black-lighter text-theme-gold-dark'
             }`}>
               2
             </div>
-            <span className={`text-sm font-medium ${
-              currentStep === 'equipment' ? 'text-theme-gold' : 
-              ['generation', 'confirmation'].includes(currentStep) ? 'text-theme-gold-light' : 
+            <span className={`text-xs md:text-sm font-medium ${
+              currentStep === 'volume' ? 'text-theme-gold' : 
+              ['equipment', 'generation', 'confirmation'].includes(currentStep) ? 'text-theme-gold-light' : 
               'text-theme-gold-dark'
             }`}>
-              Select Equipment
+              Length
             </span>
           </div>
           
-          <div className={`h-1 w-12 ${
-            ['generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold' : 'bg-theme-black-lighter'
+          <div className={`h-1 w-6 md:w-12 flex-shrink-0 ${
+            ['equipment', 'generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold' : 'bg-theme-black-lighter'
           }`} />
           
-          <div className="flex items-center space-x-2">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-              ['generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold text-theme-black' : 
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold ${
+              currentStep === 'equipment' ? 'bg-theme-gold text-theme-black' : 
+              ['generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold/20 text-theme-gold' : 
               'bg-theme-black-lighter text-theme-gold-dark'
             }`}>
               3
             </div>
-            <span className={`text-sm font-medium ${
+            <span className={`text-xs md:text-sm font-medium ${
+              currentStep === 'equipment' ? 'text-theme-gold' : 
+              ['generation', 'confirmation'].includes(currentStep) ? 'text-theme-gold-light' : 
+              'text-theme-gold-dark'
+            }`}>
+              Equipment
+            </span>
+          </div>
+          
+          <div className={`h-1 w-6 md:w-12 flex-shrink-0 ${
+            ['generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold' : 'bg-theme-black-lighter'
+          }`} />
+          
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-bold ${
+              ['generation', 'confirmation'].includes(currentStep) ? 'bg-theme-gold text-theme-black' : 
+              'bg-theme-black-lighter text-theme-gold-dark'
+            }`}>
+              4
+            </div>
+            <span className={`text-xs md:text-sm font-medium ${
               ['generation', 'confirmation'].includes(currentStep) ? 'text-theme-gold' : 
               'text-theme-gold-dark'
             }`}>
-              Generate Plan
+              Generate
             </span>
           </div>
         </div>
@@ -195,6 +232,62 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
                   </div>
                 </Card>
               ))}
+            </div>
+          </div>
+        )}
+
+        {currentStep === 'volume' && selectedTemplate && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold text-theme-gold mb-2">Select Workout Length</h3>
+              <p className="text-theme-gold-dark">Choose the duration that fits your schedule and goals.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {volumeOptions.map(volume => {
+                const volumeInfo = getVolumeDisplayInfo(volume);
+                return (
+                  <Card
+                    key={volume}
+                    className={`cursor-pointer transition-all duration-200 hover:border-theme-gold/50 hover:scale-[1.02] ${
+                      selectedVolume === volume ? 'border-theme-gold bg-theme-gold/10' : 'border-theme-gold/20'
+                    }`}
+                    onClick={() => handleVolumeSelect(volume)}
+                  >
+                    <div className="text-center space-y-3 p-4">
+                      <div className={`w-16 h-16 mx-auto rounded-nested-container flex items-center justify-center ${
+                        selectedVolume === volume ? 'bg-theme-gold text-theme-black' : 'bg-theme-gold/20'
+                      }`}>
+                        <Clock className="w-8 h-8" />
+                      </div>
+                      <div>
+                        <h4 className="text-xl font-semibold text-theme-gold">{volumeInfo.name}</h4>
+                        <p className="text-theme-gold-light text-sm font-medium">{volumeInfo.duration}</p>
+                      </div>
+                      <p className="text-theme-gold-dark text-sm">{volumeInfo.description}</p>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <IconButton
+                onClick={() => setCurrentStep('template')}
+                ariaLabel="Back to Templates"
+                className="flex-1"
+              >
+                <ArrowLeft size={16} className="mr-1" />
+                Back
+              </IconButton>
+              <PrimaryButton
+                onClick={() => setCurrentStep('equipment')}
+                ariaLabel="Continue to Equipment"
+                className="flex-1"
+              >
+                Continue
+                <ArrowRight size={16} className="ml-1" />
+              </PrimaryButton>
             </div>
           </div>
         )}
@@ -243,8 +336,8 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
 
             <div className="flex gap-3 pt-4">
               <IconButton
-                onClick={() => setCurrentStep('template')}
-                ariaLabel="Back to Templates"
+                onClick={() => setCurrentStep('volume')}
+                ariaLabel="Back to Volume"
                 className="flex-1"
               >
                 <ArrowLeft size={16} className="mr-1" />
@@ -276,6 +369,10 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
                   <div>
                     <h4 className="text-lg font-semibold text-theme-gold">Template: {selectedTemplate.name}</h4>
                     <p className="text-theme-gold-dark">{selectedTemplate.description}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-theme-gold">Workout Length: {getVolumeDisplayInfo(selectedVolume).name}</h4>
+                    <p className="text-theme-gold-dark">{getVolumeDisplayInfo(selectedVolume).description} ({getVolumeDisplayInfo(selectedVolume).duration})</p>
                   </div>
                   <div>
                     <h4 className="text-lg font-semibold text-theme-gold">Equipment Selected:</h4>
@@ -343,18 +440,37 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
             </div>
 
             <Card className="bg-theme-gold/10 border-theme-gold/30">
-              <div className="space-y-3">
-                <h4 className="text-xl font-bold text-theme-gold">{generatedPlan.name}</h4>
-                <p className="text-theme-gold-dark text-lg">{generatedPlan.description}</p>
+              <div className="space-y-4">
+                {/* Plan Name Input */}
+                <div>
+                  <label htmlFor="planName" className="block text-sm font-medium text-theme-gold mb-2">
+                    Plan Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="planName"
+                      value={planName}
+                      onChange={(e) => setPlanName(e.target.value)}
+                      className="w-full p-3 bg-theme-black-lighter border border-theme-gold/30 rounded-nested-container text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50"
+                      placeholder="Enter a name for your plan"
+                    />
+                    <Edit3 className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-theme-gold-dark" />
+                  </div>
+                </div>
                 
-                <div className="space-y-2">
-                  <h5 className="font-semibold text-theme-gold">Workout Schedule:</h5>
-                  {Object.entries(generatedPlan.levels[0].workouts).map(([day, workout]: [string, any]) => (
-                    <div key={day} className="flex justify-between items-center text-sm">
-                      <span className="text-theme-gold-light">{day}</span>
-                      <span className="text-theme-gold-dark">{workout.exercises.length} exercises</span>
-                    </div>
-                  ))}
+                <div className="pt-2 border-t border-theme-gold/20">
+                  <p className="text-theme-gold-dark text-lg">{generatedPlan.description}</p>
+                  
+                  <div className="space-y-2 mt-4">
+                    <h5 className="font-semibold text-theme-gold">Workout Schedule:</h5>
+                    {Object.entries(generatedPlan.levels[0].workouts).map(([day, workout]: [string, any]) => (
+                      <div key={day} className="flex justify-between items-center text-sm">
+                        <span className="text-theme-gold-light">{day}</span>
+                        <span className="text-theme-gold-dark">{workout.exercises.length} exercises</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </Card>

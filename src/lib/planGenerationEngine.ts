@@ -9,9 +9,12 @@ import { EXERCISE_DICTIONARY, getExercisesByMovementPattern } from '../data/exer
 import { getTemplateById, type WorkoutTemplate, type WorkoutSlot } from '../data/workoutTemplates';
 import type { Exercise, WorkoutPlan, TrainingLevel, WorkoutDay } from '../data/workoutData';
 
+export type VolumeLevel = 'short' | 'standard' | 'long';
+
 export interface GenerationOptions {
   templateId: string;
   selectedEquipment: string[];
+  volume: VolumeLevel;
   excludeExerciseIds?: string[]; // For level up variety
   planName?: string; // Custom name for the generated plan
 }
@@ -29,7 +32,7 @@ export interface GeneratedPlan {
  * Main function to generate a complete workout plan
  */
 export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan | null {
-  const { templateId, selectedEquipment, excludeExerciseIds = [], planName } = options;
+  const { templateId, selectedEquipment, volume, excludeExerciseIds = [], planName } = options;
   
   // Get the template
   const template = getTemplateById(templateId);
@@ -44,11 +47,12 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
   for (const workoutSkeleton of template.workouts) {
     const exercises: Exercise[] = [];
     
-    for (const slot of workoutSkeleton.slots) {
+    // Always include all core slots
+    for (const slot of workoutSkeleton.coreSlots) {
       const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
       
       if (!selectedExercise) {
-        console.warn(`No suitable exercise found for slot ${slot.slotId} with pattern ${slot.movementPattern}`);
+        console.warn(`No suitable exercise found for core slot ${slot.slotId} with pattern ${slot.movementPattern}`);
         continue;
       }
       
@@ -60,6 +64,19 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
       });
     }
     
+    // Add accessories based on volume selection
+    const accessoryCount = getAccessoryCount(volume);
+    const selectedAccessories = selectAccessoryExercises(
+      workoutSkeleton.accessoryPool, 
+      selectedEquipment, 
+      excludeExerciseIds, 
+      accessoryCount
+    );
+    
+    for (const accessoryExercise of selectedAccessories) {
+      exercises.push(accessoryExercise);
+    }
+    
     generatedWorkouts[workoutSkeleton.day] = {
       name: workoutSkeleton.name,
       exercises
@@ -69,21 +86,63 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
   // Create the generated plan
   const generatedPlan: GeneratedPlan = {
     id: `generated_${Date.now()}`, // Unique ID for this generated plan
-    name: planName || `Custom ${template.name}`,
-    description: `Personalized ${template.description.toLowerCase()} generated based on your available equipment.`,
+    name: planName || `My ${template.name}`,
+    description: `Personalized ${template.description.toLowerCase()} generated based on your available equipment and ${volume} workout preference.`,
     image: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     templateId,
     levels: [
       {
         level: 1,
         name: "Custom Level 1",
-        description: "Your personalized training program based on available equipment.",
+        description: `Your personalized ${volume} training program based on available equipment.`,
         workouts: generatedWorkouts
       }
     ]
   };
 
   return generatedPlan;
+}
+
+/**
+ * Get the number of accessory exercises based on volume level
+ */
+function getAccessoryCount(volume: VolumeLevel): number {
+  switch (volume) {
+    case 'short': return 1;
+    case 'standard': return 2;
+    case 'long': return 4;
+    default: return 2;
+  }
+}
+
+/**
+ * Select accessory exercises from the pool
+ */
+function selectAccessoryExercises(
+  accessoryPool: WorkoutSlot[],
+  selectedEquipment: string[],
+  excludeExerciseIds: string[],
+  count: number
+): Exercise[] {
+  const availableAccessories: Exercise[] = [];
+  
+  // Filter accessories by equipment availability
+  for (const slot of accessoryPool) {
+    const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
+    
+    if (selectedExercise) {
+      availableAccessories.push({
+        id: selectedExercise.id,
+        sets: slot.targetSets,
+        reps: slot.targetReps,
+        type: slot.exerciseType
+      });
+    }
+  }
+  
+  // Shuffle and select the requested count
+  const shuffled = [...availableAccessories].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
 /**
@@ -147,7 +206,8 @@ export function generateNextLevel(
   for (const workoutSkeleton of template.workouts) {
     const exercises: Exercise[] = [];
     
-    for (const slot of workoutSkeleton.slots) {
+    // Core exercises with increased sets
+    for (const slot of workoutSkeleton.coreSlots) {
       const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, previousLevelExerciseIds);
       
       if (!selectedExercise) {
@@ -160,6 +220,21 @@ export function generateNextLevel(
         sets: slot.targetSets + 1, // Increase sets for progression
         reps: slot.targetReps,
         type: slot.exerciseType
+      });
+    }
+    
+    // Add more accessories for progression (standard volume + 1)
+    const selectedAccessories = selectAccessoryExercises(
+      workoutSkeleton.accessoryPool, 
+      selectedEquipment, 
+      previousLevelExerciseIds, 
+      3 // Standard + 1 for progression
+    );
+    
+    for (const accessoryExercise of selectedAccessories) {
+      exercises.push({
+        ...accessoryExercise,
+        sets: accessoryExercise.sets + 1 // Increase sets for accessories too
       });
     }
     
@@ -217,4 +292,36 @@ export function getEquipmentDisplayName(equipment: string): string {
   };
   
   return displayNames[equipment] || equipment.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+/**
+ * Get volume level display information
+ */
+export function getVolumeDisplayInfo(volume: VolumeLevel): { name: string; description: string; duration: string } {
+  switch (volume) {
+    case 'short':
+      return {
+        name: 'Short',
+        description: 'Quick and efficient workouts for busy schedules',
+        duration: '~30-40 minutes'
+      };
+    case 'standard':
+      return {
+        name: 'Standard',
+        description: 'Balanced workouts with optimal muscle development',
+        duration: '~45-55 minutes'
+      };
+    case 'long':
+      return {
+        name: 'Long',
+        description: 'Comprehensive sessions for maximum muscle growth',
+        duration: '~60+ minutes'
+      };
+    default:
+      return {
+        name: 'Standard',
+        description: 'Balanced workouts with optimal muscle development',
+        duration: '~45-55 minutes'
+      };
+  }
 }

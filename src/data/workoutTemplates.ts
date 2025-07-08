@@ -17,7 +17,8 @@ export interface WorkoutSlot {
 export interface WorkoutSkeleton {
   day: string;
   name: string;
-  slots: WorkoutSlot[];
+  coreSlots: WorkoutSlot[];
+  accessoryPool: WorkoutSlot[];
 }
 
 export interface WorkoutTemplate {
@@ -44,7 +45,7 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
       {
         day: 'Workout A',
         name: 'Workout A - Push Focus',
-        slots: [
+        coreSlots: [
           {
             slotId: 'a1',
             movementPattern: 'horizontal_press',
@@ -68,7 +69,9 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
             targetSets: 3,
             targetReps: '8-12',
             exerciseType: 'weight_reps'
-          },
+          }
+        ],
+        accessoryPool: [
           {
             slotId: 'a4',
             movementPattern: 'tricep_extension',
@@ -92,13 +95,21 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
             targetSets: 3,
             targetReps: '45-60s',
             exerciseType: 'timed'
+          },
+          {
+            slotId: 'a7',
+            movementPattern: 'horizontal_adduction',
+            slotType: 'isolation',
+            targetSets: 3,
+            targetReps: '10-15',
+            exerciseType: 'weight_reps'
           }
         ]
       },
       {
         day: 'Workout B',
         name: 'Workout B - Pull Focus',
-        slots: [
+        coreSlots: [
           {
             slotId: 'b1',
             movementPattern: 'horizontal_pull',
@@ -122,7 +133,9 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
             targetSets: 3,
             targetReps: '8-12',
             exerciseType: 'weight_reps'
-          },
+          }
+        ],
+        accessoryPool: [
           {
             slotId: 'b4',
             movementPattern: 'bicep_curl',
@@ -146,13 +159,21 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
             targetSets: 3,
             targetReps: '10-15',
             exerciseType: 'reps_only'
+          },
+          {
+            slotId: 'b7',
+            movementPattern: 'shrug',
+            slotType: 'isolation',
+            targetSets: 3,
+            targetReps: '12-15',
+            exerciseType: 'weight_reps'
           }
         ]
       },
       {
         day: 'Workout C',
         name: 'Workout C - Lower Focus',
-        slots: [
+        coreSlots: [
           {
             slotId: 'c1',
             movementPattern: 'squat',
@@ -176,7 +197,9 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
             targetSets: 3,
             targetReps: '8-12',
             exerciseType: 'weight_reps'
-          },
+          }
+        ],
+        accessoryPool: [
           {
             slotId: 'c4',
             movementPattern: 'lunge',
@@ -200,6 +223,14 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
             targetSets: 3,
             targetReps: '30-45s',
             exerciseType: 'timed'
+          },
+          {
+            slotId: 'c7',
+            movementPattern: 'tricep_extension',
+            slotType: 'isolation',
+            targetSets: 3,
+            targetReps: '10-15',
+            exerciseType: 'weight_reps'
           }
         ]
       }
