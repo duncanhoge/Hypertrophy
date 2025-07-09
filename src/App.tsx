@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { TimerIcon } from 'lucide-react';
 import PlanSelection from './components/PlanSelection';
 import HomeScreen from './components/HomeScreen';
 import WorkoutSession from './components/WorkoutSession';
 import { TrainingBlockCompleteModal } from './components/TrainingBlockCompleteModal';
 import { AuthWrapper } from './components/AuthWrapper';
 import { PlanGenerationWizard } from './components/PlanGenerationWizard';
+import { AppHeader } from './components/AppHeader';
 import { useUserProfile } from './hooks/useUserProfile';
 import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
 import type { GeneratedPlan } from './lib/planGenerationEngine';
@@ -116,11 +116,13 @@ function App() {
     <AuthWrapper>
       <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8 flex items-center justify-center">
         <div className="w-full max-w-7xl">
-          <header className="mb-8 text-center">
+          <AppHeader />
+          
+          <div className="mb-8 text-center">
             <h1 className="hero" data-text="It's a great day for gains">
               It's a great day for gains
             </h1>
-          </header>
+          </div>
 
           {currentPage === 'plans' && (
             <PlanSelection 

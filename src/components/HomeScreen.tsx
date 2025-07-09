@@ -89,7 +89,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
         <IconButton onClick={onBack} ariaLabel="Back to Plans" className="text-sm">
           <ChevronLeft size={20} className="mr-1" /> Back to Plans
         </IconButton>
-        <div className="text-center">
+        <div className="text-center flex-1 mx-4">
           <div className="flex items-center gap-2 justify-center">
             <h2 className="text-2xl font-bold text-theme-gold">{plan.name}</h2>
             {isGeneratedPlan && (
@@ -115,15 +115,17 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
             <p className="text-sm text-theme-gold-dark">Level {currentLevel.level}: {currentLevel.name}</p>
           )}
         </div>
-        {isActivePlan && (
-          <IconButton 
-            onClick={() => setShowSettings(true)} 
-            ariaLabel="Plan Settings"
-            className="text-sm"
-          >
-            <Settings size={20} />
-          </IconButton>
-        )}
+        <div className="flex gap-2">
+          {isActivePlan && (
+            <IconButton 
+              onClick={() => setShowSettings(true)} 
+              ariaLabel="Plan Settings"
+              className="text-sm"
+            >
+              <Settings size={20} />
+            </IconButton>
+          )}
+        </div>
       </div>
 
       {isActivePlan && weeksRemaining !== null && (

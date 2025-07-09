@@ -128,11 +128,10 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
         <IconButton onClick={onBack} ariaLabel="Back to Plans" className="text-sm">
           <ChevronLeft size={20} className="mr-1" /> Back to Plans
         </IconButton>
-        <div className="text-center">
+        <div className="text-center flex-1 mx-4">
           <h2 className="text-3xl font-bold text-theme-gold">Create Your Own Plan</h2>
           <p className="text-theme-gold-dark mt-2">Generate a personalized workout plan</p>
         </div>
-        <div className="w-24"></div> {/* Spacer for centering */}
       </div>
 
       {/* Progress Indicator */}
