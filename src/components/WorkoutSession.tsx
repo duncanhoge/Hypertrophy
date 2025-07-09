@@ -10,6 +10,7 @@ import { ExerciseHistory } from './ExerciseHistory';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useUserProfile } from '../hooks/useUserProfile';
+import { usePWA } from '../hooks/usePWA';
 import type { Exercise, WorkoutPlan } from '../data/workoutData';
 
 interface WorkoutSessionProps {
@@ -279,6 +280,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
   const { user } = useAuth();
   const { profile } = useUserProfile();
+  const { isOnline, registerBackgroundSync, showNotification } = usePWA();
   
   // Get current level workouts
   const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
@@ -381,15 +383,29 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     };
 
     try {
-      // Save to Supabase
-      const { error } = await supabase
-        .from('workout_logs')
-        .insert([logEntry]);
+      if (isOnline) {
+        // Save to Supabase when online
+        const { error } = await supabase
+          .from('workout_logs')
+          .insert([logEntry]);
 
-      if (error) {
-        console.error('Error saving to Supabase:', error);
-        alert('Failed to save workout log. Please try again.');
-        return;
+        if (error) {
+          console.error('Error saving to Supabase:', error);
+          // Store locally for later sync
+          storePendingWorkout(logEntry);
+          showNotification?.('Workout saved offline', {
+            body: 'Your workout will sync when you\'re back online',
+            icon: '/icons/icon-192x192.png'
+          });
+        }
+      } else {
+        // Store locally when offline
+        storePendingWorkout(logEntry);
+        registerBackgroundSync?.('workout-sync');
+        showNotification?.('Workout saved offline', {
+          body: 'Your workout will sync when you\'re back online',
+          icon: '/icons/icon-192x192.png'
+        });
       }
 
       // Also call the legacy callback for local storage compatibility
@@ -427,6 +443,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       console.error('Error logging workout:', error);
       alert('Failed to save workout log. Please try again.');
     }
+  };
+
+  const storePendingWorkout = (logEntry: any) => {
+    const pendingWorkouts = JSON.parse(localStorage.getItem('pendingWorkouts') || '[]');
+    pendingWorkouts.push(logEntry);
+    localStorage.setItem('pendingWorkouts', JSON.stringify(pendingWorkouts));
   };
 
   const startRestTimer = () => {

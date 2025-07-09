@@ -6,6 +6,9 @@ import { TrainingBlockCompleteModal } from './components/TrainingBlockCompleteMo
 import { AuthWrapper } from './components/AuthWrapper';
 import { PlanGenerationWizard } from './components/PlanGenerationWizard';
 import { AppHeader } from './components/AppHeader';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { useUserProfile } from './hooks/useUserProfile';
 import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
 import type { GeneratedPlan } from './lib/planGenerationEngine';
@@ -115,9 +118,14 @@ function App() {
 
   return (
     <AuthWrapper>
+      <OfflineIndicator />
       <div className="min-h-screen bg-theme-black text-theme-gold font-sans p-4 sm:p-6 md:p-8 flex items-center justify-center">
         <div className="w-full max-w-7xl">
           <AppHeader />
+          
+          {/* PWA Prompts */}
+          <PWAInstallPrompt />
+          <PWAUpdatePrompt />
           
           <div className="mb-8 text-center">
             <h1 className="hero" data-text="It's a great day for gains">
