@@ -94,14 +94,14 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
 
       {/* Generated Plan Display */}
       {hasGeneratedPlan && (
-        <Card className="bg-theme-black-light border border-theme-gold/40 transition-all duration-300 hover:scale-[1.02]">
+        <Card className="bg-gradient-to-br from-theme-gold/10 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300 hover:scale-[1.02]">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-1/3 flex items-center justify-center bg-theme-black-lighter rounded-nested-container relative">
               <div className="w-16 h-16 flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-theme-gold" />
               </div>
-              <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
-                CUSTOM
+              <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold animate-pulse">
+                YOUR PLAN
               </div>
             </div>
             <div className="md:w-2/3 space-y-4">
@@ -136,11 +136,14 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <PrimaryButton
-                  onClick={() => onSelectPlan('generated')}
-                  ariaLabel="Continue Custom Plan"
+                  onClick={() => {
+                    console.log('Selecting generated plan');
+                    onSelectPlan('generated');
+                  }}
+                  ariaLabel="Start Your Custom Plan"
                 >
                   <Play size={16} className="mr-1" />
-                  Continue Plan
+                  Start Your Plan
                 </PrimaryButton>
               </div>
             </div>

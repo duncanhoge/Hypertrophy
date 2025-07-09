@@ -45,8 +45,9 @@ function App() {
   };
 
   const handlePlanGenerated = (planId: string) => {
-    setSelectedPlanId(planId);
-    setCurrentPage('workouts');
+    // After plan generation, return to plans screen
+    setCurrentPage('plans');
+    setSelectedPlanId(null);
   };
 
   const startWorkout = (day: string) => {
