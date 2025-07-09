@@ -86,13 +86,56 @@ export function useUserProfile() {
   };
 
   const startGeneratedPlan = async (generatedPlan: any) => {
-    return updateProfile({
-      active_generated_plan: generatedPlan,
-      current_plan_id: generatedPlan.templateId,
-      current_level_index: 0,
-      block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6
-    });
+    try {
+      console.log('Starting generated plan with data:', generatedPlan);
+      
+      const result = await updateProfile({
+        active_generated_plan: generatedPlan,
+        current_plan_id: generatedPlan.templateId,
+        current_level_index: 0,
+        block_start_date: new Date().toISOString(),
+        block_duration_weeks: 6
+      });
+      
+      if (!result) {
+        throw new Error('Failed to update profile with generated plan');
+      }
+      
+      console.log('Generated plan saved successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in startGeneratedPlan:', error);
+      throw error;
+    }
+  };
+
+  const startGeneratedPlanAndNavigate = async (generatedPlan: any) => {
+    const result = await startGeneratedPlan(generatedPlan);
+    return result;
+  };
+
+  const startTrainingBlock = async (planId: string, levelIndex: number = 0) => {
+    try {
+      console.log('Starting training block:', { planId, levelIndex });
+      
+      const result = await updateProfile({
+        active_generated_plan: null,
+        current_plan_id: planId,
+        current_level_index: levelIndex,
+        block_start_date: new Date().toISOString(),
+        block_duration_weeks: 6
+      });
+      
+      if (!result) {
+        throw new Error('Failed to start training block');
+      }
+      
+      console.log('Training block started successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in startTrainingBlock:', error);
+      throw error;
+    }
   };
 
   const updateGeneratedPlanName = async (newName: string) => {
@@ -118,16 +161,6 @@ export function useUserProfile() {
     });
   };
 
-  const startTrainingBlock = async (planId: string, levelIndex: number = 0) => {
-    return updateProfile({
-      active_generated_plan: null, // Clear any generated plan when starting a pre-made plan
-      current_plan_id: planId,
-      current_level_index: levelIndex,
-      block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6 // Default duration
-    });
-  };
-
   const addLevelToGeneratedPlan = async (newLevel: any) => {
     if (!profile?.active_generated_plan) return null;
     
@@ -150,7 +183,7 @@ export function useUserProfile() {
     return updateProfile({
       current_level_index: (profile.current_level_index || 0) + 1,
       block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6 // Reset to default duration
+      block_duration_weeks: 6
     });
   };
 
@@ -159,7 +192,7 @@ export function useUserProfile() {
     
     return updateProfile({
       block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6 // Reset to default duration
+      block_duration_weeks: 6
     });
   };
 
@@ -180,7 +213,6 @@ export function useUserProfile() {
     });
   };
 
-  // Calculate weeks remaining in current block
   const getWeeksRemaining = (): number | null => {
     if (!profile?.block_start_date || (!profile.current_plan_id && !profile.active_generated_plan)) return null;
 
@@ -192,7 +224,6 @@ export function useUserProfile() {
     return Math.max(0, weeksRemaining);
   };
 
-  // Check if training block is complete
   const isBlockComplete = (): boolean => {
     const weeksRemaining = getWeeksRemaining();
     return weeksRemaining !== null && weeksRemaining <= 0;
@@ -208,6 +239,7 @@ export function useUserProfile() {
     error,
     updateProfile,
     startGeneratedPlan,
+    startGeneratedPlanAndNavigate,
     updateGeneratedPlanName,
     deleteGeneratedPlan,
     startTrainingBlock,
@@ -218,6 +250,6 @@ export function useUserProfile() {
     updateBlockDuration,
     getWeeksRemaining,
     isBlockComplete,
-    refetch: fetchProfile,
+    refetch: fetchProfile
   };
 }

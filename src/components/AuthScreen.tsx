@@ -75,7 +75,7 @@ export function AuthScreen() {
           <div className="flex items-center justify-center mb-4">
             <Dumbbell className="w-12 h-12 text-theme-gold" />
           </div>
-          <h1 className="text-3xl font-bold text-theme-gold mb-2">Hypertrophy Hub</h1>
+          <h1 className="text-2xl font-bold text-theme-gold mb-2">Hypertrophy Hub</h1>
           <p className="text-theme-gold-dark">Track your gains, build your strength</p>
         </div>
 

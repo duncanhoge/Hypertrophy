@@ -91,28 +91,31 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
     setError(null);
 
     try {
-      // Update the plan name before saving
+      // Create the final plan with user's custom name
       const finalPlan = {
         ...generatedPlan,
-        name: planName || generatedPlan.name
+        name: planName.trim() || generatedPlan.name,
+        id: `generated_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` // Ensure unique ID
       };
       
-      // Minimum loading time for better UX
-      const startTime = Date.now();
+      console.log('Saving generated plan:', finalPlan);
       
-      await startGeneratedPlan(finalPlan);
+      // Save the plan to the database
+      const savedProfile = await startGeneratedPlan(finalPlan);
       
-      // Ensure minimum loading time of 300ms
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 300 - elapsedTime);
-      
-      if (remainingTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, remainingTime));
+      if (!savedProfile) {
+        throw new Error('Failed to save plan to database');
       }
       
-      // Navigate to the generated plan
-      onPlanGenerated('generated');
+      console.log('Plan saved successfully:', savedProfile);
+      
+      // Small delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Return to plans screen instead of navigating to the generated plan
+      onBack();
     } catch (err) {
+      console.error('Error saving generated plan:', err);
       setError(err instanceof Error ? err.message : 'Failed to start plan');
     } finally {
       setIsLoading(false);
@@ -128,11 +131,10 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
         <IconButton onClick={onBack} ariaLabel="Back to Plans" className="text-sm">
           <ChevronLeft size={20} className="mr-1" /> Back to Plans
         </IconButton>
-        <div className="text-center">
+        <div className="text-center flex-1 mx-4">
           <h2 className="text-3xl font-bold text-theme-gold">Create Your Own Plan</h2>
           <p className="text-theme-gold-dark mt-2">Generate a personalized workout plan</p>
         </div>
-        <div className="w-24"></div> {/* Spacer for centering */}
       </div>
 
       {/* Progress Indicator */}
@@ -547,12 +549,12 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
                   </SecondaryButton>
                   <PrimaryButton
                     onClick={handleStartPlan}
-                    ariaLabel="Start This Plan"
+                    ariaLabel="Save Plan"
                     className="flex-1"
                     disabled={isLoading}
                   >
                     <CheckCircle size={16} className="mr-1" />
-                    Start This Plan
+                    Save Plan
                   </PrimaryButton>
                 </div>
               </>

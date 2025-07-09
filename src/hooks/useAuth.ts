@@ -85,6 +85,9 @@ export function useAuth() {
     // Clear remember me preference
     localStorage.removeItem('supabase.auth.remember_me');
     
+    // Clear any other app-specific data
+    localStorage.removeItem('workoutHistory');
+    
     const { error } = await supabase.auth.signOut();
     return { error };
   };

@@ -533,13 +533,13 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     <div className="max-w-2xl mx-auto space-y-6 relative">
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <div className="flex justify-between items-center mb-4">
-          <div>
+          <div className="flex-1">
             <h2 className="text-2xl font-semibold text-theme-gold">{currentWorkout.name}</h2>
             <p className="text-sm text-theme-gold-dark mt-1">
               Set {completedSets + 1} of {totalSets} Total Sets
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             <IconButton 
               onClick={() => setShowWorkoutQueue(!showWorkoutQueue)} 
               ariaLabel="Toggle Workout Queue" 
