@@ -119,11 +119,11 @@ export function useUserProfile() {
       console.log('Starting training block:', { planId, levelIndex });
       
       const result = await updateProfile({
-        active_generated_plan: null, // Clear any generated plan when starting a pre-made plan
+        active_generated_plan: null,
         current_plan_id: planId,
         current_level_index: levelIndex,
         block_start_date: new Date().toISOString(),
-        block_duration_weeks: 6 // Default duration
+        block_duration_weeks: 6
       });
       
       if (!result) {
@@ -136,161 +136,6 @@ export function useUserProfile() {
       console.error('Error in startTrainingBlock:', error);
       throw error;
     }
-  };
-
-  const updateProfile = async (updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>) => {
-    if (!user || !profile) {
-      console.error('Cannot update profile: missing user or profile');
-      return null;
-    }
-
-    try {
-      console.log('Updating profile with:', updates);
-      
-      const { data, error: updateError } = await supabase
-        .from('user_profiles')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        console.error('Supabase update error:', updateError);
-        throw updateError;
-      }
-
-      if (!data) {
-        throw new Error('No data returned from profile update');
-      }
-
-      console.log('Profile updated successfully:', data);
-      setProfile(data);
-      return data;
-    } catch (err) {
-      console.error('Error in updateProfile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
-      return null;
-    }
-  };
-
-  const fetchProfile = async () => {
-    if (!user) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log('Fetching profile for user:', user.id);
-
-      const { data, error: fetchError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .limit(1);
-
-      if (fetchError) {
-        console.error('Error fetching profile:', fetchError);
-        throw fetchError;
-      }
-
-      // If no profile exists, create one
-      if (!data || data.length === 0) {
-        console.log('No profile found, creating new profile');
-        
-        const { data: newProfile, error: createError } = await supabase
-          .from('user_profiles')
-          .insert([{ 
-            id: user.id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('Error creating profile:', createError);
-          throw createError;
-        }
-        
-        console.log('New profile created:', newProfile);
-        setProfile(newProfile);
-      } else {
-        console.log('Profile fetched:', data[0]);
-        setProfile(data[0]);
-      }
-    } catch (err) {
-      console.error('Error in fetchProfile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch profile');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Remove the old updateProfile function and replace with the new one above
-  const updateProfileOld = async (updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>>) => {
-    if (!user || !profile) return null;
-
-    try {
-      const { data, error: updateError } = await supabase
-        .from('user_profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      setProfile(data);
-      return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update profile');
-      return null;
-    }
-  };
-
-  // Remove duplicate function definitions and keep only the new ones
-  const startTrainingBlockOld = async (planId: string, levelIndex: number = 0) => {
-      active_generated_plan: null, // Clear any generated plan when starting a pre-made plan
-      current_plan_id: planId,
-      current_level_index: levelIndex,
-      block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6 // Default duration
-    });
-  };
-
-  return {
-    profile,
-    loading,
-    error,
-    updateProfile,
-    startGeneratedPlan,
-    startGeneratedPlanAndNavigate,
-    updateGeneratedPlanName,
-    deleteGeneratedPlan,
-    startTrainingBlock,
-    addLevelToGeneratedPlan,
-    startNextLevel,
-    restartCurrentLevel,
-    endTrainingBlock,
-    updateBlockDuration,
-    getWeeksRemaining,
-    isBlockComplete,
-    refetch: fetchProfile,
-  };
-}
-      current_level_index: 0,
-      block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6
-    });
   };
 
   const updateGeneratedPlanName = async (newName: string) => {
@@ -316,16 +161,6 @@ export function useUserProfile() {
     });
   };
 
-  const startTrainingBlock = async (planId: string, levelIndex: number = 0) => {
-    return updateProfile({
-      active_generated_plan: null, // Clear any generated plan when starting a pre-made plan
-      current_plan_id: planId,
-      current_level_index: levelIndex,
-      block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6 // Default duration
-    });
-  };
-
   const addLevelToGeneratedPlan = async (newLevel: any) => {
     if (!profile?.active_generated_plan) return null;
     
@@ -348,7 +183,7 @@ export function useUserProfile() {
     return updateProfile({
       current_level_index: (profile.current_level_index || 0) + 1,
       block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6 // Reset to default duration
+      block_duration_weeks: 6
     });
   };
 
@@ -357,7 +192,7 @@ export function useUserProfile() {
     
     return updateProfile({
       block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6 // Reset to default duration
+      block_duration_weeks: 6
     });
   };
 
@@ -378,7 +213,6 @@ export function useUserProfile() {
     });
   };
 
-  // Calculate weeks remaining in current block
   const getWeeksRemaining = (): number | null => {
     if (!profile?.block_start_date || (!profile.current_plan_id && !profile.active_generated_plan)) return null;
 
@@ -390,7 +224,6 @@ export function useUserProfile() {
     return Math.max(0, weeksRemaining);
   };
 
-  // Check if training block is complete
   const isBlockComplete = (): boolean => {
     const weeksRemaining = getWeeksRemaining();
     return weeksRemaining !== null && weeksRemaining <= 0;
@@ -406,6 +239,7 @@ export function useUserProfile() {
     error,
     updateProfile,
     startGeneratedPlan,
+    startGeneratedPlanAndNavigate,
     updateGeneratedPlanName,
     deleteGeneratedPlan,
     startTrainingBlock,
@@ -416,6 +250,6 @@ export function useUserProfile() {
     updateBlockDuration,
     getWeeksRemaining,
     isBlockComplete,
-    refetch: fetchProfile,
+    refetch: fetchProfile
   };
 }
