@@ -555,7 +555,6 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
   const handleCreateCustomPlanFromCompletion = () => {
     setShowLevelUpModal(false);
-    // End the training block when transitioning to custom plan creation
     endTrainingBlock();
     // Navigate to plan creation - this would need to be passed as a prop
     // For now, just go home and let the user navigate manually
