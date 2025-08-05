@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2, Eye, Trophy, ArrowUp } from 'lucide-react';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
@@ -316,7 +316,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
           <div>
             <h3 className="text-lg font-semibold text-theme-gold mb-4">Current Training Block</h3>
             
-          {isActivePlan && !isTrialMode && isBlockComplete() && hasCheckedCompletion && (
+            {isActivePlan && !isTrialMode && (
               <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
                 <span className="text-theme-gold-light">Block Multiplier:</span>
                 <div className="flex items-center gap-3">
@@ -341,27 +341,27 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
                   </IconButton>
                 </div>
               </div>
+            )}
               
-              <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
-                <span className="text-theme-gold-light">Workout Progress:</span>
-                <IconButton
-                  onClick={handleEditProgress}
-                  ariaLabel="Edit Progress"
-                  className="p-2 text-sm"
-                >
-                  Edit Progress
-                </IconButton>
-              </div>
-
-              {profile?.block_start_date && (
-                <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
-                  <span className="text-theme-gold-light">Started:</span>
-                  <span className="text-theme-gold-dark">
-                    {new Date(profile.block_start_date).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
+            <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
+              <span className="text-theme-gold-light">Workout Progress:</span>
+              <IconButton
+                onClick={handleEditProgress}
+                ariaLabel="Edit Progress"
+                className="p-2 text-sm"
+              >
+                Edit Progress
+              </IconButton>
             </div>
+
+            {profile?.block_start_date && (
+              <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
+                <span className="text-theme-gold-light">Started:</span>
+                <span className="text-theme-gold-dark">
+                  {new Date(profile.block_start_date).toLocaleDateString()}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="pt-4 border-t border-theme-gold/20">
