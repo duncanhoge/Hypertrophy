@@ -278,7 +278,6 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showWorkoutQueue, setShowWorkoutQueue] = useState(false);
   const [showExerciseHistory, setShowExerciseHistory] = useState(false);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
-  const [hasShownLevelUpModal, setHasShownLevelUpModal] = useState(false);
 
   const { user } = useAuth();
   const { profile, incrementCompletedWorkoutCount, isBlockComplete, startNextLevel, restartCurrentLevel, endTrainingBlock } = useUserProfile();
@@ -499,8 +498,68 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       try {
         const updatedProfile = await incrementCompletedWorkoutCount();
         
-        // Check if this completion makes the training block complete and we haven't shown the modal yet
-        if (updatedProfile && isBlockComplete() && !hasShownLevelUpModal) {
+        // Check if this completion makes the training block complete
+        if (updatedProfile) {
+          // Force a small delay to ensure state is updated, then check completion
+          setTimeout(() => {
+            if (isBlockComplete()) {
+              // Show level-up modal instead of going home
+              setShowLevelUpModal(true);
+              return;
+            }
+            // If not complete, go home normally
+            onGoHome();
+          }, 100);
+        } else {
+          onGoHome();
+        }
+      } catch (error) {
+        console.error('Failed to increment workout count:', error);
+        // Don't block the user flow if this fails
+        onGoHome();
+      }
+    } else {
+      onGoHome();
+    }
+  };
+
+  const handleLevelUpModalClose = () => {
+    setShowLevelUpModal(false);
+    // Go home after dismissing the level-up modal
+    onGoHome();
+  };
+
+  const handleStartNextLevel = async () => {
+    try {
+      await startNextLevel();
+      setShowLevelUpModal(false);
+      onGoHome();
+    } catch (error) {
+      console.error('Failed to start next level:', error);
+      setShowLevelUpModal(false);
+      onGoHome();
+    }
+  };
+
+  const handleRestartLevel = async () => {
+    try {
+      await restartCurrentLevel();
+      setShowLevelUpModal(false);
+      onGoHome();
+    } catch (error) {
+      console.error('Failed to restart level:', error);
+      setShowLevelUpModal(false);
+      onGoHome();
+    }
+  };
+
+  const handleCreateCustomPlanFromCompletion = () => {
+    setShowLevelUpModal(false);
+    endTrainingBlock();
+    // Navigate to plan creation - this would need to be passed as a prop
+    // For now, just go home and let the user navigate manually
+    onGoHome();
+  };
           // Show level-up modal instead of going home
           setHasShownLevelUpModal(true);
           setShowLevelUpModal(true);
@@ -515,32 +574,6 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     onGoHome();
   };
 
-  const handleLevelUpModalClose = () => {
-    setShowLevelUpModal(false);
-    // Don't reset hasShownLevelUpModal here - let the user go home
-    onGoHome();
-  };
-
-  const handleStartNextLevel = async () => {
-    await startNextLevel();
-    setShowLevelUpModal(false);
-    onGoHome();
-  };
-
-  const handleRestartLevel = async () => {
-    await restartCurrentLevel();
-    setShowLevelUpModal(false);
-    onGoHome();
-  };
-
-  const handleCreateCustomPlanFromCompletion = () => {
-    setShowLevelUpModal(false);
-    // End the training block when transitioning to custom plan creation
-    endTrainingBlock();
-    // Navigate to plan creation - this would need to be passed as a prop
-    // For now, just go home and let the user navigate manually
-    onGoHome();
-  };
 
   if (!currentWorkout) {
     return (

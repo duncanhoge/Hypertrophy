@@ -29,11 +29,6 @@ function App() {
   }, []);
 
   // Check for training block completion on app load
-  useEffect(() => {
-    if (profile && isBlockComplete() && profile.current_plan_id) {
-      setShowCompletionModal(true);
-    }
-  }, [profile, isBlockComplete]);
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
@@ -87,8 +82,6 @@ function App() {
 
   const handleCompletionModalClose = async () => {
     setShowCompletionModal(false);
-    // Don't end the training block - just close the modal
-    // This allows the user to recall the modal later
   };
 
   const handleStartNextLevel = async () => {

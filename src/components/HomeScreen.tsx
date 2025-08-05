@@ -25,7 +25,6 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
-  const [levelUpModalDismissed, setLevelUpModalDismissed] = useState(false);
   const [newPlanName, setNewPlanName] = useState('');
   const [editCompleted, setEditCompleted] = useState(0);
   const [editTarget, setEditTarget] = useState(0);
@@ -120,7 +119,6 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
 
   const handleLevelUpModalClose = async () => {
     setShowLevelUpModal(false);
-    setLevelUpModalDismissed(true);
     // Don't end the training block - just close the modal
     // This allows the user to recall the modal later via the banner
   };
@@ -128,20 +126,17 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
   const handleStartNextLevel = async () => {
     await startNextLevel();
     setShowLevelUpModal(false);
-    setLevelUpModalDismissed(false); // Reset for potential future completions
     // Stay on current plan but refresh to show new level
   };
 
   const handleRestartLevel = async () => {
     await restartCurrentLevel();
     setShowLevelUpModal(false);
-    setLevelUpModalDismissed(false); // Reset for potential future completions
     // Stay on current plan
   };
 
   const handleCreateCustomPlanFromCompletion = () => {
     setShowLevelUpModal(false);
-    setLevelUpModalDismissed(false); // Reset since we're leaving this plan
     // End the training block when transitioning to custom plan creation
     endTrainingBlock();
     if (onCreatePlan) {
@@ -200,7 +195,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
       </div>
 
       {/* Training Block Complete Banner */}
-      {isActivePlan && !isTrialMode && isBlockComplete() && levelUpModalDismissed && (
+      {isActivePlan && !isTrialMode && isBlockComplete() && (
         <Card className="bg-gradient-to-r from-theme-gold/20 to-theme-gold/10 border-theme-gold/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
