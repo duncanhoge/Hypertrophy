@@ -389,9 +389,14 @@ export function useUserProfile() {
     if (!profile) return null;
     
     const newCount = (profile.completed_workout_count || 0) + 1;
-    return updateProfile({
+    const result = await updateProfile({
       completed_workout_count: newCount
     });
+    
+    // Force a re-fetch to ensure we have the latest state
+    await fetchProfile();
+    
+    return result;
   };
 
   const updateWorkoutCounts = async (newCompleted: number, newTarget: number) => {

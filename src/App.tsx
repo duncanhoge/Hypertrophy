@@ -153,6 +153,7 @@ function App() {
               plan={currentPlan}
               onStartWorkout={startWorkout}
               onBack={goToPlans}
+              onCreatePlan={handleCreatePlan}
               workoutHistory={workoutHistory}
             />
           )}

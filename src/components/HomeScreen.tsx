@@ -1,26 +1,30 @@
 import React, { useState } from 'react';
-import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2, Eye } from 'lucide-react';
+import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2, Eye, Trophy, ArrowUp } from 'lucide-react';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
 import { TilePrimaryButton, PrimaryButton } from './ui/Button';
 import { Modal } from './ui/Modal';
+import { TrainingBlockCompleteModal } from './TrainingBlockCompleteModal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { getCurrentLevelWorkouts, getCurrentLevel } from '../data/workoutData';
+import { WORKOUT_PLANS } from '../data/workoutData';
 import type { WorkoutPlan } from '../data/workoutData';
 
 interface HomeScreenProps {
   plan: WorkoutPlan;
   onStartWorkout: (day: string) => void;
   onBack: () => void;
+  onCreatePlan?: () => void;
   workoutHistory: Record<string, any[]>;
 }
 
-function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreenProps) {
+function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory }: HomeScreenProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showEditProgress, setShowEditProgress] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [newPlanName, setNewPlanName] = useState('');
   const [editCompleted, setEditCompleted] = useState(0);
   const [editTarget, setEditTarget] = useState(0);
@@ -33,7 +37,10 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
     getWorkoutProgressPercentage,
     updateWorkoutCounts,
     updateGeneratedPlanName,
-    deleteGeneratedPlan
+    deleteGeneratedPlan,
+    startNextLevel,
+    restartCurrentLevel,
+    isBlockComplete
   } = useUserProfile();
 
   const currentLevel = getCurrentLevel(plan, profile?.current_level_index || 0);
@@ -107,6 +114,31 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
     if (editTarget > 0 && editCompleted >= 0) {
       await updateWorkoutCounts(editCompleted, editTarget);
       setShowEditProgress(false);
+    }
+  };
+
+  const handleLevelUpModalClose = async () => {
+    setShowLevelUpModal(false);
+    await endTrainingBlock();
+    onBack();
+  };
+
+  const handleStartNextLevel = async () => {
+    await startNextLevel();
+    setShowLevelUpModal(false);
+    // Stay on current plan but refresh to show new level
+  };
+
+  const handleRestartLevel = async () => {
+    await restartCurrentLevel();
+    setShowLevelUpModal(false);
+    // Stay on current plan
+  };
+
+  const handleCreateCustomPlanFromCompletion = () => {
+    setShowLevelUpModal(false);
+    if (onCreatePlan) {
+      onCreatePlan();
     }
   };
 
@@ -188,6 +220,29 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
                 </div>
               </div>
             )}
+          </div>
+        </Card>
+      )}
+
+      {/* Training Block Complete Banner */}
+      {isActivePlan && !isTrialMode && isBlockComplete() && (
+        <Card className="bg-gradient-to-r from-theme-gold/20 to-theme-gold/10 border-theme-gold/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Trophy className="w-6 h-6 text-theme-gold" />
+              <div>
+                <p className="text-theme-gold font-semibold">Training block complete! Great work!</p>
+                <p className="text-theme-gold-dark text-sm">You've completed all {profile?.completed_workout_count || 0} workouts in your program.</p>
+              </div>
+            </div>
+            <PrimaryButton
+              onClick={() => setShowLevelUpModal(true)}
+              ariaLabel="Level up your workout"
+              className="flex items-center gap-2"
+            >
+              <ArrowUp size={16} />
+              Level up your workout
+            </PrimaryButton>
           </div>
         </Card>
       )}
@@ -502,6 +557,19 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
           </div>
         </div>
       </Modal>
+
+      {/* Training Block Complete Modal */}
+      <TrainingBlockCompleteModal
+        isOpen={showLevelUpModal}
+        onStartNextLevel={handleStartNextLevel}
+        onRestartLevel={handleRestartLevel}
+        onDecideLater={handleLevelUpModalClose}
+        onCreateCustomPlan={handleCreateCustomPlanFromCompletion}
+        planName={plan.name}
+        workoutsCompleted={profile?.completed_workout_count || 0}
+        currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
+        currentLevelIndex={profile?.current_level_index || 0}
+      />
     </div>
   );
 }
