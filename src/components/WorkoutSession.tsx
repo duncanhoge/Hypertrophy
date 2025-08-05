@@ -341,6 +341,9 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const handleLogSet = async () => {
     if (!enhancedCurrentExercise || !user || !currentWorkout) return;
 
+    // Check if we're in trial mode - if so, don't save to database
+    const isTrialMode = profile?.is_trial_mode || false;
+
     let repsLogged = reps;
     let durationLogged = null;
 
@@ -381,19 +384,22 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     };
 
     try {
-      // Save to Supabase
-      const { error } = await supabase
-        .from('workout_logs')
-        .insert([logEntry]);
+      // Only save to Supabase if not in trial mode
+      if (!isTrialMode) {
+        const { error } = await supabase
+          .from('workout_logs')
+          .insert([logEntry]);
 
-      if (error) {
-        console.error('Error saving to Supabase:', error);
-        alert('Failed to save workout log. Please try again.');
-        return;
+        if (error) {
+          console.error('Error saving to Supabase:', error);
+          alert('Failed to save workout log. Please try again.');
+          return;
+        }
+
+        // Also call the legacy callback for local storage compatibility
+        onLogWorkout(logEntry);
       }
 
-      // Also call the legacy callback for local storage compatibility
-      onLogWorkout(logEntry);
       setLoggedSetsForExercise(prev => [...prev, logEntry]);
       
       setWeight('');
@@ -484,12 +490,15 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const handleCompletionModalClose = async () => {
     setShowCompletionModal(false);
     
-    // Increment completed workout count when user finishes all exercises
-    try {
-      await incrementCompletedWorkoutCount();
-    } catch (error) {
-      console.error('Failed to increment workout count:', error);
-      // Don't block the user flow if this fails
+    // Only increment workout count if not in trial mode
+    const isTrialMode = profile?.is_trial_mode || false;
+    if (!isTrialMode) {
+      try {
+        await incrementCompletedWorkoutCount();
+      } catch (error) {
+        console.error('Failed to increment workout count:', error);
+        // Don't block the user flow if this fails
+      }
     }
     
     onGoHome();

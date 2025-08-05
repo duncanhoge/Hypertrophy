@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2 } from 'lucide-react';
+import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2, Eye } from 'lucide-react';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
 import { TilePrimaryButton, PrimaryButton } from './ui/Button';
@@ -26,6 +26,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
   const [editTarget, setEditTarget] = useState(0);
   const { 
     profile, 
+    startTrainingBlock,
     updateBlockDuration, 
     endTrainingBlock, 
     getWorkoutsRemaining,
@@ -41,7 +42,12 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
   const progressPercentage = getWorkoutProgressPercentage();
   const isActivePlan = profile?.current_plan_id === plan.id || (profile?.active_generated_plan && plan.id.startsWith('generated'));
   const isGeneratedPlan = !!profile?.active_generated_plan && plan.id.startsWith('generated');
+  const isTrialMode = profile?.is_trial_mode || false;
 
+  const handleStartPlan = async (planId: string) => {
+    await startTrainingBlock(planId);
+    // The page will automatically update due to profile changes
+  };
   const handleDurationChange = async (change: number) => {
     if (!profile) return;
     const newDuration = Math.max(1, profile.block_duration_weeks + change);
@@ -113,6 +119,11 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
         <div className="text-center flex-1 mx-4">
           <div className="flex items-center gap-2 justify-center">
             <h2 className="text-2xl font-bold text-theme-gold">{plan.name}</h2>
+            {isTrialMode && (
+              <span className="px-2 py-1 bg-theme-gold/20 text-theme-gold text-xs font-bold rounded-2x-nested-container">
+                TRIAL
+              </span>
+            )}
             {isGeneratedPlan && (
               <div className="flex gap-1">
                 <IconButton 
@@ -137,7 +148,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
           )}
         </div>
         <div className="flex gap-2">
-          {isActivePlan && (
+          {isActivePlan && !isTrialMode && (
             <IconButton 
               onClick={() => setShowSettings(true)} 
               ariaLabel="Plan Settings"
@@ -149,7 +160,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
         </div>
       </div>
 
-      {isActivePlan && workoutsRemaining !== null && (
+      {isActivePlan && !isTrialMode && workoutsRemaining !== null && (
         <Card className="bg-theme-gold/10 border border-theme-gold/30">
           <div className="space-y-3">
             <div className="flex items-center justify-center gap-3 text-theme-gold">
@@ -181,6 +192,36 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
         </Card>
       )}
 
+      {/* Trial Mode Notice */}
+      {isTrialMode && (
+        <Card className="bg-blue-900/20 border border-blue-500/30">
+          <div className="space-y-3 text-center">
+            <div className="flex items-center justify-center gap-3 text-blue-400">
+              <Eye className="w-5 h-5" />
+              <span className="font-semibold">Trial Mode Active</span>
+            </div>
+            <p className="text-blue-300 text-sm">
+              You're trying out this plan. Workout history will not be saved during trial mode.
+            </p>
+            <div className="flex gap-3 justify-center pt-2">
+              <PrimaryButton
+                onClick={() => handleStartPlan(plan.id)}
+                ariaLabel="Start This Plan"
+                className="text-sm py-2 px-4"
+              >
+                Start This Plan
+              </PrimaryButton>
+              <IconButton
+                onClick={onBack}
+                ariaLabel="Back to Plans"
+                className="text-sm py-2 px-4 text-blue-400 hover:text-blue-300"
+              >
+                Back to Plans
+              </IconButton>
+            </div>
+          </div>
+        </Card>
+      )}
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <h2 className="hero text-2xl mb-12 text-center">Select a workout</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

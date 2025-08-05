@@ -40,6 +40,10 @@ function App() {
     setCurrentPage('workouts');
   };
 
+  const handleTryPlan = (planId: string) => {
+    setSelectedPlanId(planId);
+    setCurrentPage('workouts');
+  };
   const handleCreatePlan = () => {
     setCurrentPage('create-plan');
   };

@@ -12,6 +12,7 @@ export interface UserProfile {
   target_workout_count: number | null;
   completed_workout_count: number;
   active_generated_plan: any | null;
+  is_trial_mode: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -105,7 +106,8 @@ export function useUserProfile() {
         block_start_date: new Date().toISOString(),
         block_duration_weeks: profile?.block_duration_weeks || 6,
         target_workout_count: targetCount,
-        completed_workout_count: 0
+        completed_workout_count: 0,
+        is_trial_mode: false
       });
       
       if (!result) {
@@ -144,7 +146,8 @@ export function useUserProfile() {
         block_start_date: new Date().toISOString(),
         block_duration_weeks: profile?.block_duration_weeks || 6,
         target_workout_count: targetCount,
-        completed_workout_count: 0
+        completed_workout_count: 0,
+        is_trial_mode: false
       });
       
       if (!result) {
@@ -159,6 +162,39 @@ export function useUserProfile() {
     }
   };
 
+  const startTrialMode = async (planId: string, levelIndex: number = 0) => {
+    try {
+      console.log('Starting trial mode:', { planId, levelIndex });
+      
+      const result = await updateProfile({
+        current_plan_id: planId,
+        current_level_index: levelIndex,
+        is_trial_mode: true,
+        // Don't set training block fields during trial
+        block_start_date: null,
+        target_workout_count: null,
+        completed_workout_count: 0
+      });
+      
+      if (!result) {
+        throw new Error('Failed to start trial mode');
+      }
+      
+      console.log('Trial mode started successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in startTrialMode:', error);
+      throw error;
+    }
+  };
+
+  const endTrialMode = async () => {
+    return updateProfile({
+      current_plan_id: null,
+      current_level_index: 0,
+      is_trial_mode: false
+    });
+  };
   const updateGeneratedPlanName = async (newName: string) => {
     if (!profile?.active_generated_plan) return null;
     
@@ -243,7 +279,8 @@ export function useUserProfile() {
       block_start_date: null,
       block_duration_weeks: 6,
       target_workout_count: null,
-      completed_workout_count: 0
+      completed_workout_count: 0,
+      is_trial_mode: false
     });
   };
 
@@ -325,6 +362,8 @@ export function useUserProfile() {
     updateProfile,
     startGeneratedPlan,
     startGeneratedPlanAndNavigate,
+    startTrialMode,
+    endTrialMode,
     updateGeneratedPlanName,
     deleteGeneratedPlan,
     startTrainingBlock,

@@ -19,7 +19,7 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
   const [showPreMadePlans, setShowPreMadePlans] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
-  const { profile, startTrainingBlock, getWorkoutsRemaining } = useUserProfile();
+  const { profile, startTrainingBlock, startTrialMode, getWorkoutsRemaining } = useUserProfile();
 
   const handleStartPlan = async (planId: string) => {
     if (profile?.current_plan_id && profile.current_plan_id !== planId) {
@@ -43,7 +43,8 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
   };
 
   const handleTryPlan = (planId: string) => {
-    // Try plan without starting a training block
+    // Start trial mode for the plan
+    startTrialMode(planId);
     onSelectPlan(planId);
   };
 
