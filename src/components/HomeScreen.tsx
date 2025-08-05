@@ -119,8 +119,8 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
 
   const handleLevelUpModalClose = async () => {
     setShowLevelUpModal(false);
-    await endTrainingBlock();
-    onBack();
+    // Don't end the training block - just close the modal
+    // This allows the user to recall the modal later via the banner
   };
 
   const handleStartNextLevel = async () => {
@@ -137,6 +137,8 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
 
   const handleCreateCustomPlanFromCompletion = () => {
     setShowLevelUpModal(false);
+    // End the training block when transitioning to custom plan creation
+    endTrainingBlock();
     if (onCreatePlan) {
       onCreatePlan();
     }

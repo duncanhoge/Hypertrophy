@@ -137,10 +137,10 @@ export function TrainingBlockCompleteModal({
           <div className="pt-2">
             <button
               onClick={onDecideLater}
-              className="text-theme-gold-dark hover:text-theme-gold transition-colors text-sm underline"
+              className="text-theme-gold-dark hover:text-theme-gold transition-colors text-sm underline flex items-center justify-center"
             >
               <Clock size={16} className="inline mr-1" />
-              Decide Later
+              I'll decide later
             </button>
           </div>
         </div>

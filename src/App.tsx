@@ -45,6 +45,8 @@ function App() {
     setCurrentPage('workouts');
   };
   const handleCreatePlan = () => {
+    // End the training block when transitioning to custom plan creation
+    endTrainingBlock();
     setCurrentPage('create-plan');
   };
 
@@ -85,10 +87,8 @@ function App() {
 
   const handleCompletionModalClose = async () => {
     setShowCompletionModal(false);
-    await endTrainingBlock();
-    setCurrentPage('plans');
-    setSelectedPlanId(null);
-    setSelectedDay(null);
+    // Don't end the training block - just close the modal
+    // This allows the user to recall the modal later
   };
 
   const handleStartNextLevel = async () => {

@@ -325,7 +325,7 @@ export function useUserProfile() {
   const restartCurrentLevel = async () => {
     if (!profile?.current_plan_id) return null;
     
-    // Keep the same target workout count, just reset completed count
+    // Reset the training block for the current level
     return updateProfile({
       block_start_date: new Date().toISOString(),
       block_duration_weeks: profile.block_duration_weeks,
