@@ -105,6 +105,10 @@ function App() {
     setCurrentPage('workouts');
   };
   // Get current plan for workout session (handle both pre-made and generated plans)
+ const handleCreateCustomPlanFromCompletion = () => {
+   setShowCompletionModal(false);
+   setCurrentPage('create-plan');
+ };
   const getCurrentPlan = () => {
     if (profile?.active_generated_plan && (selectedPlanId === profile.active_generated_plan.id || selectedPlanId === 'generated')) {
       return profile.active_generated_plan as GeneratedPlan;
@@ -168,6 +172,7 @@ function App() {
             onStartNextLevel={handleStartNextLevel}
             onRestartLevel={handleRestartLevel}
             onDecideLater={handleCompletionModalClose}
+           onCreateCustomPlan={handleCreateCustomPlanFromCompletion}
             planName={
               profile?.active_generated_plan 
                 ? profile.active_generated_plan.name 

@@ -4,6 +4,7 @@
 
 The Training Block Workout Count-Based Progression system provides users with structured workout programs based on completed workouts rather than elapsed time. This feature establishes the concept of "training blocks" - workout count-based periods where users commit to a specific workout plan, with built-in flexibility to adjust targets and celebrate completion.
 
+**Updated December 2025**: The system now includes Automated Level Up Progression for generated plans, enabling dynamic creation of subsequent training levels with exercise variety and progressive overload.
 ## Purpose
 
 This system was created to:
@@ -14,6 +15,7 @@ This system was created to:
 4. **Enable Progression**: Lay the foundation for future features like automatic level progression and program periodization
 5. **Improve Accuracy**: Tie progression to actual work completed rather than time elapsed
 6. **Handle Flexibility**: Gracefully support users who miss workouts or have irregular schedules
+7. **Automate Progression**: Dynamically generate new training levels for personalized plans
 
 ## Architecture Components
 
@@ -79,6 +81,7 @@ interface WorkoutPlan {
 - Supports future progression features
 - Maintains backward compatibility (existing plans become single-level arrays)
 - Enables different difficulty levels within the same program
+- **Enhanced**: Supports dynamically generated levels for personalized plans
 
 ### 3. User Profile Management Hook
 
@@ -107,6 +110,7 @@ export function useUserProfile() {
 - Completion status checking
 - Manual workout count adjustment for flexibility
 - Optimistic UI updates
+- **Enhanced**: Automated level progression for generated plans
 
 ### 4. Plan Selection Flow
 
@@ -169,7 +173,58 @@ The `TrainingBlockCompleteModal` provides celebration and closure:
 - **Personalization**: Shows actual plan name and duration completed
 - **Action**: Single "Done" button that clears block state
 - **Motivation**: Inspirational quote and achievement highlights
+- **Enhanced**: Different progression options based on plan type
 
+### 7. Automated Level Progression
+
+**New in December 2025**: Dynamic level generation for personalized plans.
+
+#### Plan Type Detection
+
+The system differentiates between two plan types:
+- **Pre-made Plans**: Static plans defined in `WORKOUT_PLANS`
+- **Generated Plans**: Dynamic plans stored in `active_generated_plan`
+
+#### Progression Logic
+
+```typescript
+const startNextLevel = async () => {
+  if (profile.active_generated_plan) {
+    // Generated plan: Use plan generation engine
+    const currentGeneratedPlan = profile.active_generated_plan as GeneratedPlan;
+    const currentLevel = currentGeneratedPlan.levels[profile.current_level_index || 0];
+    
+    // Extract exercise IDs from completed level
+    const previousLevelExerciseIds = extractExerciseIds(currentLevel);
+    
+    // Generate next level with exercise variety
+    const nextLevel = generateNextLevel(currentGeneratedPlan, previousLevelExerciseIds);
+    
+    // Add to plan and update user state
+    const updatedPlan = { ...currentGeneratedPlan, levels: [...levels, nextLevel] };
+    await updateProfile({ active_generated_plan: updatedPlan, ... });
+  } else {
+    // Pre-made plan: Use traditional progression
+    // Advance to next pre-defined level
+  }
+};
+```
+
+#### Exercise Variety System
+
+To ensure fresh workouts, the system:
+1. **Extracts Context**: Gets exercise IDs from the just-completed level
+2. **Excludes Previous**: Passes these IDs to the generation engine as exclusions
+3. **Generates Variety**: Engine selects different exercises for the same movement patterns
+4. **Maintains Structure**: Uses day-specific skeletons to preserve workout balance
+
+#### Progressive Overload
+
+Each generated level includes progression:
+- **Increased Sets**: Core exercises get +1 set
+- **Accessory Progression**: Accessory exercises also get +1 set
+- **Volume Consistency**: Maintains user's original volume preference
+- **Equipment Consistency**: Uses same equipment selection
 ## User Flow
 
 ### 1. Starting a Training Block
@@ -208,8 +263,21 @@ The `TrainingBlockCompleteModal` provides celebration and closure:
 
 The completion screen now serves as a dynamic decision point for user progression, transforming from a simple acknowledgment into an active progression system.
 
+**Enhanced December 2025**: Different flows for generated vs pre-made plans.
 ### Progression Logic
 
+#### Generated Plan Progression
+
+**New in December 2025**: Automated level generation.
+
+- **Button Label**: "Generate Next Level"
+- **Process**:
+  1. Extract template, volume, and equipment from current plan
+  2. Get exercise IDs from completed level for exclusion
+  3. Call `generateNextLevel()` with context and exclusions
+  4. Add generated level to plan and update user state
+- **Benefits**: Fresh exercises, progressive overload, maintained structure
+- **Description**: "A new personalized level will be generated with fresh exercises and increased difficulty."
 #### Start Next Level
 - **Availability**: Only shown if `plan.levels[currentLevelIndex + 1]` exists
 - **Button Label**: "Start Level [X]" (e.g., "Start Level 2")
@@ -232,6 +300,15 @@ The completion screen now serves as a dynamic decision point for user progressio
 - **Navigation**: User taken to plan home screen for current level
 - **Use Case**: For users who want to master current level before progressing
 
+#### Create a Custom Plan
+
+**New in December 2025**: Transition option for pre-made plans.
+
+- **Availability**: Only shown for completed pre-made plans
+- **Button Label**: "Create a Custom Plan"
+- **Action**: Launches `PlanGenerationWizard`
+- **Purpose**: Allows users to transition from static to dynamic progression
+- **Benefits**: Personalized future progression with automated level generation
 #### Decide Later
 - **Availability**: Always available as tertiary option
 - **Button Style**: Text link or less prominent button
@@ -256,12 +333,14 @@ interface TrainingLevel {
 - **Level 1 (Foundation)**: Base program with moderate volume and intensity
 - **Level 2 (Intermediate/Advanced)**: Increased sets, reps, and exercise variety
 - **Future Levels**: Can be added to extend progression indefinitely
+- **Generated Levels**: Dynamically created with exercise variety and progressive overload
 
 #### Content Scaling
 - **Volume Increase**: More sets per exercise (3→4→5)
 - **Intensity Increase**: Lower rep ranges for strength focus
 - **Exercise Variety**: Additional exercises for comprehensive development
 - **Duration Increase**: Longer timed exercises for endurance progression
+- **Dynamic Variety**: Different exercises for same movement patterns (generated plans only)
 
 ### User Experience Enhancements
 
@@ -269,11 +348,13 @@ interface TrainingLevel {
 - **Level Achievement**: Clear indication of completed level
 - **Next Level Preview**: Name and description of upcoming level
 - **Progress Context**: Shows current level completion in celebration
+- **Plan Type Awareness**: Different UI elements for generated vs pre-made plans
 
 #### Motivational Elements
 - **Achievement Recognition**: Acknowledges specific level completion
 - **Forward Momentum**: Emphasizes progression and growth
 - **Choice Empowerment**: Gives users control over their progression path
+- **Personalization**: Highlights the custom nature of generated progressions
 
 ### Implementation Details
 
@@ -292,6 +373,7 @@ const updateWorkoutCounts = async (newCompleted: number, newTarget: number) => {
 };
 
 const startNextLevel = async () => {
+ // Enhanced with generated plan detection and automated progression
   return updateProfile({
     current_level_index: (profile.current_level_index || 0) + 1,
     completed_workout_count: 0,
@@ -313,6 +395,7 @@ const restartCurrentLevel = async () => {
 const workoutsRemaining = getWorkoutsRemaining();
 const progressPercentage = getWorkoutProgressPercentage();
 const isComplete = profile.completed_workout_count >= profile.target_workout_count;
+const isGeneratedPlan = profile.active_generated_plan && !WORKOUT_PLANS[profile.current_plan_id];
 ```
 
 ## Technical Implementation Details
@@ -345,12 +428,14 @@ CREATE POLICY "Users can read own profile" ON user_profiles
 - Profile creation fallback if not exists
 - Graceful degradation for missing plan data
 - Validation for duration adjustments (minimum 1 week)
+- Robust error handling for level generation failures
 
 ## Future Enhancements
 
 This architecture enables several planned features:
 
 1. **Automatic Level Progression**: ✅ **IMPLEMENTED** - Users can progress to next level on completion
+2. **Automated Level Generation**: ✅ **IMPLEMENTED** - Dynamic level creation for generated plans
 2. **Program Periodization**: Different phases within training blocks
 3. **Achievement System**: Badges for consistency, completion streaks
 4. **Analytics Dashboard**: Progress visualization across blocks
@@ -358,6 +443,8 @@ This architecture enables several planned features:
 6. **Adaptive Progression**: AI-suggested level advancement based on performance
 7. **Custom Level Creation**: User-generated training progressions
 8. **Cross-Plan Progression**: Transition between different workout programs
+9. **Smart Exercise Selection**: ML-powered exercise recommendations based on performance
+10. **Personalized Progression Timing**: Adaptive block duration based on user patterns
 
 ## Configuration
 
@@ -375,6 +462,7 @@ This architecture enables several planned features:
 - Completion celebration content
 - Plan switching confirmation messages
 - Progress indicators and visual design
+- Level generation parameters (progressive overload amounts, exercise variety rules)
 
 ## Maintenance Notes
 
@@ -400,5 +488,14 @@ END $$;
 - Plan data validated before block creation
 - Manual count adjustments validated for data integrity
 - State transitions maintain data integrity
+- Generated level validation ensures structural integrity
 
+### Level Generation Maintenance
+
+- Template integrity validation for dayRotation arrays
+- Day-specific skeleton availability checks
+- Exercise exclusion logic validation
+- Progressive overload parameter tuning
+- Error recovery for failed level generation
 This architecture provides a more accurate and flexible foundation for structured training programs, ensuring progression is tied to actual work completed rather than time elapsed, while maintaining the user experience that makes the application engaging and effective.
+**Recent Enhancement (December 2025)**: The addition of automated level progression for generated plans represents a significant advancement in personalized fitness programming, providing users with truly dynamic and adaptive training experiences that evolve based on their individual progress and preferences.

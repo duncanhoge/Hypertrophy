@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { WORKOUT_PLANS, getCurrentLevelWorkouts } from '../data/workoutData';
+import { generateNextLevel, type GeneratedPlan } from '../lib/planGenerationEngine';
 
 export interface UserProfile {
   id: string;
@@ -236,28 +237,89 @@ export function useUserProfile() {
     });
   };
 
-  const startNextLevel = async () => {
+ const startNextLevel = async () => {
     if (!profile?.current_plan_id) return null;
     
-    // Recalculate target workout count for next level
-    const currentPlan = profile.active_generated_plan || 
-      (profile.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id] : null);
-    
-    let targetCount = profile.target_workout_count;
-    if (currentPlan) {
-      const workoutDaysCount = Object.keys(
-        getCurrentLevelWorkouts(currentPlan, (profile.current_level_index || 0) + 1)
-      ).length;
-      targetCount = workoutDaysCount * profile.block_duration_weeks;
-    }
-    
-    return updateProfile({
-      current_level_index: (profile.current_level_index || 0) + 1,
-      block_start_date: new Date().toISOString(),
-      block_duration_weeks: profile.block_duration_weeks,
-      target_workout_count: targetCount,
-      completed_workout_count: 0
-    });
+   // Check if this is a generated plan or pre-made plan
+   if (profile.active_generated_plan) {
+     // This is a generated plan - use the plan generation engine
+     try {
+       console.log('Starting next level for generated plan');
+       
+       const currentGeneratedPlan = profile.active_generated_plan as GeneratedPlan;
+       const currentLevel = currentGeneratedPlan.levels[profile.current_level_index || 0];
+       
+       if (!currentLevel) {
+         throw new Error('Current level not found in generated plan');
+       }
+       
+       // Extract exercise IDs from the completed level
+       const previousLevelExerciseIds: string[] = [];
+       Object.values(currentLevel.workouts).forEach(workout => {
+         workout.exercises.forEach(exercise => {
+           previousLevelExerciseIds.push(exercise.id);
+         });
+       });
+       
+       console.log('Previous level exercise IDs:', previousLevelExerciseIds);
+       
+       // Generate the next level
+       const nextLevel = generateNextLevel(
+         currentGeneratedPlan,
+         previousLevelExerciseIds
+       );
+       
+       if (!nextLevel) {
+         throw new Error('Failed to generate next level');
+       }
+       
+       console.log('Generated next level:', nextLevel);
+       
+       // Add the new level to the generated plan
+       const updatedPlan = {
+         ...currentGeneratedPlan,
+         levels: [...currentGeneratedPlan.levels, nextLevel]
+       };
+       
+       // Calculate target workout count for the new level
+       const workoutDaysCount = Object.keys(nextLevel.workouts).length;
+       const targetCount = workoutDaysCount * profile.block_duration_weeks;
+       
+       return updateProfile({
+         active_generated_plan: updatedPlan,
+         current_level_index: (profile.current_level_index || 0) + 1,
+         block_start_date: new Date().toISOString(),
+         block_duration_weeks: profile.block_duration_weeks,
+         target_workout_count: targetCount,
+         completed_workout_count: 0
+       });
+       
+     } catch (error) {
+       console.error('Error generating next level:', error);
+       throw error;
+     }
+   } else {
+     // This is a pre-made plan - use existing logic
+     const currentPlan = profile.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id] : null;
+     
+     if (!currentPlan) {
+       throw new Error('Current plan not found');
+     }
+     
+     // Recalculate target workout count for next level
+     const workoutDaysCount = Object.keys(
+       getCurrentLevelWorkouts(currentPlan, (profile.current_level_index || 0) + 1)
+     ).length;
+     const targetCount = workoutDaysCount * profile.block_duration_weeks;
+     
+     return updateProfile({
+       current_level_index: (profile.current_level_index || 0) + 1,
+       block_start_date: new Date().toISOString(),
+       block_duration_weeks: profile.block_duration_weeks,
+       target_workout_count: targetCount,
+       completed_workout_count: 0
+     });
+   }
   };
 
   const restartCurrentLevel = async () => {

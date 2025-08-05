@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, CheckCircle, Star, ArrowRight, RotateCcw, Clock } from 'lucide-react';
+import { Trophy, CheckCircle, Star, ArrowRight, RotateCcw, Clock, Sparkles } from 'lucide-react';
 import { Modal } from './ui/Modal';
 import { PrimaryButton, SecondaryButton } from './ui/Button';
 import { IconButton } from './ui/IconButton';
@@ -10,6 +10,7 @@ interface TrainingBlockCompleteModalProps {
   onStartNextLevel: () => void;
   onRestartLevel: () => void;
   onDecideLater: () => void;
+ onCreateCustomPlan?: () => void;
   planName: string;
   workoutsCompleted: number;
   currentPlanId: string;
@@ -21,6 +22,7 @@ export function TrainingBlockCompleteModal({
   onStartNextLevel,
   onRestartLevel,
   onDecideLater,
+ onCreateCustomPlan,
   planName, 
   workoutsCompleted,
   currentPlanId,
@@ -31,6 +33,7 @@ export function TrainingBlockCompleteModal({
   const hasNextLevel = currentPlan && currentPlan.levels[currentLevelIndex + 1];
   const nextLevel = hasNextLevel ? currentPlan.levels[currentLevelIndex + 1] : null;
   const currentLevel = currentPlan ? currentPlan.levels[currentLevelIndex] : null;
+ const isGeneratedPlan = currentPlanId && !WORKOUT_PLANS[currentPlanId];
 
   return (
     <Modal isOpen={isOpen} onClose={onDecideLater} title="">
@@ -84,23 +87,42 @@ export function TrainingBlockCompleteModal({
 
         {/* Progression Options */}
         <div className="pt-4 space-y-3">
-          {/* Next Level Option */}
-          {hasNextLevel && nextLevel && (
+         {/* Next Level Option - Different logic for generated vs pre-made plans */}
+         {(isGeneratedPlan || (hasNextLevel && nextLevel)) && (
             <div className="space-y-2">
               <PrimaryButton
                 onClick={onStartNextLevel}
-                ariaLabel={`Start Level ${nextLevel.level}`}
+               ariaLabel={isGeneratedPlan ? "Generate Next Level" : `Start Level ${nextLevel?.level}`}
                 className="w-full text-lg py-4 font-bold"
               >
                 <ArrowRight size={20} className="mr-2" />
-                Start Level {nextLevel.level}
+               {isGeneratedPlan ? "Generate Next Level" : `Start Level ${nextLevel?.level}`}
               </PrimaryButton>
-              <p className="text-sm text-theme-gold-dark">
-                <strong>{nextLevel.name}:</strong> {nextLevel.description}
-              </p>
+             {!isGeneratedPlan && nextLevel && (
+               <p className="text-sm text-theme-gold-dark">
+                 <strong>{nextLevel.name}:</strong> {nextLevel.description}
+               </p>
+             )}
+             {isGeneratedPlan && (
+               <p className="text-sm text-theme-gold-dark">
+                 A new personalized level will be generated with fresh exercises and increased difficulty.
+               </p>
+             )}
             </div>
           )}
           
+         {/* Create Custom Plan Option - Only for pre-made plans */}
+         {!isGeneratedPlan && onCreateCustomPlan && (
+           <PrimaryButton
+             onClick={onCreateCustomPlan}
+             ariaLabel="Create a Custom Plan"
+             className="w-full text-lg py-4 font-bold"
+           >
+             <Sparkles size={20} className="mr-2" />
+             Create a Custom Plan
+           </PrimaryButton>
+         )}
+         
           {/* Restart Current Level Option */}
           <SecondaryButton
             onClick={onRestartLevel}
@@ -125,7 +147,7 @@ export function TrainingBlockCompleteModal({
 
         {/* Motivational Footer */}
         <p className="text-sm text-theme-gold-dark italic">
-          {hasNextLevel 
+         {(isGeneratedPlan || hasNextLevel)
             ? "Every level completed is a step closer to your strongest self." 
             : "You've mastered this program - time to take on new challenges!"
           }

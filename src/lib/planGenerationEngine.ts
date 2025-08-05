@@ -6,7 +6,7 @@
  */
 
 import { EXERCISE_DICTIONARY, getExercisesByMovementPattern } from '../data/exerciseDictionary';
-import { getTemplateById, type WorkoutTemplate, type WorkoutSlot } from '../data/workoutTemplates';
+import { getTemplateById, getDaySpecificSkeleton, type WorkoutTemplate, type WorkoutSlot, type DaySpecificSkeleton } from '../data/workoutTemplates';
 import type { Exercise, WorkoutPlan, TrainingLevel, WorkoutDay } from '../data/workoutData';
 
 export type VolumeLevel = 'short' | 'standard' | 'long';
@@ -25,6 +25,8 @@ export interface GeneratedPlan {
   description: string;
   image: string;
   templateId: string; // Reference to the template used
+ volume: VolumeLevel; // Volume level used for generation
+ selectedEquipment: string[]; // Equipment used for generation
   levels: TrainingLevel[];
 }
 
@@ -90,6 +92,8 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
     description: `Personalized ${template.description.toLowerCase()} generated based on your available equipment and ${volume} workout preference.`,
     image: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     templateId,
+   volume,
+   selectedEquipment,
     levels: [
       {
         level: 1,
@@ -188,12 +192,12 @@ function selectExerciseForSlot(
 }
 
 /**
- * Generate a new level for an existing plan (Level Up functionality)
+ * Generate a new level for an existing plan using day-specific skeletons
  */
 export function generateNextLevel(
   currentPlan: GeneratedPlan,
-  selectedEquipment: string[],
-  previousLevelExerciseIds: string[]
+ previousLevelExerciseIds: string[],
+ volume?: VolumeLevel
 ): TrainingLevel | null {
   const template = getTemplateById(currentPlan.templateId);
   if (!template) {
@@ -201,13 +205,32 @@ export function generateNextLevel(
     return null;
   }
 
+ // Use stored equipment and volume from the current plan
+ const selectedEquipment = currentPlan.selectedEquipment;
+ const planVolume = volume || currentPlan.volume;
+ 
+ // Use dayRotation to generate workouts
+ if (!template.dayRotation || template.dayRotation.length === 0) {
+   console.error(`Template ${currentPlan.templateId} missing dayRotation`);
+   return null;
+ }
   const generatedWorkouts: Record<string, WorkoutDay> = {};
   
-  for (const workoutSkeleton of template.workouts) {
+ // Generate workouts based on dayRotation
+ template.dayRotation.forEach((dayType, index) => {
+   const daySpecificSkeleton = getDaySpecificSkeleton(dayType);
+   if (!daySpecificSkeleton) {
+     console.warn(`Day-specific skeleton not found for dayType: ${dayType}`);
+     return;
+   }
+   
+   const workoutName = `Workout ${String.fromCharCode(65 + index)}`;
+   const dayName = `${daySpecificSkeleton.name}: Level ${currentPlan.levels.length + 1}`;
+   
     const exercises: Exercise[] = [];
     
     // Core exercises with increased sets
-    for (const slot of workoutSkeleton.coreSlots) {
+   for (const slot of daySpecificSkeleton.coreSlots) {
       const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, previousLevelExerciseIds);
       
       if (!selectedExercise) {
@@ -223,12 +246,13 @@ export function generateNextLevel(
       });
     }
     
-    // Add more accessories for progression (standard volume + 1)
+   // Add accessories based on volume
+   const accessoryCount = getAccessoryCount(planVolume);
     const selectedAccessories = selectAccessoryExercises(
-      workoutSkeleton.accessoryPool, 
+     daySpecificSkeleton.accessoryPool, 
       selectedEquipment, 
       previousLevelExerciseIds, 
-      3 // Standard + 1 for progression
+     accessoryCount
     );
     
     for (const accessoryExercise of selectedAccessories) {
@@ -238,11 +262,11 @@ export function generateNextLevel(
       });
     }
     
-    generatedWorkouts[workoutSkeleton.day] = {
-      name: workoutSkeleton.name,
+   generatedWorkouts[workoutName] = {
+     name: dayName,
       exercises
     };
-  }
+ });
 
   const nextLevelNumber = currentPlan.levels.length + 1;
   
