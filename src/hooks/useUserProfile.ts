@@ -393,9 +393,6 @@ export function useUserProfile() {
       completed_workout_count: newCount
     });
     
-    // Force a re-fetch to ensure we have the latest state
-    await fetchProfile();
-    
     return result;
   };
 
