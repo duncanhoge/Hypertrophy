@@ -16,7 +16,7 @@ interface PlanSelectionProps {
 
 function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelectionProps) {
   const [showHistory, setShowHistory] = useState(false);
-  const [showPreMadePlans, setShowPreMadePlans] = useState(true);
+  const [showPreMadePlans, setShowPreMadePlans] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
   const { profile, startTrainingBlock, getWeeksRemaining } = useUserProfile();
