@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
-import { WORKOUT_PLANS, getCurrentLevelWorkouts } from '../data/workoutPlans';
+import { WORKOUT_PLANS, getCurrentLevelWorkouts } from '../data/workoutData';
 
 export interface UserProfile {
   id: string;
