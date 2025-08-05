@@ -11,7 +11,7 @@ interface TrainingBlockCompleteModalProps {
   onRestartLevel: () => void;
   onDecideLater: () => void;
   planName: string;
-  weeksCompleted: number;
+  workoutsCompleted: number;
   currentPlanId: string;
   currentLevelIndex: number;
 }
@@ -22,7 +22,7 @@ export function TrainingBlockCompleteModal({
   onRestartLevel,
   onDecideLater,
   planName, 
-  weeksCompleted,
+  workoutsCompleted,
   currentPlanId,
   currentLevelIndex
 }: TrainingBlockCompleteModalProps) {
@@ -54,7 +54,7 @@ export function TrainingBlockCompleteModal({
             Training Block Complete!
           </h2>
           <p className="text-lg text-theme-gold-light">
-            Congratulations! You've completed all <strong>{weeksCompleted} weeks</strong> of your <strong>{planName}</strong> program.
+            Congratulations! You've completed all <strong>{workoutsCompleted} workouts</strong> of your <strong>{planName}</strong> program.
           </p>
           {currentLevel && (
             <p className="text-theme-gold-dark">
@@ -70,7 +70,7 @@ export function TrainingBlockCompleteModal({
         <div className="bg-theme-black-lighter rounded-nested-container p-4 space-y-2">
           <div className="flex items-center justify-center gap-2 text-theme-gold">
             <CheckCircle className="w-5 h-5" />
-            <span className="font-semibold">{weeksCompleted} weeks of consistent training</span>
+            <span className="font-semibold">{workoutsCompleted} workouts completed</span>
           </div>
           <div className="flex items-center justify-center gap-2 text-theme-gold">
             <CheckCircle className="w-5 h-5" />

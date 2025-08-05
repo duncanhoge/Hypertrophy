@@ -1,17 +1,19 @@
-# Training Block Duration & Completion Architecture
+# Training Block Workout Count-Based Progression Architecture
 
 ## Overview
 
-The Training Block Duration & Completion system provides users with structured, time-bound workout programs. This feature establishes the concept of "training blocks" - fixed-duration periods where users commit to a specific workout plan, with built-in flexibility to adjust duration and celebrate completion.
+The Training Block Workout Count-Based Progression system provides users with structured workout programs based on completed workouts rather than elapsed time. This feature establishes the concept of "training blocks" - workout count-based periods where users commit to a specific workout plan, with built-in flexibility to adjust targets and celebrate completion.
 
 ## Purpose
 
 This system was created to:
 
-1. **Provide Structure**: Give users clear timelines and expectations for their training programs
-2. **Increase Commitment**: Create psychological commitment through explicit plan selection and time boundaries
+1. **Provide Structure**: Give users clear workout targets and expectations for their training programs
+2. **Increase Commitment**: Create psychological commitment through explicit plan selection and workout count boundaries
 3. **Celebrate Achievement**: Recognize user accomplishments to maintain motivation and engagement
 4. **Enable Progression**: Lay the foundation for future features like automatic level progression and program periodization
+5. **Improve Accuracy**: Tie progression to actual work completed rather than time elapsed
+6. **Handle Flexibility**: Gracefully support users who miss workouts or have irregular schedules
 
 ## Architecture Components
 
@@ -25,7 +27,9 @@ CREATE TABLE user_profiles (
   current_plan_id text,                    -- ID of active workout plan
   current_level_index integer DEFAULT 0,   -- Current level within the plan
   block_start_date timestamptz,            -- When current block started
-  block_duration_weeks integer DEFAULT 6,  -- Duration of current block
+  block_duration_weeks integer DEFAULT 6,  -- Multiplier for target workout count
+  target_workout_count integer,            -- Total workouts required to complete block
+  completed_workout_count integer DEFAULT 0, -- Number of workouts completed
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
@@ -35,7 +39,9 @@ CREATE TABLE user_profiles (
 - `current_plan_id`: References the active plan from `WORKOUT_PLANS` (e.g., 'duncans-plan')
 - `current_level_index`: Index into the plan's levels array (enables multi-level progression)
 - `block_start_date`: Timestamp when user clicked "Start This Plan"
-- `block_duration_weeks`: User-configurable duration (default 6 weeks)
+- `block_duration_weeks`: User-configurable multiplier for calculating target workout count (default 6)
+- `target_workout_count`: Total number of workouts required to complete the training block
+- `completed_workout_count`: Running count of workouts completed in the current block
 
 #### Enhanced Workout Logs
 
@@ -87,15 +93,19 @@ export function useUserProfile() {
   const startTrainingBlock = async (planId: string, levelIndex: number = 0);
   const endTrainingBlock = async ();
   const updateBlockDuration = async (weeks: number);
-  const getWeeksRemaining = (): number | null;
+  const getWorkoutsRemaining = (): number | null;
+  const getWorkoutProgressPercentage = (): number;
+  const incrementCompletedWorkoutCount = async ();
+  const updateWorkoutCounts = async (newCompleted: number, newTarget: number);
   const isBlockComplete = (): boolean;
 }
 ```
 
 **Key Features:**
 - Automatic profile creation on first access
-- Real-time calculation of remaining weeks
+- Real-time calculation of remaining workouts and progress percentage
 - Completion status checking
+- Manual workout count adjustment for flexibility
 - Optimistic UI updates
 
 ### 4. Plan Selection Flow
@@ -140,17 +150,14 @@ The contextual settings panel provides block management:
 
 #### Completion Logic
 
-Completion is checked on every app load:
+Completion is checked based on workout count:
 
 ```typescript
 const isBlockComplete = (): boolean => {
-  if (!profile?.block_start_date || !profile.current_plan_id) return false;
+  if (!profile?.target_workout_count) return false;
   
-  const startDate = new Date(profile.block_start_date);
-  const currentDate = new Date();
-  const weeksElapsed = Math.floor((currentDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-  
-  return weeksElapsed >= profile.block_duration_weeks;
+  const completed = profile.completed_workout_count || 0;
+  return completed >= profile.target_workout_count;
 };
 ```
 
@@ -172,23 +179,24 @@ The `TrainingBlockCompleteModal` provides celebration and closure:
 3. System creates/updates user profile:
    - Sets `current_plan_id`
    - Sets `block_start_date` to current timestamp
-   - Sets `block_duration_weeks` to 6 (default)
+   - Calculates `target_workout_count` as (workout days × multiplier)
+   - Sets `completed_workout_count` to 0
    - Sets `current_level_index` to 0
 4. User is navigated to plan home screen
 
 ### 2. During Training Block
 
 1. Plan home screen shows:
-   - "X weeks remaining" indicator
-   - Settings gear icon for adjustments
+   - "X / Y Workouts Completed" indicator with progress bar
+   - Settings gear icon for adjustments and progress editing
    - Current level information
-2. Workout logging includes plan/level metadata
-3. Settings panel allows duration adjustments
+2. Each completed workout increments `completed_workout_count`
+3. Settings panel allows multiplier adjustments and manual progress editing
 
 ### 3. Block Completion
 
 1. App checks completion status on load
-2. If complete, shows celebration modal immediately
+2. If `completed_workout_count >= target_workout_count`, shows celebration modal
 3. User presented with progression options:
    - **Start Next Level** (if available): Advances to next level in current plan
    - **Restart This Level**: Repeats current level with fresh 6-week block
@@ -207,8 +215,9 @@ The completion screen now serves as a dynamic decision point for user progressio
 - **Button Label**: "Start Level [X]" (e.g., "Start Level 2")
 - **State Changes**:
   - `current_level_index` incremented by 1
+  - `completed_workout_count` reset to 0
+  - `target_workout_count` recalculated for new level
   - `block_start_date` reset to current timestamp
-  - `block_duration_weeks` reset to 6 (default)
 - **Navigation**: User taken to plan home screen for new level
 - **Description**: Shows next level name and description for context
 
@@ -217,8 +226,9 @@ The completion screen now serves as a dynamic decision point for user progressio
 - **Button Label**: "Restart This Level"
 - **State Changes**:
   - `current_level_index` remains unchanged
+  - `completed_workout_count` reset to 0
+  - `target_workout_count` remains the same
   - `block_start_date` reset to current timestamp
-  - `block_duration_weeks` reset to 6 (default)
 - **Navigation**: User taken to plan home screen for current level
 - **Use Case**: For users who want to master current level before progressing
 
@@ -269,26 +279,40 @@ interface TrainingLevel {
 
 #### Hook Methods
 ```typescript
+const incrementCompletedWorkoutCount = async () => {
+  const newCount = (profile.completed_workout_count || 0) + 1;
+  return updateProfile({ completed_workout_count: newCount });
+};
+
+const updateWorkoutCounts = async (newCompleted: number, newTarget: number) => {
+  return updateProfile({
+    completed_workout_count: newCompleted,
+    target_workout_count: newTarget
+  });
+};
+
 const startNextLevel = async () => {
   return updateProfile({
     current_level_index: (profile.current_level_index || 0) + 1,
-    block_start_date: new Date().toISOString(),
-    block_duration_weeks: 6
+    completed_workout_count: 0,
+    target_workout_count: calculateTargetCount(),
+    block_start_date: new Date().toISOString()
   });
 };
 
 const restartCurrentLevel = async () => {
   return updateProfile({
-    block_start_date: new Date().toISOString(),
-    block_duration_weeks: 6
+    completed_workout_count: 0,
+    block_start_date: new Date().toISOString()
   });
 };
 ```
 
 #### Conditional UI Logic
 ```typescript
-const hasNextLevel = currentPlan && currentPlan.levels[currentLevelIndex + 1];
-const nextLevel = hasNextLevel ? currentPlan.levels[currentLevelIndex + 1] : null;
+const workoutsRemaining = getWorkoutsRemaining();
+const progressPercentage = getWorkoutProgressPercentage();
+const isComplete = profile.completed_workout_count >= profile.target_workout_count;
 ```
 
 ## Technical Implementation Details
@@ -339,13 +363,15 @@ This architecture enables several planned features:
 
 ### Default Values
 
-- **Block Duration**: 6 weeks (configurable per user)
+- **Block Multiplier**: 6 (configurable per user)
+- **Target Calculation**: (workout days in plan) × multiplier
 - **Level Index**: 0 (first level of selected plan)
-- **Completion Check**: Every app load/home screen render
+- **Completion Check**: Based on workout count comparison
 
 ### Customization Points
 
-- Block duration limits (currently 1+ weeks)
+- Block multiplier limits (currently 1+)
+- Manual workout count adjustment
 - Completion celebration content
 - Plan switching confirmation messages
 - Progress indicators and visual design
@@ -370,9 +396,9 @@ END $$;
 ### Data Consistency
 
 - User profiles auto-created on first access
-- Workout logs stamped with current block context
+- Workout completion automatically increments count
 - Plan data validated before block creation
-- Level progression validates next level existence
+- Manual count adjustments validated for data integrity
 - State transitions maintain data integrity
 
-This architecture provides a solid foundation for structured training programs while maintaining the flexibility and user experience that makes the application engaging and effective.
+This architecture provides a more accurate and flexible foundation for structured training programs, ensuring progression is tied to actual work completed rather than time elapsed, while maintaining the user experience that makes the application engaging and effective.

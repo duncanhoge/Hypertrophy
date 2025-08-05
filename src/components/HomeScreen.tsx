@@ -18,21 +18,27 @@ interface HomeScreenProps {
 function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreenProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showEditProgress, setShowEditProgress] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newPlanName, setNewPlanName] = useState('');
+  const [editCompleted, setEditCompleted] = useState(0);
+  const [editTarget, setEditTarget] = useState(0);
   const { 
     profile, 
     updateBlockDuration, 
     endTrainingBlock, 
-    getWeeksRemaining,
+    getWorkoutsRemaining,
+    getWorkoutProgressPercentage,
+    updateWorkoutCounts,
     updateGeneratedPlanName,
     deleteGeneratedPlan
   } = useUserProfile();
 
   const currentLevel = getCurrentLevel(plan, profile?.current_level_index || 0);
   const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
-  const weeksRemaining = getWeeksRemaining();
+  const workoutsRemaining = getWorkoutsRemaining();
+  const progressPercentage = getWorkoutProgressPercentage();
   const isActivePlan = profile?.current_plan_id === plan.id || (profile?.active_generated_plan && plan.id.startsWith('generated'));
   const isGeneratedPlan = !!profile?.active_generated_plan && plan.id.startsWith('generated');
 
@@ -83,6 +89,21 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
     }
   };
 
+  const handleEditProgress = () => {
+    if (profile) {
+      setEditCompleted(profile.completed_workout_count || 0);
+      setEditTarget(profile.target_workout_count || 0);
+      setShowEditProgress(true);
+    }
+  };
+
+  const handleSaveProgress = async () => {
+    if (editTarget > 0 && editCompleted >= 0) {
+      await updateWorkoutCounts(editCompleted, editTarget);
+      setShowEditProgress(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -128,16 +149,34 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
         </div>
       </div>
 
-      {isActivePlan && weeksRemaining !== null && (
+      {isActivePlan && workoutsRemaining !== null && (
         <Card className="bg-theme-gold/10 border border-theme-gold/30">
-          <div className="flex items-center justify-center gap-3 text-theme-gold">
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-3 text-theme-gold">
             <Clock className="w-5 h-5" />
             <span className="font-semibold">
-              {weeksRemaining > 0 
-                ? `${weeksRemaining} weeks remaining in your training block`
+                {workoutsRemaining > 0 
+                  ? `${profile?.completed_workout_count || 0} / ${profile?.target_workout_count || 0} Workouts Completed`
                 : 'Training block complete! Great work!'
               }
             </span>
+            </div>
+            
+            {/* Progress Bar */}
+            {workoutsRemaining > 0 && (
+              <div className="w-full">
+                <div className="h-2 bg-theme-black-lighter rounded-lg overflow-hidden">
+                  <div 
+                    className="h-full bg-theme-gold rounded-lg transition-all duration-300"
+                    style={{ width: `${progressPercentage}%` }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-theme-gold-dark mt-1">
+                  <span>{profile?.completed_workout_count || 0} completed</span>
+                  <span>{workoutsRemaining} remaining</span>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
       )}
@@ -202,28 +241,39 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
             
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
-                <span className="text-theme-gold-light">Program Length:</span>
+                <span className="text-theme-gold-light">Block Multiplier:</span>
                 <div className="flex items-center gap-3">
                   <IconButton
                     onClick={() => handleDurationChange(-1)}
-                    ariaLabel="Decrease duration"
+                    ariaLabel="Decrease multiplier"
                     className="p-2 text-sm"
                     disabled={!profile || profile.block_duration_weeks <= 1}
                   >
                     <MinusCircle size={16} />
                   </IconButton>
                   <span className="text-theme-gold font-semibold min-w-[80px] text-center">
-                    {profile?.block_duration_weeks || 6} weeks
+                    {profile?.block_duration_weeks || 6}x
                   </span>
                   <IconButton
                     onClick={() => handleDurationChange(1)}
-                    ariaLabel="Increase duration"
+                    ariaLabel="Increase multiplier"
                     className="p-2 text-sm"
                     disabled={!profile}
                   >
                     <PlusCircle size={16} />
                   </IconButton>
                 </div>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
+                <span className="text-theme-gold-light">Workout Progress:</span>
+                <IconButton
+                  onClick={handleEditProgress}
+                  ariaLabel="Edit Progress"
+                  className="p-2 text-sm"
+                >
+                  Edit Progress
+                </IconButton>
               </div>
 
               {profile?.block_start_date && (
@@ -288,6 +338,93 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
               disabled={!newPlanName.trim()}
             >
               Save Name
+            </PrimaryButton>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Progress Modal */}
+      <Modal 
+        isOpen={showEditProgress} 
+        onClose={() => setShowEditProgress(false)} 
+        title="Edit Workout Progress"
+      >
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="editCompleted" className="block text-sm font-medium text-theme-gold mb-2">
+              Completed Workouts
+            </label>
+            <div className="flex items-center gap-3">
+              <IconButton
+                onClick={() => setEditCompleted(Math.max(0, editCompleted - 1))}
+                ariaLabel="Decrease completed"
+                className="p-2 text-sm"
+              >
+                <MinusCircle size={16} />
+              </IconButton>
+              <input
+                type="number"
+                id="editCompleted"
+                value={editCompleted}
+                onChange={(e) => setEditCompleted(Math.max(0, parseInt(e.target.value) || 0))}
+                className="w-20 p-2 bg-theme-black-lighter border border-theme-gold/30 rounded-2x-nested-container text-theme-gold text-center focus:outline-none focus:ring-2 focus:ring-theme-gold/50"
+                min="0"
+              />
+              <IconButton
+                onClick={() => setEditCompleted(editCompleted + 1)}
+                ariaLabel="Increase completed"
+                className="p-2 text-sm"
+              >
+                <PlusCircle size={16} />
+              </IconButton>
+            </div>
+          </div>
+          
+          <div>
+            <label htmlFor="editTarget" className="block text-sm font-medium text-theme-gold mb-2">
+              Target Workouts
+            </label>
+            <div className="flex items-center gap-3">
+              <IconButton
+                onClick={() => setEditTarget(Math.max(1, editTarget - 1))}
+                ariaLabel="Decrease target"
+                className="p-2 text-sm"
+              >
+                <MinusCircle size={16} />
+              </IconButton>
+              <input
+                type="number"
+                id="editTarget"
+                value={editTarget}
+                onChange={(e) => setEditTarget(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-20 p-2 bg-theme-black-lighter border border-theme-gold/30 rounded-2x-nested-container text-theme-gold text-center focus:outline-none focus:ring-2 focus:ring-theme-gold/50"
+                min="1"
+              />
+              <IconButton
+                onClick={() => setEditTarget(editTarget + 1)}
+                ariaLabel="Increase target"
+                className="p-2 text-sm"
+              >
+                <PlusCircle size={16} />
+              </IconButton>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <IconButton
+              onClick={() => setShowEditProgress(false)}
+              ariaLabel="Cancel"
+              className="flex-1 text-theme-gold-dark hover:text-theme-gold"
+            >
+              Cancel
+            </IconButton>
+            <PrimaryButton
+              onClick={handleSaveProgress}
+              ariaLabel="Save Progress"
+              className="flex-1"
+              disabled={editTarget < 1 || editCompleted < 0}
+            >
+              Save Progress
             </PrimaryButton>
           </div>
         </div>

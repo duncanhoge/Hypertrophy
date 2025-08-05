@@ -278,7 +278,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showExerciseHistory, setShowExerciseHistory] = useState(false);
 
   const { user } = useAuth();
-  const { profile } = useUserProfile();
+  const { profile, incrementCompletedWorkoutCount } = useUserProfile();
   
   // Get current level workouts
   const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
@@ -479,6 +479,20 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     if (justCompletedFinalSet && currentExerciseIndex < currentWorkout.exercises.length - 1) {
       moveToNextExercise();
     }
+  };
+
+  const handleCompletionModalClose = async () => {
+    setShowCompletionModal(false);
+    
+    // Increment completed workout count when user finishes all exercises
+    try {
+      await incrementCompletedWorkoutCount();
+    } catch (error) {
+      console.error('Failed to increment workout count:', error);
+      // Don't block the user flow if this fails
+    }
+    
+    onGoHome();
   };
 
   if (!currentWorkout) {
@@ -784,12 +798,12 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         <ChevronLeft size={20} className="mr-1" /> Back to Home
       </IconButton>
 
-      <Modal isOpen={showCompletionModal} onClose={() => { setShowCompletionModal(false); onGoHome(); }} title="Workout Complete!">
+      <Modal isOpen={showCompletionModal} onClose={handleCompletionModalClose} title="Workout Complete!">
         <div className="text-center">
           <CheckCircle size={48} className="mx-auto text-theme-gold mb-4" />
           <p className="text-lg text-theme-gold">Great job finishing the {day} workout!</p>
           <p className="text-sm text-theme-gold-dark">Your progress has been logged.</p>
-          <IconButton onClick={() => { setShowCompletionModal(false); onGoHome(); }} ariaLabel="Go Home" className="mt-6">
+          <IconButton onClick={handleCompletionModalClose} ariaLabel="Go Home" className="mt-6">
             Return to Home
           </IconButton>
         </div>

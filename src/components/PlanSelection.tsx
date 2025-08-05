@@ -19,7 +19,7 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
   const [showPreMadePlans, setShowPreMadePlans] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
-  const { profile, startTrainingBlock, getWeeksRemaining } = useUserProfile();
+  const { profile, startTrainingBlock, getWorkoutsRemaining } = useUserProfile();
 
   const handleStartPlan = async (planId: string) => {
     if (profile?.current_plan_id && profile.current_plan_id !== planId) {
@@ -47,7 +47,7 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
     onSelectPlan(planId);
   };
 
-  const weeksRemaining = getWeeksRemaining();
+  const workoutsRemaining = getWorkoutsRemaining();
   const activePlanName = profile?.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id]?.name : null;
   const hasGeneratedPlan = !!profile?.active_generated_plan;
 
@@ -110,11 +110,11 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
                 <h3 className="text-2xl font-bold text-theme-gold">
                   {profile.active_generated_plan.name}
                 </h3>
-                {weeksRemaining !== null && (
+                {workoutsRemaining !== null && (
                   <div className="flex items-center gap-2 text-theme-gold-light">
                     <Clock className="w-4 h-4" />
                     <span className="text-sm font-medium">
-                      {weeksRemaining > 0 ? `${weeksRemaining} weeks left` : 'Block Complete!'}
+                      {workoutsRemaining > 0 ? `${workoutsRemaining} workouts left` : 'Block Complete!'}
                     </span>
                   </div>
                 )}
@@ -193,11 +193,11 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
                         <h3 className="text-2xl font-bold text-theme-gold">
                           {plan.name}
                         </h3>
-                        {isActivePlan && weeksRemaining !== null && (
+                        {isActivePlan && workoutsRemaining !== null && (
                           <div className="flex items-center gap-2 text-theme-gold-light">
                             <Clock className="w-4 h-4" />
                             <span className="text-sm font-medium">
-                              {weeksRemaining > 0 ? `${weeksRemaining} weeks left` : 'Block Complete!'}
+                              {workoutsRemaining > 0 ? `${workoutsRemaining} workouts left` : 'Block Complete!'}
                             </span>
                           </div>
                         )}
@@ -298,7 +298,7 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
       >
         <div className="space-y-4">
           <p className="text-theme-gold-dark">
-            This will end your current training block on <strong className="text-theme-gold">"{activePlanName}"</strong> and start a new 6-week block with <strong className="text-theme-gold">"{pendingPlanId ? WORKOUT_PLANS[pendingPlanId]?.name : ''}"</strong>.
+            This will end your current training block on <strong className="text-theme-gold">"{activePlanName}"</strong> and start a new training block with <strong className="text-theme-gold">"{pendingPlanId ? WORKOUT_PLANS[pendingPlanId]?.name : ''}"</strong>.
           </p>
           <p className="text-theme-gold-dark text-sm">
             Your workout history will be preserved, but your current progress will be reset.
