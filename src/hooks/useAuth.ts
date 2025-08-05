@@ -9,6 +9,12 @@ export function useAuth() {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      // If no session exists and user previously opted for non-persistent session,
+      // clear any lingering state to prevent refresh token errors
+      if (!session && localStorage.getItem('supabase.auth.remember_me') === 'false') {
+        supabase.auth.signOut();
+      }
+      
       setUser(session?.user ?? null);
       setLoading(false);
     });
