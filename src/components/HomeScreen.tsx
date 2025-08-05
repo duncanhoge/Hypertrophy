@@ -192,38 +192,6 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
         </div>
       </div>
 
-      {isActivePlan && !isTrialMode && workoutsRemaining !== null && (
-        <Card className="bg-theme-gold/10 border border-theme-gold/30">
-          <div className="space-y-3">
-            <div className="flex items-center justify-center gap-3 text-theme-gold">
-            <Clock className="w-5 h-5" />
-            <span className="font-semibold">
-                {workoutsRemaining > 0 
-                  ? `${profile?.completed_workout_count || 0} / ${profile?.target_workout_count || 0} Workouts Completed`
-                : 'Training block complete! Great work!'
-              }
-            </span>
-            </div>
-            
-            {/* Progress Bar */}
-            {workoutsRemaining > 0 && (
-              <div className="w-full">
-                <div className="h-2 bg-theme-black-lighter rounded-lg overflow-hidden">
-                  <div 
-                    className="h-full bg-theme-gold rounded-lg transition-all duration-300"
-                    style={{ width: `${progressPercentage}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-theme-gold-dark mt-1">
-                  <span>{profile?.completed_workout_count || 0} completed</span>
-                  <span>{workoutsRemaining} remaining</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
       {/* Training Block Complete Banner */}
       {isActivePlan && !isTrialMode && isBlockComplete() && (
         <Card className="bg-gradient-to-r from-theme-gold/20 to-theme-gold/10 border-theme-gold/50">
