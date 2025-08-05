@@ -278,6 +278,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showWorkoutQueue, setShowWorkoutQueue] = useState(false);
   const [showExerciseHistory, setShowExerciseHistory] = useState(false);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [hasShownLevelUpModal, setHasShownLevelUpModal] = useState(false);
 
   const { user } = useAuth();
   const { profile, incrementCompletedWorkoutCount, isBlockComplete, startNextLevel, restartCurrentLevel, endTrainingBlock } = useUserProfile();
@@ -498,9 +499,10 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       try {
         const updatedProfile = await incrementCompletedWorkoutCount();
         
-        // Check if this completion makes the training block complete
-        if (updatedProfile && isBlockComplete()) {
+        // Check if this completion makes the training block complete and we haven't shown the modal yet
+        if (updatedProfile && isBlockComplete() && !hasShownLevelUpModal) {
           // Show level-up modal instead of going home
+          setHasShownLevelUpModal(true);
           setShowLevelUpModal(true);
           return;
         }
@@ -515,6 +517,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
   const handleLevelUpModalClose = () => {
     setShowLevelUpModal(false);
+    // Don't reset hasShownLevelUpModal here - let the user go home
     onGoHome();
   };
 
