@@ -72,8 +72,8 @@ The application supports three distinct exercise types, each with specific input
 - 💾 **Cloud Data Persistence**: All workout data synced to Supabase
 - 🔄 **Real-time Updates**: Instant data synchronization across sessions
 - 📚 **Centralized Exercise Dictionary**: Single source of truth for all exercise data
-- 🎯 **Training Block System**: Structured 6-week programs with completion tracking
-- ⚙️ **Flexible Duration**: User-configurable training block lengths
+- 🎯 **Workout Count-Based Progression**: Structured programs based on completed workouts, not time
+- ⚙️ **Flexible Targets**: User-configurable workout targets with manual adjustment capabilities
 - 🏆 **Achievement Celebration**: Success screens for completed training blocks
 
 ### User Experience
@@ -155,15 +155,15 @@ For detailed information about the Exercise Dictionary, see: [Exercise Dictionar
 
 ### Training Block System
 
-The **Training Block Duration & Completion** system provides structured, time-bound workout programs:
+The **Workout Count-Based Progression** system provides structured workout programs based on completed workouts:
 
-- **Time-Bound Programs**: Default 6-week duration with user customization
-- **Progress Tracking**: Visual indicators showing weeks remaining
+- **Workout-Based Programs**: Target calculated as (workout days × multiplier) with user customization
+- **Progress Tracking**: Visual indicators showing workouts completed and remaining
 - **Completion Celebration**: Success screens acknowledging user achievements
-- **Flexible Management**: Settings panel for duration adjustments
+- **Flexible Management**: Settings panel for target adjustments and manual progress editing
 - **Multi-Level Support**: Architecture ready for program progression
 
-For detailed information about the Training Block system, see: [Training Block Documentation](docs/training-block-completion.md)
+For detailed information about the Workout Count-Based Progression system, see: [Training Block Documentation](docs/training-block-completion.md)
 
 ### Backend Architecture (Supabase)
 ```
@@ -518,10 +518,10 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 ### Creating Custom Plans
 ### Starting a Training Block
 1. **Select a Plan** - Choose from available workout programs
-2. **Start Training Block** - Click "Start This Plan" to begin 6-week commitment
-3. **Track Progress** - View weeks remaining and access settings
-4. **Complete Workouts** - Log sets with automatic training block context
-5. **Celebrate Completion** - Receive achievement recognition after 6 weeks
+2. **Start Training Block** - Click "Start This Plan" to begin workout count-based commitment
+3. **Track Progress** - View workouts completed/remaining with progress bar and access settings
+4. **Complete Workouts** - Each finished workout automatically increments your progress
+5. **Celebrate Completion** - Receive achievement recognition after completing target workout count
 
 ### Creating Custom Plans
 1. **Start Creation** - Click "Create Your Own Plan" on plan selection screen
@@ -532,7 +532,8 @@ CREATE POLICY "Users can insert own logs" ON workout_logs
 6. **Name & Save** - Customize plan name and activate training block
 
 ### Managing Training Blocks
-- **Adjust Duration**: Use settings panel to modify block length
+- **Adjust Targets**: Use settings panel to modify block multiplier
+- **Edit Progress**: Manually adjust completed and target workout counts for flexibility
 - **Switch Plans**: Confirmation required to prevent accidental progress loss
 - **End Early**: Option to terminate block before completion
 - **Try Plans**: Explore without starting formal training block
@@ -592,10 +593,11 @@ Templates (`src/data/workoutTemplates.ts`) define:
 - Target sets and rep ranges
 
 ### Training Block Settings
-- **Default Duration**: 6 weeks (user configurable)
-- **Minimum Duration**: 1 week
-- **Completion Check**: Every app load
-- **Progress Calculation**: Based on start date and duration
+- **Default Multiplier**: 6 (user configurable)
+- **Minimum Multiplier**: 1
+- **Target Calculation**: (workout days in plan) × multiplier
+- **Completion Check**: Based on completed vs target workout count
+- **Progress Calculation**: Based on workouts completed and remaining
 
 ### Styling
 The application uses a custom Tailwind theme defined in `tailwind.config.js`:

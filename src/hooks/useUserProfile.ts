@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
+import { WORKOUT_PLANS, getCurrentLevelWorkouts } from '../data/workoutPlans';
 
 export interface UserProfile {
   id: string;
@@ -8,6 +9,8 @@ export interface UserProfile {
   current_level_index: number;
   block_start_date: string | null;
   block_duration_weeks: number;
+  target_workout_count: number | null;
+  completed_workout_count: number;
   active_generated_plan: any | null;
   created_at: string;
   updated_at: string;
@@ -89,12 +92,20 @@ export function useUserProfile() {
     try {
       console.log('Starting generated plan with data:', generatedPlan);
       
+      // Calculate target workout count for generated plan
+      const workoutDaysCount = generatedPlan.levels && generatedPlan.levels[0] ? 
+        Object.keys(generatedPlan.levels[0].workouts).length : 3; // Default fallback
+      
+      const targetCount = workoutDaysCount * (profile?.block_duration_weeks || 6);
+      
       const result = await updateProfile({
         active_generated_plan: generatedPlan,
         current_plan_id: generatedPlan.templateId,
         current_level_index: 0,
         block_start_date: new Date().toISOString(),
-        block_duration_weeks: 6
+        block_duration_weeks: profile?.block_duration_weeks || 6,
+        target_workout_count: targetCount,
+        completed_workout_count: 0
       });
       
       if (!result) {
@@ -118,12 +129,22 @@ export function useUserProfile() {
     try {
       console.log('Starting training block:', { planId, levelIndex });
       
+      // Calculate target workout count
+      const plan = WORKOUT_PLANS[planId];
+      const workoutDaysCount = plan ? Object.keys(
+        getCurrentLevelWorkouts(plan, levelIndex)
+      ).length : 3; // Default fallback
+      
+      const targetCount = workoutDaysCount * (profile?.block_duration_weeks || 6);
+      
       const result = await updateProfile({
         active_generated_plan: null,
         current_plan_id: planId,
         current_level_index: levelIndex,
         block_start_date: new Date().toISOString(),
-        block_duration_weeks: 6
+        block_duration_weeks: profile?.block_duration_weeks || 6,
+        target_workout_count: targetCount,
+        completed_workout_count: 0
       });
       
       if (!result) {
@@ -157,7 +178,9 @@ export function useUserProfile() {
       current_plan_id: null,
       current_level_index: 0,
       block_start_date: null,
-      block_duration_weeks: 6
+      block_duration_weeks: 6,
+      target_workout_count: null,
+      completed_workout_count: 0
     });
   };
 
@@ -180,19 +203,35 @@ export function useUserProfile() {
   const startNextLevel = async () => {
     if (!profile?.current_plan_id) return null;
     
+    // Recalculate target workout count for next level
+    const currentPlan = profile.active_generated_plan || 
+      (profile.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id] : null);
+    
+    let targetCount = profile.target_workout_count;
+    if (currentPlan) {
+      const workoutDaysCount = Object.keys(
+        getCurrentLevelWorkouts(currentPlan, (profile.current_level_index || 0) + 1)
+      ).length;
+      targetCount = workoutDaysCount * profile.block_duration_weeks;
+    }
+    
     return updateProfile({
       current_level_index: (profile.current_level_index || 0) + 1,
       block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6
+      block_duration_weeks: profile.block_duration_weeks,
+      target_workout_count: targetCount,
+      completed_workout_count: 0
     });
   };
 
   const restartCurrentLevel = async () => {
     if (!profile?.current_plan_id) return null;
     
+    // Keep the same target workout count, just reset completed count
     return updateProfile({
       block_start_date: new Date().toISOString(),
-      block_duration_weeks: 6
+      block_duration_weeks: profile.block_duration_weeks,
+      completed_workout_count: 0
     });
   };
 
@@ -202,31 +241,77 @@ export function useUserProfile() {
       current_plan_id: null,
       current_level_index: 0,
       block_start_date: null,
-      block_duration_weeks: 6
+      block_duration_weeks: 6,
+      target_workout_count: null,
+      completed_workout_count: 0
     });
   };
 
   const updateBlockDuration = async (weeks: number) => {
     if (weeks < 1) return null;
-    return updateProfile({
+    
+    // When updating block duration, recalculate target workout count if there's an active plan
+    const updates: Partial<Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>> = {
       block_duration_weeks: weeks
+    };
+    
+    if (profile?.current_plan_id || profile?.active_generated_plan) {
+      // Recalculate target workout count based on new duration
+      const currentPlan = profile.active_generated_plan || 
+        (profile.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id] : null);
+      
+      if (currentPlan) {
+        const workoutDaysCount = Object.keys(
+          getCurrentLevelWorkouts(currentPlan, profile.current_level_index || 0)
+        ).length;
+        updates.target_workout_count = workoutDaysCount * weeks;
+      }
+    }
+    
+    return updateProfile(updates);
+  };
+
+  const getWorkoutsRemaining = (): number | null => {
+    if (!profile?.target_workout_count || (!profile.current_plan_id && !profile.active_generated_plan)) return null;
+    
+    const remaining = profile.target_workout_count - (profile.completed_workout_count || 0);
+    return Math.max(0, remaining);
+  };
+
+  const getWorkoutProgressPercentage = (): number => {
+    if (!profile?.target_workout_count || profile.target_workout_count === 0) return 0;
+    
+    const completed = profile.completed_workout_count || 0;
+    const percentage = (completed / profile.target_workout_count) * 100;
+    return Math.min(100, Math.max(0, percentage));
+  };
+
+  const incrementCompletedWorkoutCount = async () => {
+    if (!profile) return null;
+    
+    const newCount = (profile.completed_workout_count || 0) + 1;
+    return updateProfile({
+      completed_workout_count: newCount
     });
   };
 
-  const getWeeksRemaining = (): number | null => {
-    if (!profile?.block_start_date || (!profile.current_plan_id && !profile.active_generated_plan)) return null;
-
-    const startDate = new Date(profile.block_start_date);
-    const currentDate = new Date();
-    const weeksElapsed = Math.floor((currentDate.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    const weeksRemaining = profile.block_duration_weeks - weeksElapsed;
-
-    return Math.max(0, weeksRemaining);
+  const updateWorkoutCounts = async (newCompleted: number, newTarget: number) => {
+    if (!profile) return null;
+    
+    // Validate inputs
+    if (newCompleted < 0 || newTarget < 1) return null;
+    
+    return updateProfile({
+      completed_workout_count: newCompleted,
+      target_workout_count: newTarget
+    });
   };
 
   const isBlockComplete = (): boolean => {
-    const weeksRemaining = getWeeksRemaining();
-    return weeksRemaining !== null && weeksRemaining <= 0;
+    if (!profile?.target_workout_count) return false;
+    
+    const completed = profile.completed_workout_count || 0;
+    return completed >= profile.target_workout_count;
   };
 
   useEffect(() => {
@@ -248,7 +333,10 @@ export function useUserProfile() {
     restartCurrentLevel,
     endTrainingBlock,
     updateBlockDuration,
-    getWeeksRemaining,
+    getWorkoutsRemaining,
+    getWorkoutProgressPercentage,
+    incrementCompletedWorkoutCount,
+    updateWorkoutCounts,
     isBlockComplete,
     refetch: fetchProfile
   };

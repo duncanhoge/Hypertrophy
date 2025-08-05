@@ -171,7 +171,7 @@ function App() {
                   ? WORKOUT_PLANS[profile.current_plan_id]?.name || 'Your Plan' 
                   : 'Your Plan'
             }
-            weeksCompleted={profile?.block_duration_weeks || 6}
+            workoutsCompleted={profile?.completed_workout_count || 0}
             currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
             currentLevelIndex={profile?.current_level_index || 0}
           />
