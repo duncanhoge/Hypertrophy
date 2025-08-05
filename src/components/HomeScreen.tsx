@@ -25,6 +25,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [hasCheckedCompletion, setHasCheckedCompletion] = useState(false);
   const [newPlanName, setNewPlanName] = useState('');
   const [editCompleted, setEditCompleted] = useState(0);
   const [editTarget, setEditTarget] = useState(0);
@@ -50,6 +51,14 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
   const isActivePlan = profile?.current_plan_id === plan.id || (profile?.active_generated_plan && plan.id.startsWith('generated'));
   const isGeneratedPlan = !!profile?.active_generated_plan && plan.id.startsWith('generated');
   const isTrialMode = profile?.is_trial_mode || false;
+
+  // Check for training block completion on component mount
+  useEffect(() => {
+    if (!hasCheckedCompletion && isActivePlan && !isTrialMode && isBlockComplete()) {
+      setShowLevelUpModal(true);
+      setHasCheckedCompletion(true);
+    }
+  }, [hasCheckedCompletion, isActivePlan, isTrialMode, isBlockComplete]);
 
   const handleStartPlan = async (planId: string) => {
     await startTrainingBlock(planId);
@@ -119,19 +128,21 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
 
   const handleLevelUpModalClose = async () => {
     setShowLevelUpModal(false);
-    // Don't end the training block - just close the modal
-    // This allows the user to recall the modal later via the banner
+    // Mark that we've checked completion to prevent auto-reopening
+    setHasCheckedCompletion(true);
   };
 
   const handleStartNextLevel = async () => {
     await startNextLevel();
     setShowLevelUpModal(false);
+    setHasCheckedCompletion(false); // Reset for potential future completions
     // Stay on current plan but refresh to show new level
   };
 
   const handleRestartLevel = async () => {
     await restartCurrentLevel();
     setShowLevelUpModal(false);
+    setHasCheckedCompletion(false); // Reset for potential future completions
     // Stay on current plan
   };
 
@@ -305,7 +316,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
           <div>
             <h3 className="text-lg font-semibold text-theme-gold mb-4">Current Training Block</h3>
             
-            <div className="space-y-4">
+          {isActivePlan && !isTrialMode && isBlockComplete() && hasCheckedCompletion && (
               <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
                 <span className="text-theme-gold-light">Block Multiplier:</span>
                 <div className="flex items-center gap-3">

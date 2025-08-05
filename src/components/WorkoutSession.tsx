@@ -500,16 +500,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         
         // Check if this completion makes the training block complete
         if (updatedProfile) {
-          // Force a small delay to ensure state is updated, then check completion
-          setTimeout(() => {
-            if (isBlockComplete()) {
-              // Show level-up modal instead of going home
-              setShowLevelUpModal(true);
-              return;
-            }
-            // If not complete, go home normally
-            onGoHome();
-          }, 100);
+          // Always go home, but pass completion status
+          onGoHome();
         } else {
           onGoHome();
         }
