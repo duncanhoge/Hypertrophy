@@ -26,7 +26,12 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
   const hasActivePlan = !!profile?.current_plan_id || hasGeneratedPlan;
   
   // State management based on user stories
-  const [showPreMadePlans, setShowPreMadePlans] = useState(!hasActivePlan);
+  const [showPreMadePlans, setShowPreMadePlans] = useState(false);
+  
+  // Set initial state based on whether user has active plan
+  React.useEffect(() => {
+    setShowPreMadePlans(!hasActivePlan);
+  }, [hasActivePlan]);
 
   const handleStartPlan = async (planId: string) => {
     if (profile?.current_plan_id && profile.current_plan_id !== planId) {
