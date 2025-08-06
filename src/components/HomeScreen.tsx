@@ -270,7 +270,12 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
             >
               <CalendarDays size={28} />
               <span>{day}</span>
-              <span className="text-xs opacity-80">{workout.name.split(' - ')[1]}</span>
+              <span className="text-xs opacity-80">
+                {isGeneratedPlan && (profile?.current_level_index || 0) > 0
+                  ? workout.name.split(':')[0] // For "Push Day: Level 2" -> "Push Day"
+                  : workout.name.includes(' - ') ? workout.name.split(' - ')[1] : workout.name // For "Monday - Chest & Triceps Focus" -> "Chest & Triceps Focus"
+                }
+              </span>
             </TilePrimaryButton>
           ))}
         </div>
