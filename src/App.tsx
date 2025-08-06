@@ -7,7 +7,7 @@ import { AuthWrapper } from './components/AuthWrapper';
 import { PlanGenerationWizard } from './components/PlanGenerationWizard';
 import { AppHeader } from './components/AppHeader';
 import { useUserProfile } from './hooks/useUserProfile';
-import { WORKOUT_PLANS, getCurrentLevelWorkouts } from './data/workoutData';
+import { WORKOUT_PLANS, getCurrentLevelWorkouts, getCurrentLevel } from './data/workoutData';
 import type { GeneratedPlan } from './lib/planGenerationEngine';
 
 type Page = 'plans' | 'workouts' | 'session' | 'create-plan';
