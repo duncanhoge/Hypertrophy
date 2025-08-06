@@ -77,47 +77,6 @@ export function getCurrentLevel(plan: WorkoutPlan, levelIndex: number = 0): Trai
 }
 
 export const WORKOUT_PLANS: Record<string, WorkoutPlan> = {
-  'test-plan': {
-    id: 'test-plan',
-    name: "Test Plan",
-    description: "A test plan with one exercise of each type for UI testing and development purposes.",
-    image: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-    levels: [
-      {
-        level: 1,
-        name: "UI Testing",
-        description: "Test all exercise types and their user interfaces.",
-        workouts: {
-          'Test Day': {
-            name: "Test Day - All Exercise Types",
-            exercises: [
-              { 
-                id: "db_press_bench", 
-                sets: 3, 
-                reps: "8-12", 
-                type: "weight_reps",
-                notes: "Test exercise for Weight & Reps component - requires both weight and reps input"
-              },
-              { 
-                id: "bw_pushup", 
-                sets: 3, 
-                reps: "AMRAP", 
-                type: "reps_only",
-                notes: "Test exercise for Repetition Based component - AMRAP style with reps input only"
-              },
-              { 
-                id: "bw_plank", 
-                sets: 3, 
-                reps: "60s", 
-                type: "timed",
-                notes: "Test exercise for Timed component - duration input with integrated timer"
-              }
-            ]
-          }
-        }
-      }
-    ]
-  },
   'duncans-plan': {
     id: 'duncans-plan',
     name: "Duncan's Plan",
