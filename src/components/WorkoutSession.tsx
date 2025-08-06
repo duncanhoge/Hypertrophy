@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
-import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise } from '../data/workoutData';
+import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise, getCurrentLevel } from '../data/workoutData';
 import { getExerciseById } from '../data/exerciseDictionary';
 import { IconButton } from './ui/IconButton';
 import { PrimaryButton } from './ui/Button';
