@@ -45,7 +45,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory
   } = useUserProfile();
 
   const currentLevel = getCurrentLevel(plan, profile?.current_level_index || 0);
-  const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
+  const currentWorkouts = currentLevel ? currentLevel.workouts : {};
   const workoutsRemaining = getWorkoutsRemaining();
   const progressPercentage = getWorkoutProgressPercentage();
   const isActivePlan = profile?.current_plan_id === plan.id || (profile?.active_generated_plan && plan.id.startsWith('generated'));

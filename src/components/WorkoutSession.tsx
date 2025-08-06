@@ -283,7 +283,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const { profile, incrementCompletedWorkoutCount, isBlockComplete, startNextLevel, restartCurrentLevel, endTrainingBlock } = useUserProfile();
   
   // Get current level workouts
-  const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
+  const currentLevel = getCurrentLevel(plan, profile?.current_level_index || 0);
+  const currentWorkouts = currentLevel ? currentLevel.workouts : {};
   const currentWorkout = currentWorkouts[day];
   const currentExercise = currentWorkout?.exercises[currentExerciseIndex];
   const enhancedCurrentExercise = currentExercise ? getEnhancedExercise(currentExercise) : null;

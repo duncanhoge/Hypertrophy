@@ -110,9 +110,10 @@ function App() {
   };
 
   const currentPlan = getCurrentPlan();
-  const currentWorkouts = currentPlan && profile ? 
-    getCurrentLevelWorkouts(currentPlan, profile.current_level_index || 0) : 
-    currentPlan?.levels[0]?.workouts || {};
+  const currentLevel = currentPlan && profile ? 
+    getCurrentLevel(currentPlan, profile.current_level_index || 0) : 
+    currentPlan?.levels[0] || null;
+  const currentWorkouts = currentLevel ? currentLevel.workouts : {};
 
   return (
     <AuthWrapper>
