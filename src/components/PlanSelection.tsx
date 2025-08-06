@@ -69,12 +69,17 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
       {!hasActivePlan && (
         <Card className="bg-gradient-to-br from-theme-gold/20 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300">
           <div className="flex flex-col md:flex-row gap-6">
-            <div className="md:w-1/3 flex items-center justify-center bg-theme-gold/20 rounded-nested-container relative">
-              <div className="w-16 h-16 flex items-center justify-center">
+            <div className="md:w-1/3 flex flex-col items-center justify-center bg-theme-gold/20 rounded-nested-container p-4">
+              <div className="w-16 h-16 flex items-center justify-center mb-2">
                 <Sparkles className="w-8 h-8 text-theme-gold" />
               </div>
-              <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
+              <div className="bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold mb-2">
                 NEW
+              </div>
+              <div className="text-center">
+                <div className="text-theme-gold font-semibold text-sm">
+                  Custom Plan
+                </div>
               </div>
             </div>
             <div className="md:w-2/3 space-y-4">
@@ -187,12 +192,17 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
             {hasActivePlan && (
               <Card className="bg-gradient-to-br from-theme-gold/20 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300">
                 <div className="flex flex-col md:flex-row gap-6">
-                  <div className="md:w-1/3 flex items-center justify-center bg-theme-gold/20 rounded-nested-container relative">
-                    <div className="w-16 h-16 flex items-center justify-center">
+                  <div className="md:w-1/3 flex flex-col items-center justify-center bg-theme-gold/20 rounded-nested-container p-4">
+                    <div className="w-16 h-16 flex items-center justify-center mb-2">
                       <Sparkles className="w-8 h-8 text-theme-gold" />
                     </div>
-                    <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
+                    <div className="bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold mb-2">
                       NEW
+                    </div>
+                    <div className="text-center">
+                      <div className="text-theme-gold font-semibold text-sm">
+                        Custom Plan
+                      </div>
                     </div>
                   </div>
                   <div className="md:w-2/3 space-y-4">
@@ -240,15 +250,20 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
                   }`}
                 >
                   <div className="flex flex-col md:flex-row gap-6">
-                    <div className="md:w-1/3 flex items-center justify-center bg-theme-black rounded-nested-container relative">
-                      <div className="w-16 h-16 flex items-center justify-center">
+                    <div className="md:w-1/3 flex flex-col items-center justify-center bg-theme-black rounded-nested-container p-4">
+                      <div className="w-16 h-16 flex items-center justify-center mb-2">
                         <Dumbbell className="w-8 h-8 text-theme-gold" />
                       </div>
                       {isActivePlan && (
-                        <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
+                        <div className="bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold mb-2">
                           ACTIVE
                         </div>
                       )}
+                      <div className="text-center">
+                        <div className="text-theme-gold font-semibold text-sm">
+                          {isActivePlan ? `Level ${(profile?.current_level_index || 0) + 1}` : 'Pre-Made Plan'}
+                        </div>
+                      </div>
                     </div>
                     <div className="md:w-2/3 space-y-4">
                       <div className="flex justify-between items-start">
