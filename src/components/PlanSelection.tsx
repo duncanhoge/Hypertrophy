@@ -112,11 +112,11 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
         <Card className="bg-gradient-to-br from-theme-gold/10 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300 hover:scale-[1.02]">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="md:w-1/3 flex flex-col items-center justify-center bg-theme-black-lighter rounded-nested-container relative p-4">
-              <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
-                YOUR PLAN
-              </div>
-              <div className="w-16 h-16 flex items-center justify-center mb-2">
+              <div className="w-16 h-16 flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-theme-gold" />
+              </div>
+              <div className="bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold mb-2">
+                YOUR PLAN
               </div>
               <div className="text-center">
                 <div className="text-theme-gold font-semibold text-sm">
