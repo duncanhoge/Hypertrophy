@@ -155,10 +155,10 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
                     console.log('Selecting generated plan');
                     onSelectPlan('generated');
                   }}
-                  ariaLabel="Start Your Custom Plan"
+                  ariaLabel={hasActivePlan ? "Continue Your Plan" : "Start Your Plan"}
                 >
                   <Play size={16} className="mr-1" />
-                  Start Your Plan
+                  {hasActivePlan ? "Continue Plan" : "Start Your Plan"}
                 </PrimaryButton>
               </div>
             </div>
