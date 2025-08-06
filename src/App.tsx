@@ -29,11 +29,6 @@ function App() {
   }, []);
 
   // Check for training block completion on app load
-  useEffect(() => {
-    if (profile && isBlockComplete() && profile.current_plan_id) {
-      setShowCompletionModal(true);
-    }
-  }, [profile, isBlockComplete]);
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
@@ -45,6 +40,8 @@ function App() {
     setCurrentPage('workouts');
   };
   const handleCreatePlan = () => {
+    // End the training block when transitioning to custom plan creation
+    endTrainingBlock();
     setCurrentPage('create-plan');
   };
 
@@ -85,10 +82,6 @@ function App() {
 
   const handleCompletionModalClose = async () => {
     setShowCompletionModal(false);
-    await endTrainingBlock();
-    setCurrentPage('plans');
-    setSelectedPlanId(null);
-    setSelectedDay(null);
   };
 
   const handleStartNextLevel = async () => {
@@ -105,6 +98,10 @@ function App() {
     setCurrentPage('workouts');
   };
   // Get current plan for workout session (handle both pre-made and generated plans)
+ const handleCreateCustomPlanFromCompletion = () => {
+   setShowCompletionModal(false);
+   setCurrentPage('create-plan');
+ };
   const getCurrentPlan = () => {
     if (profile?.active_generated_plan && (selectedPlanId === profile.active_generated_plan.id || selectedPlanId === 'generated')) {
       return profile.active_generated_plan as GeneratedPlan;
@@ -149,6 +146,7 @@ function App() {
               plan={currentPlan}
               onStartWorkout={startWorkout}
               onBack={goToPlans}
+              onCreatePlan={handleCreatePlan}
               workoutHistory={workoutHistory}
             />
           )}
@@ -168,6 +166,7 @@ function App() {
             onStartNextLevel={handleStartNextLevel}
             onRestartLevel={handleRestartLevel}
             onDecideLater={handleCompletionModalClose}
+           onCreateCustomPlan={handleCreateCustomPlanFromCompletion}
             planName={
               profile?.active_generated_plan 
                 ? profile.active_generated_plan.name 

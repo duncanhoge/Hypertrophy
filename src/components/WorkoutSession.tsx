@@ -7,6 +7,7 @@ import { PrimaryButton } from './ui/Button';
 import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
 import { ExerciseHistory } from './ExerciseHistory';
+import { TrainingBlockCompleteModal } from './TrainingBlockCompleteModal';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -276,9 +277,10 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showExerciseInfoModal, setShowExerciseInfoModal] = useState(false);
   const [showWorkoutQueue, setShowWorkoutQueue] = useState(false);
   const [showExerciseHistory, setShowExerciseHistory] = useState(false);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
 
   const { user } = useAuth();
-  const { profile, incrementCompletedWorkoutCount } = useUserProfile();
+  const { profile, incrementCompletedWorkoutCount, isBlockComplete, startNextLevel, restartCurrentLevel, endTrainingBlock } = useUserProfile();
   
   // Get current level workouts
   const currentWorkouts = getCurrentLevelWorkouts(plan, profile?.current_level_index || 0);
@@ -494,13 +496,60 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     const isTrialMode = profile?.is_trial_mode || false;
     if (!isTrialMode) {
       try {
-        await incrementCompletedWorkoutCount();
+        const updatedProfile = await incrementCompletedWorkoutCount();
+        
+        // Check if this completion makes the training block complete
+        if (updatedProfile) {
+          // Always go home, but pass completion status
+          onGoHome();
+        } else {
+          onGoHome();
+        }
       } catch (error) {
         console.error('Failed to increment workout count:', error);
         // Don't block the user flow if this fails
+        onGoHome();
       }
+    } else {
+      onGoHome();
     }
-    
+  };
+
+  const handleLevelUpModalClose = () => {
+    setShowLevelUpModal(false);
+    // Go home after dismissing the level-up modal
+    onGoHome();
+  };
+
+  const handleStartNextLevel = async () => {
+    try {
+      await startNextLevel();
+      setShowLevelUpModal(false);
+      onGoHome();
+    } catch (error) {
+      console.error('Failed to start next level:', error);
+      setShowLevelUpModal(false);
+      onGoHome();
+    }
+  };
+
+  const handleRestartLevel = async () => {
+    try {
+      await restartCurrentLevel();
+      setShowLevelUpModal(false);
+      onGoHome();
+    } catch (error) {
+      console.error('Failed to restart level:', error);
+      setShowLevelUpModal(false);
+      onGoHome();
+    }
+  };
+
+  const handleCreateCustomPlanFromCompletion = () => {
+    setShowLevelUpModal(false);
+    endTrainingBlock();
+    // Navigate to plan creation - this would need to be passed as a prop
+    // For now, just go home and let the user navigate manually
     onGoHome();
   };
 
@@ -813,7 +862,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           <p className="text-lg text-theme-gold">Great job finishing the {day} workout!</p>
           <p className="text-sm text-theme-gold-dark">Your progress has been logged.</p>
           <IconButton onClick={handleCompletionModalClose} ariaLabel="Go Home" className="mt-6">
-            Return to Home
+            Continue
           </IconButton>
         </div>
       </Modal>
@@ -886,6 +935,19 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         onClose={() => setShowExerciseHistory(false)}
         exerciseId={enhancedCurrentExercise.id}
         exerciseName={enhancedCurrentExercise.name}
+      />
+
+      {/* Training Block Complete Modal */}
+      <TrainingBlockCompleteModal
+        isOpen={showLevelUpModal}
+        onStartNextLevel={handleStartNextLevel}
+        onRestartLevel={handleRestartLevel}
+        onDecideLater={handleLevelUpModalClose}
+        onCreateCustomPlan={handleCreateCustomPlanFromCompletion}
+        planName={plan.name}
+        workoutsCompleted={profile?.completed_workout_count || 0}
+        currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
+        currentLevelIndex={profile?.current_level_index || 0}
       />
     </div>
   );

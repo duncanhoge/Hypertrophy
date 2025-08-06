@@ -1,26 +1,31 @@
-import React, { useState } from 'react';
-import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CalendarDays, PlusCircle, MinusCircle, ChevronLeft, Settings, Clock, Edit3, Trash2, Eye, Trophy, ArrowUp } from 'lucide-react';
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
 import { TilePrimaryButton, PrimaryButton } from './ui/Button';
 import { Modal } from './ui/Modal';
+import { TrainingBlockCompleteModal } from './TrainingBlockCompleteModal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { getCurrentLevelWorkouts, getCurrentLevel } from '../data/workoutData';
+import { WORKOUT_PLANS } from '../data/workoutData';
 import type { WorkoutPlan } from '../data/workoutData';
 
 interface HomeScreenProps {
   plan: WorkoutPlan;
   onStartWorkout: (day: string) => void;
   onBack: () => void;
+  onCreatePlan?: () => void;
   workoutHistory: Record<string, any[]>;
 }
 
-function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreenProps) {
+function HomeScreen({ plan, onStartWorkout, onBack, onCreatePlan, workoutHistory }: HomeScreenProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showEditProgress, setShowEditProgress] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [hasCheckedCompletion, setHasCheckedCompletion] = useState(false);
   const [newPlanName, setNewPlanName] = useState('');
   const [editCompleted, setEditCompleted] = useState(0);
   const [editTarget, setEditTarget] = useState(0);
@@ -33,7 +38,10 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
     getWorkoutProgressPercentage,
     updateWorkoutCounts,
     updateGeneratedPlanName,
-    deleteGeneratedPlan
+    deleteGeneratedPlan,
+    startNextLevel,
+    restartCurrentLevel,
+    isBlockComplete
   } = useUserProfile();
 
   const currentLevel = getCurrentLevel(plan, profile?.current_level_index || 0);
@@ -43,6 +51,14 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
   const isActivePlan = profile?.current_plan_id === plan.id || (profile?.active_generated_plan && plan.id.startsWith('generated'));
   const isGeneratedPlan = !!profile?.active_generated_plan && plan.id.startsWith('generated');
   const isTrialMode = profile?.is_trial_mode || false;
+
+  // Check for training block completion on component mount
+  useEffect(() => {
+    if (!hasCheckedCompletion && isActivePlan && !isTrialMode && isBlockComplete()) {
+      setShowLevelUpModal(true);
+      setHasCheckedCompletion(true);
+    }
+  }, [hasCheckedCompletion, isActivePlan, isTrialMode, isBlockComplete]);
 
   const handleStartPlan = async (planId: string) => {
     await startTrainingBlock(planId);
@@ -110,6 +126,35 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
     }
   };
 
+  const handleLevelUpModalClose = async () => {
+    setShowLevelUpModal(false);
+    // Mark that we've checked completion to prevent auto-reopening
+    setHasCheckedCompletion(true);
+  };
+
+  const handleStartNextLevel = async () => {
+    await startNextLevel();
+    setShowLevelUpModal(false);
+    setHasCheckedCompletion(false); // Reset for potential future completions
+    // Stay on current plan but refresh to show new level
+  };
+
+  const handleRestartLevel = async () => {
+    await restartCurrentLevel();
+    setShowLevelUpModal(false);
+    setHasCheckedCompletion(false); // Reset for potential future completions
+    // Stay on current plan
+  };
+
+  const handleCreateCustomPlanFromCompletion = () => {
+    setShowLevelUpModal(false);
+    // End the training block when transitioning to custom plan creation
+    endTrainingBlock();
+    if (onCreatePlan) {
+      onCreatePlan();
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -160,34 +205,25 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
         </div>
       </div>
 
-      {isActivePlan && !isTrialMode && workoutsRemaining !== null && (
-        <Card className="bg-theme-gold/10 border border-theme-gold/30">
-          <div className="space-y-3">
-            <div className="flex items-center justify-center gap-3 text-theme-gold">
-            <Clock className="w-5 h-5" />
-            <span className="font-semibold">
-                {workoutsRemaining > 0 
-                  ? `${profile?.completed_workout_count || 0} / ${profile?.target_workout_count || 0} Workouts Completed`
-                : 'Training block complete! Great work!'
-              }
-            </span>
-            </div>
-            
-            {/* Progress Bar */}
-            {workoutsRemaining > 0 && (
-              <div className="w-full">
-                <div className="h-2 bg-theme-black-lighter rounded-lg overflow-hidden">
-                  <div 
-                    className="h-full bg-theme-gold rounded-lg transition-all duration-300"
-                    style={{ width: `${progressPercentage}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-theme-gold-dark mt-1">
-                  <span>{profile?.completed_workout_count || 0} completed</span>
-                  <span>{workoutsRemaining} remaining</span>
-                </div>
+      {/* Training Block Complete Banner */}
+      {isActivePlan && !isTrialMode && isBlockComplete() && (
+        <Card className="bg-gradient-to-r from-theme-gold/20 to-theme-gold/10 border-theme-gold/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Trophy className="w-6 h-6 text-theme-gold" />
+              <div>
+                <p className="text-theme-gold font-semibold">Training block complete! Great work!</p>
+                <p className="text-theme-gold-dark text-sm">You've completed all {profile?.completed_workout_count || 0} workouts in your program.</p>
               </div>
-            )}
+            </div>
+            <PrimaryButton
+              onClick={() => setShowLevelUpModal(true)}
+              ariaLabel="Level up your workout"
+              className="flex items-center gap-2"
+            >
+              <ArrowUp size={16} />
+              Level up your workout
+            </PrimaryButton>
           </div>
         </Card>
       )}
@@ -280,7 +316,7 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
           <div>
             <h3 className="text-lg font-semibold text-theme-gold mb-4">Current Training Block</h3>
             
-            <div className="space-y-4">
+            {isActivePlan && !isTrialMode && (
               <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
                 <span className="text-theme-gold-light">Block Multiplier:</span>
                 <div className="flex items-center gap-3">
@@ -305,27 +341,27 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
                   </IconButton>
                 </div>
               </div>
+            )}
               
-              <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
-                <span className="text-theme-gold-light">Workout Progress:</span>
-                <IconButton
-                  onClick={handleEditProgress}
-                  ariaLabel="Edit Progress"
-                  className="p-2 text-sm"
-                >
-                  Edit Progress
-                </IconButton>
-              </div>
-
-              {profile?.block_start_date && (
-                <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
-                  <span className="text-theme-gold-light">Started:</span>
-                  <span className="text-theme-gold-dark">
-                    {new Date(profile.block_start_date).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
+            <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
+              <span className="text-theme-gold-light">Workout Progress:</span>
+              <IconButton
+                onClick={handleEditProgress}
+                ariaLabel="Edit Progress"
+                className="p-2 text-sm"
+              >
+                Edit Progress
+              </IconButton>
             </div>
+
+            {profile?.block_start_date && (
+              <div className="flex items-center justify-between p-3 bg-theme-black-lighter rounded-nested-container">
+                <span className="text-theme-gold-light">Started:</span>
+                <span className="text-theme-gold-dark">
+                  {new Date(profile.block_start_date).toLocaleDateString()}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="pt-4 border-t border-theme-gold/20">
@@ -502,6 +538,19 @@ function HomeScreen({ plan, onStartWorkout, onBack, workoutHistory }: HomeScreen
           </div>
         </div>
       </Modal>
+
+      {/* Training Block Complete Modal */}
+      <TrainingBlockCompleteModal
+        isOpen={showLevelUpModal}
+        onStartNextLevel={handleStartNextLevel}
+        onRestartLevel={handleRestartLevel}
+        onDecideLater={handleLevelUpModalClose}
+        onCreateCustomPlan={handleCreateCustomPlanFromCompletion}
+        planName={plan.name}
+        workoutsCompleted={profile?.completed_workout_count || 0}
+        currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
+        currentLevelIndex={profile?.current_level_index || 0}
+      />
     </div>
   );
 }
