@@ -16,10 +16,17 @@ interface PlanSelectionProps {
 
 function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelectionProps) {
   const [showHistory, setShowHistory] = useState(false);
-  const [showPreMadePlans, setShowPreMadePlans] = useState(false);
   const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
   const { profile, startTrainingBlock, startTrialMode, getWorkoutsRemaining } = useUserProfile();
+
+  const workoutsRemaining = getWorkoutsRemaining();
+  const activePlanName = profile?.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id]?.name : null;
+  const hasGeneratedPlan = !!profile?.active_generated_plan;
+  const hasActivePlan = !!profile?.current_plan_id || hasGeneratedPlan;
+  
+  // State management based on user stories
+  const [showPreMadePlans, setShowPreMadePlans] = useState(!hasActivePlan);
 
   const handleStartPlan = async (planId: string) => {
     if (profile?.current_plan_id && profile.current_plan_id !== planId) {
@@ -48,51 +55,52 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
     onSelectPlan(planId);
   };
 
-  const workoutsRemaining = getWorkoutsRemaining();
-  const activePlanName = profile?.current_plan_id ? WORKOUT_PLANS[profile.current_plan_id]?.name : null;
-  const hasGeneratedPlan = !!profile?.active_generated_plan;
+  // Dynamic section title based on user state
+  const preMadePlansTitle = hasActivePlan ? "Other Plans" : "Pre-Made Plans";
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-      {/* Create Your Own Plan Card */}
-      <Card className="bg-gradient-to-br from-theme-gold/20 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="md:w-1/3 flex items-center justify-center bg-theme-gold/20 rounded-nested-container relative">
-            <div className="w-16 h-16 flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-theme-gold" />
+      {/* Create Your Own Plan Card - Only show if no active plan */}
+      {!hasActivePlan && (
+        <Card className="bg-gradient-to-br from-theme-gold/20 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-1/3 flex items-center justify-center bg-theme-gold/20 rounded-nested-container relative">
+              <div className="w-16 h-16 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-theme-gold" />
+              </div>
+              <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
+                NEW
+              </div>
             </div>
-            <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
-              NEW
+            <div className="md:w-2/3 space-y-4">
+              <div>
+                <h3 className="text-2xl font-bold text-theme-gold">
+                  Create Your Own Plan
+                </h3>
+                <p className="text-theme-gold-dark">
+                  Generate a personalized workout plan based on your goals and available equipment. 
+                  Perfect for creating a program that fits your unique situation.
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2 text-theme-gold-dark">
+                <Sparkles className="w-5 h-5" />
+                <span>Personalized • Equipment-based • Goal-focused</span>
+              </div>
+              
+              <div className="flex flex-wrap gap-3 pt-2">
+                <PrimaryButton
+                  onClick={onCreatePlan}
+                  ariaLabel="Create Your Own Plan"
+                >
+                  <Sparkles size={16} className="mr-1" />
+                  Create Your Own Plan
+                </PrimaryButton>
+              </div>
             </div>
           </div>
-          <div className="md:w-2/3 space-y-4">
-            <div>
-              <h3 className="text-2xl font-bold text-theme-gold">
-                Create Your Own Plan
-              </h3>
-              <p className="text-theme-gold-dark">
-                Generate a personalized workout plan based on your goals and available equipment. 
-                Perfect for creating a program that fits your unique situation.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-2 text-theme-gold-dark">
-              <Sparkles className="w-5 h-5" />
-              <span>Personalized • Equipment-based • Goal-focused</span>
-            </div>
-            
-            <div className="flex flex-wrap gap-3 pt-2">
-              <PrimaryButton
-                onClick={onCreatePlan}
-                ariaLabel="Create Your Own Plan"
-              >
-                <Sparkles size={16} className="mr-1" />
-                Create Your Own Plan
-              </PrimaryButton>
-            </div>
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* Generated Plan Display */}
       {hasGeneratedPlan && (
@@ -153,21 +161,64 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
         </Card>
       )}
 
-      {/* Pre-Made Plans Section */}
+      {/* Pre-Made Plans / Other Plans Section */}
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <button 
           onClick={() => setShowPreMadePlans(!showPreMadePlans)}
           className="w-full flex justify-between items-center text-left text-xl font-semibold text-theme-gold hover:text-theme-gold-light transition-colors py-2"
         >
-          Pre-Made Plans
+          {preMadePlansTitle}
           {showPreMadePlans ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
         </button>
         
         {showPreMadePlans && (
-          <div className="mt-6 grid grid-cols-1 gap-6">
+          <div className="mt-6 space-y-6">
+            {/* Create Your Own Plan Card - Show inside expansion when user has active plan */}
+            {hasActivePlan && (
+              <Card className="bg-gradient-to-br from-theme-gold/20 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300">
+                <div className="flex flex-col md:flex-row gap-6">
+                  <div className="md:w-1/3 flex items-center justify-center bg-theme-gold/20 rounded-nested-container relative">
+                    <div className="w-16 h-16 flex items-center justify-center">
+                      <Sparkles className="w-8 h-8 text-theme-gold" />
+                    </div>
+                    <div className="absolute top-2 right-2 bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold">
+                      NEW
+                    </div>
+                  </div>
+                  <div className="md:w-2/3 space-y-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-theme-gold">
+                        Create Your Own Plan
+                      </h3>
+                      <p className="text-theme-gold-dark">
+                        Generate a personalized workout plan based on your goals and available equipment. 
+                        Perfect for creating a program that fits your unique situation.
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-theme-gold-dark">
+                      <Sparkles className="w-5 h-5" />
+                      <span>Personalized • Equipment-based • Goal-focused</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <PrimaryButton
+                        onClick={onCreatePlan}
+                        ariaLabel="Create Your Own Plan"
+                      >
+                        <Sparkles size={16} className="mr-1" />
+                        Create Your Own Plan
+                      </PrimaryButton>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+            
+            {/* Pre-Made Plans Grid */}
+            <div className="grid grid-cols-1 gap-6">
             {Object.values(WORKOUT_PLANS).map((plan) => {
               const isActivePlan = profile?.current_plan_id === plan.id && !hasGeneratedPlan;
-              const hasActivePlan = !!profile?.current_plan_id || hasGeneratedPlan;
               
               return (
                 <Card 
@@ -254,6 +305,7 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
                 </Card>
               );
             })}
+            </div>
           </div>
         )}
       </Card>
