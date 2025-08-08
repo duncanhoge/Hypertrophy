@@ -33,7 +33,7 @@ export interface GeneratedPlan {
 /**
  * Convert volume level to TU budget
  */
-function getVolumeTuBudget(volume: VolumeLevel): number {
+export function getVolumeTuBudget(volume: VolumeLevel): number {
   switch (volume) {
     case 'short': return 11;
     case 'standard': return 15;
