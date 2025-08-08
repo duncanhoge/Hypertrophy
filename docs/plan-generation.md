@@ -85,6 +85,7 @@ This structure ensures all generated workouts maintain proper exercise selection
 
 **Enhanced July 2025**: Added volume control and improved plan management.
 **Enhanced December 2025**: Added automated level progression with exercise variety.
+**Enhanced January 2026**: Implemented Time Unit (TU) System for accurate workout volume control.
 
 The engine (`src/lib/planGenerationEngine.ts`) handles the core logic for creating personalized plans.
 
@@ -94,10 +95,36 @@ The engine (`src/lib/planGenerationEngine.ts`) handles the core logic for creati
 2. **Volume Selection**: User selects workout length (Short/Standard/Long)
 3. **Equipment Selection**: User specifies available equipment
 4. **Plan Naming**: User customizes plan name (optional)
-4. **Plan Generation**: Engine creates personalized plan based on selections
+4. **Plan Generation**: Engine creates personalized plan using TU budget system
 5. **Level Progression**: Engine can generate subsequent levels with exercise variety
 
 #### Volume Control Logic
+
+**Time Unit (TU) System**: The engine uses a sophisticated Time Unit system to ensure consistent workout durations:
+
+```typescript
+// TU Budget Mapping
+function getVolumeTuBudget(volume: VolumeLevel): number {
+  switch (volume) {
+    case 'short': return 11;     // ~30-40 minutes
+    case 'standard': return 15;  // ~45-55 minutes (default)
+    case 'long': return 19;      // ~60+ minutes
+  }
+}
+
+// Exercise TU Values
+// Compound exercises: 3 TUs (high effort, longer duration)
+// Isolation exercises: 2 TUs (moderate effort, medium duration)  
+// Core exercises: 1 TU (low effort, short duration)
+```
+
+**Generation Process**:
+1. Always include all core exercises from template
+2. Calculate current TU count from core exercises
+3. Iteratively select accessories that fit within remaining TU budget
+4. Stop when budget is exhausted or no more exercises fit
+
+**Legacy Volume Control Logic** (deprecated):
 
 ```typescript
 function getAccessoryCount(volume: VolumeLevel): number {
@@ -109,7 +136,6 @@ function getAccessoryCount(volume: VolumeLevel): number {
 }
 ```
 
-The engine always includes all core exercises and selects accessories based on volume preference.
 
 #### Automated Level Progression
 
@@ -298,8 +324,24 @@ Generated plans work with the existing workout session interface:
 
 **Enhanced July 2025**: Improved filtering and selection logic.
 **Enhanced December 2025**: Added exercise exclusion for variety.
+**Enhanced January 2026**: Integrated TU budget system for accurate volume control.
 
 ```typescript
+function selectAccessoriesByTuBudget(
+  accessoryPool: WorkoutSlot[],
+  selectedEquipment: string[],
+  excludeExerciseIds: string[],
+  tuBudget: number,
+  currentTuCount: number
+): Exercise[] {
+  // TU-based selection algorithm
+  // 1. Filter by movement pattern and exercise type
+  // 2. Filter by equipment availability
+  // 3. Filter out excluded exercises
+  // 4. Check if exercise fits within remaining TU budget
+  // 5. Select exercises until budget is exhausted
+}
+
 function selectExerciseForSlot(
   slot: WorkoutSlot, 
   selectedEquipment: string[], 
@@ -317,6 +359,25 @@ function selectExerciseForSlot(
 ### Volume-Based Exercise Selection
 
 **New in July 2025**: Core feature for workout duration control.
+**Enhanced January 2026**: Replaced with TU budget system for improved accuracy.
+
+**Current TU Budget System**:
+
+```typescript
+function selectAccessoriesByTuBudget(
+  accessoryPool: WorkoutSlot[],
+  selectedEquipment: string[],
+  excludeExerciseIds: string[],
+  tuBudget: number,
+  currentTuCount: number
+): Exercise[] {
+  // TU budget-based selection
+  // Ensures consistent workout duration regardless of exercise selection
+  // Accounts for varying effort levels of different exercise types
+}
+```
+
+**Legacy Volume-Based Selection** (deprecated):
 
 ```typescript
 function selectAccessoryExercises(
@@ -510,3 +571,22 @@ This architecture provides a robust foundation for personalized workout plan gen
 - Clear differentiation between plan types in completion modal
 - Option to transition from pre-made to generated plans
 - Preserved user context across level progressions
+## Recent Updates (January 2026)
+
+### Major Enhancements
+1. **Time Unit (TU) System**: Sophisticated workout volume calculation based on exercise effort and duration
+2. **Enhanced Exercise Dictionary**: Added exerciseType and timeUnits fields for intelligent planning
+3. **Improved Volume Accuracy**: Consistent workout durations regardless of exercise selection
+4. **TU Budget Integration**: Seamless integration with existing plan generation and level progression
+
+### Technical Improvements
+- Exercise dictionary schema updated with TU values
+- Plan generation engine refactored to use TU budgets
+- Comprehensive logging for TU validation and debugging
+- Backward compatibility maintained for existing plans
+
+### User Experience Enhancements
+- More accurate workout duration estimates
+- Consistent workout lengths across all generated plans
+- Improved workout balance and variety within TU constraints
+- Enhanced plan generation intelligence

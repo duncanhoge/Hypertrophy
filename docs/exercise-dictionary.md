@@ -33,6 +33,8 @@ interface ExerciseDefinition {
   secondaryMuscle: string[];     // Additional muscles involved
   equipment: string[];           // Required equipment
   movementPattern: string;       // Biomechanical category
+  exerciseType: 'compound' | 'isolation' | 'core'; // Exercise classification
+  timeUnits: number;             // Time/effort units for workout planning
   alternatives: string[];        // Alternative exercise IDs
   description: string;           // Form cues and notes
 }
@@ -48,6 +50,10 @@ interface ExerciseDefinition {
 | **secondaryMuscle** | string[] | Other significantly involved muscles | `['Shoulders', 'Triceps']` |
 | **equipment** | string[] | Required equipment for the exercise | `['dumbbell', 'bench']` |
 | **movementPattern** | string | Fundamental biomechanical movement type | `'horizontal_press'` |
+| **exerciseType** | string | Exercise classification: 'compound', 'isolation', or 'core' | `'compound'` |
+| **timeUnits** | number | Time/effort units: Compound=3, Isolation=2, Core=1 | `3` |
+| **exerciseType** | string | Exercise classification for planning | `'compound'` |
+| **timeUnits** | number | Time/effort units for workout volume calculation | `3` |
 | **alternatives** | string[] | IDs of suitable replacement exercises | `['db_press_incline', 'bw_pushup']` |
 | **description** | string | Form cues, setup notes, and variations | `'Keep elbows at 45-degree angle...'` |
 
@@ -134,8 +140,9 @@ To add a new exercise to the dictionary:
 1. **Choose an ID**: Follow the naming convention `[equipment]_[movement]_[name]`
 2. **Create the Definition**: Add a new entry to `EXERCISE_DICTIONARY`
 3. **Populate All Fields**: Ensure all schema fields are completed
-4. **Update Alternatives**: Add the new exercise ID to relevant alternative arrays
-5. **Test Integration**: Verify the exercise works in workout plans
+4. **Assign Time Units**: Set timeUnits based on exerciseType (Compound=3, Isolation=2, Core=1)
+5. **Update Alternatives**: Add the new exercise ID to relevant alternative arrays
+6. **Test Integration**: Verify the exercise works in workout plans
 
 ### Example: Adding a New Exercise
 
@@ -147,6 +154,8 @@ To add a new exercise to the dictionary:
   secondaryMuscle: [],
   equipment: ['dumbbell', 'preacher_bench'],
   movementPattern: 'bicep_curl',
+  exerciseType: 'isolation',
+  timeUnits: 2,
   alternatives: ['db_curl_bicep', 'db_curl_concentration'],
   description: 'Use preacher bench to isolate biceps. Control the negative.'
 }

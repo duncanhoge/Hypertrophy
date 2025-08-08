@@ -62,10 +62,13 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
     setError(null);
 
     try {
+      // Convert volume to TU budget
+      const tuBudget = getVolumeTuBudget(selectedVolume);
+      
       const options: GenerationOptions = {
         templateId: selectedTemplate.id,
         selectedEquipment,
-        volume: selectedVolume,
+        tuBudget,
         planName: planName || `My ${selectedTemplate.name}`
       };
 
