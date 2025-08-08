@@ -167,11 +167,45 @@ function selectAccessoriesByTuBudget(
         });
         
         remainingBudget -= exerciseDefinition.timeUnits;
+        
+        // Stop if we can't fit any more exercises (minimum TU is 1)
+        if (remainingBudget < 1) {
+          break;
+        }
       }
     }
   }
   
   return selectedAccessories;
+}
+
+/**
+ * Select accessory exercises by count
+ */
+function selectAccessoryExercises(
+  accessoryPool: WorkoutSlot[],
+  selectedEquipment: string[],
+  excludeExerciseIds: string[],
+  count: number
+): Exercise[] {
+  const availableAccessories: Exercise[] = [];
+  
+  for (const slot of accessoryPool) {
+    const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
+    
+    if (selectedExercise) {
+      availableAccessories.push({
+        id: selectedExercise.id,
+        sets: slot.targetSets,
+        reps: slot.targetReps,
+        type: slot.exerciseType
+      });
+    }
+  }
+  
+  // Shuffle and select the requested count
+  const shuffled = [...availableAccessories].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
 /**
@@ -305,6 +339,18 @@ export function generateNextLevel(
 }
 
 /**
+ * Get accessory count based on volume level
+ */
+function getAccessoryCount(volume: VolumeLevel): number {
+  switch (volume) {
+    case 'short': return 2;
+    case 'standard': return 3;
+    case 'long': return 4;
+    default: return 3;
+  }
+}
+
+/**
  * Get all available equipment options from the exercise dictionary
  */
 export function getAllAvailableEquipment(): string[] {
@@ -374,39 +420,4 @@ export function getVolumeDisplayInfo(volume: VolumeLevel): { name: string; descr
         duration: '~45-55 minutes'
       };
   }
-}
-
-function getAccessoryCount(volume: VolumeLevel): number {
-  switch (volume) {
-    case 'short': return 2;
-    case 'standard': return 3;
-    case 'long': return 4;
-    default: return 3;
-  }
-}
-
-function selectAccessoryExercises(
-  accessoryPool: WorkoutSlot[],
-  selectedEquipment: string[],
-  excludeExerciseIds: string[],
-  count: number
-): Exercise[] {
-  const selectedAccessories: Exercise[] = [];
-  const availableSlots = [...accessoryPool].sort(() => Math.random() - 0.5);
-  
-  for (let i = 0; i < Math.min(count, availableSlots.length); i++) {
-    const slot = availableSlots[i];
-    const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
-    
-    if (selectedExercise) {
-      selectedAccessories.push({
-        id: selectedExercise.id,
-        sets: slot.targetSets,
-        reps: slot.targetReps,
-        type: slot.exerciseType
-      });
-    }
-  }
-  
-  return selectedAccessories;
 }
