@@ -78,3 +78,113 @@ The core logic of the PlanGenerationEngine must be refactored to use the TU budg
 * **Phase:** This feature is the first key deliverable of the **"Run"** phase. It represents a significant step up in the intelligence of our generation engine.  
 * **Dependencies:** This feature builds directly upon the coreSlots/accessoryPool architecture established in the "Walk" phase.  
 * **Future Impact:** A robust TU system provides a more granular and powerful foundation for creating highly specialized future templates (e.g., "Express 20-Minute HIIT," "90-Minute Powerlifting Session") where precise control over workout duration and effort is critical.
+
+
+# **Developer Clarifications: Time Unit (TU) System**
+
+This document provides clarification on the implementation details for the **PRD: Time Unit (TU) System for Workout Volume**.
+
+## **Technical Implementation Questions**
+
+### **1\. Exercise Dictionary Population**
+
+**Question:** The PRD mentions exerciseType values of 'compound', 'isolation', and 'core', but the type definition is exerciseType: 'compound' | 'isolation'. Should I add 'core' as a third option, or infer 'core' exercises based on movement patterns?
+
+**Answer:** **Add 'core' as a third option to the exerciseType field.**
+
+* **Rationale:** This is the most explicit and maintainable approach. It makes the logic simple and avoids potential conflicts if we add new movement patterns in the future. Please update the TypeScript interface to be exerciseType: 'compound' | 'isolation' | 'core'.
+
+### **2\. TU Budget Range Handling**
+
+**Question:** The PRD specifies TU budget ranges (e.g., "Standard: 14-16 TUs"). Should I pick a fixed value, randomly select, or use the midpoint?
+
+**Answer:** **Use a fixed value: the midpoint of each range.**
+
+* **Rationale:** This ensures consistency and predictability in the generated workouts, which is the primary goal of this feature. Randomization adds unnecessary complexity.  
+* **Implementation:**  
+  * Short: **11 TUs**  
+  * Standard: **15 TUs**  
+  * Long: **19 TUs**
+
+### **3\. Budget Overflow Logic**
+
+**Question:** What should happen if the core exercises alone exceed the TU budget?
+
+**Answer:** This scenario should be prevented at the template design level. However, the engine should handle it gracefully.
+
+* **Rationale:** A template should never be designed where its required coreSlots exceed the "Short" TU budget. This is a design constraint for us as product managers.  
+* **Implementation:** The generation logic should be:  
+  1. Always add all coreSlots.  
+  2. Then, fill the *remaining* budget with exercises from the accessoryPool.  
+  3. If the coreSlots alone already exceed the budget for a given volume, the workout will simply consist of those core exercises, and no accessories will be added.
+
+### **4\. Accessory Selection Strategy**
+
+**Question:** For selecting from the accessoryPool, should I implement true randomization, use the existing shuffling logic, or prioritize certain types?
+
+**Answer:** **Use the existing shuffling logic for consistency.**
+
+* **Rationale:** True randomization can sometimes lead to strange clustering or feel less intentional. A shuffled selection is pseudo-random and sufficient for ensuring variety. We can explore prioritization in a future version.
+
+### **5\. Interface Changes**
+
+**Question:** Should the generateWorkoutPlan function signature change? Do we need to maintain backward compatibility?
+
+**Answer:** **Yes, the function signature should change to accept a tuBudget: number**.
+
+* **Rationale:** This refactor fundamentally changes the generation logic, so the internal API should reflect that. The UI layer will be responsible for mapping the user's string selection ("Standard") to the correct number (15) before calling the engine. No backward compatibility is needed for the old volume-based API, as this system replaces it entirely.
+
+### **6\. Edge Cases**
+
+**Question:** What happens if no accessories fit within the remaining budget? Should there be a minimum number of accessories?
+
+**Answer:** **If no accessories fit, the workout consists of only the coreSlots.**
+
+* **Rationale:** The TU budget is the primary constraint and must be respected. There should **not** be a minimum number of accessories that could violate the budget. The system will handle future exercises with unusual TU values correctly as long as they have a timeUnits property.
+
+## **Data Validation Questions**
+
+### **7\. Current Exercise Audit**
+
+**Question:** Should I audit the current exercise dictionary to ensure all exercises have appropriate exerciseType classifications?
+
+**Answer:** **Yes, please perform this audit.**
+
+* **Rationale:** This is a crucial data integrity step. Please review all exercises in exerciseDictionary.ts and assign the correct exerciseType ('compound', 'isolation', or 'core') to each one. This will ensure the TU values are assigned correctly and the generator functions as intended.
+
+### **8\. TU Value Validation**
+
+**Question:** Should I add validation to ensure TU values are positive integers?
+
+**Answer:** **Yes, please add a simple validation check.**
+
+* **Rationale:** Good practice for data integrity. A simple test case or linter rule to ensure timeUnits is a positive integer greater than 0 is sufficient. No complex upper/lower bounds are needed at this time.
+
+## **User Experience Questions**
+
+### **9\. Volume Display**
+
+**Question:** Should the UI continue to show "Short/Standard/Long" to users, or should we expose the TU concept?
+
+**Answer:** **Continue to show "Short/Standard/Long".**
+
+* **Rationale:** "Time Units" is our internal engineering and product concept. It's an abstraction that should not be exposed to the user. The user cares about the outcome (a short workout), not the implementation detail.  
+* **Implementation:** Please update any relevant help text to mention that the workout durations are now more accurate thanks to a new, smarter engine.
+
+### **10\. Testing Strategy**
+
+**Question:** Would you like me to add logging to track actual TU totals? Should I create test cases?
+
+**Answer:** **Yes to both.**
+
+* **Rationale:** This is essential for validation. Please add logging (e.g., console.log during development) to output the final TU total of each generated workout. Please also create unit tests to verify that the generation engine correctly adheres to the TU budget for a variety of inputs.
+
+## **Architecture Questions**
+
+### **11\. Migration Strategy**
+
+**Question:** Should I implement feature flags or gradual rollout? Do we need to handle existing generated plans?
+
+**Answer:** **No feature flag is needed. Existing plans are unaffected.**
+
+* **Rationale:** This feature only impacts the *generation of new plans*. It does not change the structure or rendering of any existing activeGeneratedPlan a user might have. When a user with an old generated plan "Levels Up," the new TU-based engine will simply kick in to generate their next level. The transition is seamless and does not require special handling for old plans.
