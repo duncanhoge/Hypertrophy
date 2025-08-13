@@ -717,8 +717,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
               onSkip={skipRest}
             />
             
-            {/* Next Exercise Preview */}
-            {enhancedNextExercise && (
+            {/* Next Exercise Preview - Only show after final set of current exercise */}
+            {enhancedNextExercise && justCompletedFinalSet && (
               <div className="mt-4">
                 <NextExercisePreview
                   exercise={enhancedNextExercise}
