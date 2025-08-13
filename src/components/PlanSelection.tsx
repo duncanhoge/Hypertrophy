@@ -240,28 +240,22 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
             {Object.values(WORKOUT_PLANS).map((plan) => {
               const isActivePlan = profile?.current_plan_id === plan.id && !hasGeneratedPlan;
               
+              // Skip displaying active plan here since it's shown above
+              if (isActivePlan) return null;
+              
               return (
                 <Card 
                   key={plan.id}
-                  className={`bg-theme-black-lighter border transition-all duration-300 hover:scale-[1.02] ${
-                    isActivePlan 
-                      ? 'border-theme-gold bg-theme-gold/5' 
-                      : 'border-theme-gold/20 hover:border-theme-gold/40'
-                  }`}
+                  className="bg-theme-black-lighter border transition-all duration-300 hover:scale-[1.02] border-theme-gold/20 hover:border-theme-gold/40"
                 >
                   <div className="flex flex-col md:flex-row gap-6">
                     <div className="md:w-1/3 flex flex-col items-center justify-center bg-theme-black rounded-nested-container p-4">
                       <div className="w-16 h-16 flex items-center justify-center mb-2">
                         <Dumbbell className="w-8 h-8 text-theme-gold" />
                       </div>
-                      {isActivePlan && (
-                        <div className="bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold mb-2">
-                          ACTIVE
-                        </div>
-                      )}
                       <div className="text-center">
                         <div className="text-theme-gold font-semibold text-sm">
-                          {isActivePlan ? `Level ${(profile?.current_level_index || 0) + 1}` : 'Pre-Made Plan'}
+                          Pre-Made Plan
                         </div>
                       </div>
                     </div>
@@ -270,14 +264,6 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
                         <h3 className="text-2xl font-bold text-theme-gold">
                           {plan.name}
                         </h3>
-                        {isActivePlan && workoutsRemaining !== null && (
-                          <div className="flex items-center gap-2 text-theme-gold-light">
-                            <Clock className="w-4 h-4" />
-                            <span className="text-sm font-medium">
-                              {workoutsRemaining > 0 ? `${workoutsRemaining} workouts left` : 'Block Complete!'}
-                            </span>
-                          </div>
-                        )}
                       </div>
                       
                       <p className="text-theme-gold-dark">{plan.description}</p>
@@ -296,34 +282,21 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
                       </div>
 
                       <div className="flex flex-wrap gap-3 pt-2">
-                        {!isActivePlan && (
-                          <>
-                            <PrimaryButton
-                              onClick={() => handleStartPlan(plan.id)}
-                              ariaLabel={hasActivePlan ? "Switch to This Plan" : "Start This Plan"}
-                            >
-                              <Play size={16} className="mr-1" />
-                              {hasActivePlan ? "Switch to This Plan" : "Start This Plan"}
-                            </PrimaryButton>
-                            <IconButton
-                              onClick={() => handleTryPlan(plan.id)}
-                              ariaLabel="Try Plan"
-                              className="text-theme-gold-dark hover:text-theme-gold"
-                            >
-                              <Eye size={16} className="mr-1" />
-                              Try Plan
-                            </IconButton>
-                          </>
-                        )}
-                        {isActivePlan && (
-                          <PrimaryButton
-                            onClick={() => onSelectPlan(plan.id)}
-                            ariaLabel="Continue Plan"
-                          >
-                            <Play size={16} className="mr-1" />
-                            Continue Plan
-                          </PrimaryButton>
-                        )}
+                        <PrimaryButton
+                          onClick={() => handleStartPlan(plan.id)}
+                          ariaLabel={hasActivePlan ? "Switch to This Plan" : "Start This Plan"}
+                        >
+                          <Play size={16} className="mr-1" />
+                          {hasActivePlan ? "Switch to This Plan" : "Start This Plan"}
+                        </PrimaryButton>
+                        <IconButton
+                          onClick={() => handleTryPlan(plan.id)}
+                          ariaLabel="Try Plan"
+                          className="text-theme-gold-dark hover:text-theme-gold"
+                        >
+                          <Eye size={16} className="mr-1" />
+                          Try Plan
+                        </IconButton>
                       </div>
                     </div>
                   </div>
@@ -334,6 +307,67 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
           </div>
         )}
       </Card>
+
+      {/* Current Active Pre-Made Plan - Display above Other Plans */}
+      {hasActivePlan && !hasGeneratedPlan && (
+        <Card className="bg-gradient-to-br from-theme-gold/10 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300 hover:scale-[1.02]">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-1/3 flex flex-col items-center justify-center bg-theme-black-lighter rounded-nested-container relative p-4">
+              <div className="w-16 h-16 flex items-center justify-center">
+                <Dumbbell className="w-8 h-8 text-theme-gold" />
+              </div>
+              <div className="bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold mb-2">
+                ACTIVE
+              </div>
+              <div className="text-center">
+                <div className="text-theme-gold font-semibold text-sm">
+                  Level {(profile?.current_level_index || 0) + 1}
+                </div>
+              </div>
+            </div>
+            <div className="md:w-2/3 space-y-4">
+              <div className="flex justify-between items-start">
+                <h3 className="text-2xl font-bold text-theme-gold">
+                  {WORKOUT_PLANS[profile?.current_plan_id || '']?.name}
+                </h3>
+                {workoutsRemaining !== null && (
+                  <div className="flex items-center gap-2 text-theme-gold-light">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {workoutsRemaining > 0 ? `${workoutsRemaining} workouts left` : 'Block Complete!'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-theme-gold-dark">{WORKOUT_PLANS[profile?.current_plan_id || '']?.description}</p>
+              
+              <div className="flex items-center gap-2 text-theme-gold-dark">
+                <Calendar className="w-5 h-5" />
+                <span>{Object.keys(WORKOUT_PLANS[profile?.current_plan_id || '']?.levels[0].workouts || {}).length} workouts per week</span>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(WORKOUT_PLANS[profile?.current_plan_id || '']?.levels[0].workouts || {}).map(([day, workout]) => (
+                  <span key={day} className="px-3 py-1 bg-theme-black-lighter rounded-2x-nested-container text-sm text-theme-gold-dark">
+                    {day}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <PrimaryButton
+                  onClick={() => onSelectPlan(profile?.current_plan_id || '')}
+                  ariaLabel="Continue Plan"
+                >
+                  <Play size={16} className="mr-1" />
+                  Continue Plan
+                </PrimaryButton>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Workout History Section */}
       <Card className="bg-theme-black-light border border-theme-gold/20">
