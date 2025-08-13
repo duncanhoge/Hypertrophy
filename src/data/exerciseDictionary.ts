@@ -433,7 +433,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     alternatives: ['bw_dips_chair', 'db_press_close_grip'],
     description: 'Control the descent.'
   },
-  
+  /*
   'tricep_pressdown': {
     id: 'tricep_pressdown',
     name: 'Tricep Pressdowns',
@@ -445,7 +445,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     timeUnits: 2,
     alternatives: ['db_extension_overhead', 'db_kickback'],
     description: 'Keep elbows tucked.'
-  },
+  },*/
 
   // Bicep Exercises
   'db_curl_bicep': {
