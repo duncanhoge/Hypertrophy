@@ -14,7 +14,7 @@ export type VolumeLevel = 'short' | 'standard' | 'long';
 export interface GenerationOptions {
   templateId: string;
   selectedEquipment: string[];
-  volume: VolumeLevel;
+  tuBudget: number;
   excludeExerciseIds?: string[]; // For level up variety
   planName?: string; // Custom name for the generated plan
 }
@@ -25,16 +25,28 @@ export interface GeneratedPlan {
   description: string;
   image: string;
   templateId: string; // Reference to the template used
- volume: VolumeLevel; // Volume level used for generation
- selectedEquipment: string[]; // Equipment used for generation
+  tuBudget: number; // TU budget used for generation
+  selectedEquipment: string[]; // Equipment used for generation
   levels: TrainingLevel[];
+}
+
+/**
+ * Convert volume level to TU budget
+ */
+export function getVolumeTuBudget(volume: VolumeLevel): number {
+  switch (volume) {
+    case 'short': return 11;
+    case 'standard': return 15;
+    case 'long': return 19;
+    default: return 15;
+  }
 }
 
 /**
  * Main function to generate a complete workout plan
  */
 export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan | null {
-  const { templateId, selectedEquipment, volume, excludeExerciseIds = [], planName } = options;
+  const { templateId, selectedEquipment, tuBudget, excludeExerciseIds = [], planName } = options;
   
   // Get the template
   const template = getTemplateById(templateId);
@@ -66,18 +78,34 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
       });
     }
     
-    // Add accessories based on volume selection
-    const accessoryCount = getAccessoryCount(volume);
-    const selectedAccessories = selectAccessoryExercises(
-      workoutSkeleton.accessoryPool, 
-      selectedEquipment, 
-      excludeExerciseIds, 
-      accessoryCount
+    // Calculate current TU count from core exercises
+    let currentTuCount = 0;
+    for (const exercise of exercises) {
+      const exerciseDefinition = EXERCISE_DICTIONARY[exercise.id];
+      if (exerciseDefinition) {
+        currentTuCount += exerciseDefinition.timeUnits;
+      }
+    }
+    
+    // Add accessories based on TU budget
+    const selectedAccessories = selectAccessoriesByTuBudget(
+      workoutSkeleton.accessoryPool,
+      selectedEquipment,
+      excludeExerciseIds,
+      tuBudget,
+      currentTuCount
     );
     
     for (const accessoryExercise of selectedAccessories) {
       exercises.push(accessoryExercise);
+      const exerciseDefinition = EXERCISE_DICTIONARY[accessoryExercise.id];
+      if (exerciseDefinition) {
+        currentTuCount += exerciseDefinition.timeUnits;
+      }
     }
+    
+    // Log the final TU count for validation
+    console.log(`Generated workout "${workoutSkeleton.day}" with ${currentTuCount} TUs (budget: ${tuBudget})`);
     
     generatedWorkouts[workoutSkeleton.day] = {
       name: workoutSkeleton.name,
@@ -89,16 +117,16 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
   const generatedPlan: GeneratedPlan = {
     id: `generated_${Date.now()}`, // Unique ID for this generated plan
     name: planName || `My ${template.name}`,
-    description: `Personalized ${template.description.toLowerCase()} generated based on your available equipment and ${volume} workout preference.`,
+    description: `Personalized ${template.description.toLowerCase()} generated based on your available equipment and workout preferences.`,
     image: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     templateId,
-   volume,
-   selectedEquipment,
+    tuBudget,
+    selectedEquipment,
     levels: [
       {
         level: 1,
         name: "Custom Level 1",
-        description: `Your personalized ${volume} training program based on available equipment.`,
+        description: `Your personalized training program based on available equipment.`,
         workouts: generatedWorkouts
       }
     ]
@@ -108,19 +136,51 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
 }
 
 /**
- * Get the number of accessory exercises based on volume level
+ * Select accessory exercises based on TU budget
  */
-function getAccessoryCount(volume: VolumeLevel): number {
-  switch (volume) {
-    case 'short': return 1;
-    case 'standard': return 2;
-    case 'long': return 4;
-    default: return 2;
+function selectAccessoriesByTuBudget(
+  accessoryPool: WorkoutSlot[],
+  selectedEquipment: string[],
+  excludeExerciseIds: string[],
+  tuBudget: number,
+  currentTuCount: number
+): Exercise[] {
+  const selectedAccessories: Exercise[] = [];
+  let remainingBudget = tuBudget - currentTuCount;
+  
+  // Create a shuffled list of available accessories
+  const availableSlots = [...accessoryPool].sort(() => Math.random() - 0.5);
+  
+  // Iteratively select accessories that fit within budget
+  for (const slot of availableSlots) {
+    const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
+    
+    if (selectedExercise) {
+      const exerciseDefinition = EXERCISE_DICTIONARY[selectedExercise.id];
+      
+      if (exerciseDefinition && exerciseDefinition.timeUnits <= remainingBudget) {
+        selectedAccessories.push({
+          id: selectedExercise.id,
+          sets: slot.targetSets,
+          reps: slot.targetReps,
+          type: slot.exerciseType
+        });
+        
+        remainingBudget -= exerciseDefinition.timeUnits;
+        
+        // Stop if we can't fit any more exercises (minimum TU is 1)
+        if (remainingBudget < 1) {
+          break;
+        }
+      }
+    }
   }
+  
+  return selectedAccessories;
 }
 
 /**
- * Select accessory exercises from the pool
+ * Select accessory exercises by count
  */
 function selectAccessoryExercises(
   accessoryPool: WorkoutSlot[],
@@ -130,7 +190,6 @@ function selectAccessoryExercises(
 ): Exercise[] {
   const availableAccessories: Exercise[] = [];
   
-  // Filter accessories by equipment availability
   for (const slot of accessoryPool) {
     const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
     
@@ -196,8 +255,8 @@ function selectExerciseForSlot(
  */
 export function generateNextLevel(
   currentPlan: GeneratedPlan,
- previousLevelExerciseIds: string[],
- volume?: VolumeLevel
+  previousLevelExerciseIds: string[],
+  volume?: VolumeLevel
 ): TrainingLevel | null {
   const template = getTemplateById(currentPlan.templateId);
   if (!template) {
@@ -205,32 +264,33 @@ export function generateNextLevel(
     return null;
   }
 
- // Use stored equipment and volume from the current plan
- const selectedEquipment = currentPlan.selectedEquipment;
- const planVolume = volume || currentPlan.volume;
- 
- // Use dayRotation to generate workouts
- if (!template.dayRotation || template.dayRotation.length === 0) {
-   console.error(`Template ${currentPlan.templateId} missing dayRotation`);
-   return null;
- }
+  // Use stored equipment and volume from the current plan
+  const selectedEquipment = currentPlan.selectedEquipment;
+  const planVolume = volume || currentPlan.volume;
+  
+  // Use dayRotation to generate workouts
+  if (!template.dayRotation || template.dayRotation.length === 0) {
+    console.error(`Template ${currentPlan.templateId} missing dayRotation`);
+    return null;
+  }
+  
   const generatedWorkouts: Record<string, WorkoutDay> = {};
   
- // Generate workouts based on dayRotation
- template.dayRotation.forEach((dayType, index) => {
-   const daySpecificSkeleton = getDaySpecificSkeleton(dayType);
-   if (!daySpecificSkeleton) {
-     console.warn(`Day-specific skeleton not found for dayType: ${dayType}`);
-     return;
-   }
-   
-   const workoutName = `Workout ${String.fromCharCode(65 + index)}`;
-   const dayName = `${daySpecificSkeleton.name}: Level ${currentPlan.levels.length + 1}`;
-   
+  // Generate workouts based on dayRotation
+  template.dayRotation.forEach((dayType, index) => {
+    const daySpecificSkeleton = getDaySpecificSkeleton(dayType);
+    if (!daySpecificSkeleton) {
+      console.warn(`Day-specific skeleton not found for dayType: ${dayType}`);
+      return;
+    }
+    
+    const workoutName = `Workout ${String.fromCharCode(65 + index)}`;
+    const dayName = `${daySpecificSkeleton.name}: Level ${currentPlan.levels.length + 1}`;
+    
     const exercises: Exercise[] = [];
     
     // Core exercises with increased sets
-   for (const slot of daySpecificSkeleton.coreSlots) {
+    for (const slot of daySpecificSkeleton.coreSlots) {
       const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, previousLevelExerciseIds);
       
       if (!selectedExercise) {
@@ -246,13 +306,13 @@ export function generateNextLevel(
       });
     }
     
-   // Add accessories based on volume
-   const accessoryCount = getAccessoryCount(planVolume);
+    // Add accessories based on volume
+    const accessoryCount = getAccessoryCount(planVolume);
     const selectedAccessories = selectAccessoryExercises(
-     daySpecificSkeleton.accessoryPool, 
+      daySpecificSkeleton.accessoryPool, 
       selectedEquipment, 
       previousLevelExerciseIds, 
-     accessoryCount
+      accessoryCount
     );
     
     for (const accessoryExercise of selectedAccessories) {
@@ -262,11 +322,11 @@ export function generateNextLevel(
       });
     }
     
-   generatedWorkouts[workoutName] = {
-     name: dayName,
+    generatedWorkouts[workoutName] = {
+      name: dayName,
       exercises
     };
- });
+  });
 
   const nextLevelNumber = currentPlan.levels.length + 1;
   
@@ -276,6 +336,18 @@ export function generateNextLevel(
     description: `Advanced progression with increased volume and exercise variety.`,
     workouts: generatedWorkouts
   };
+}
+
+/**
+ * Get accessory count based on volume level
+ */
+function getAccessoryCount(volume: VolumeLevel): number {
+  switch (volume) {
+    case 'short': return 2;
+    case 'standard': return 3;
+    case 'long': return 4;
+    default: return 3;
+  }
 }
 
 /**

@@ -4,7 +4,7 @@ import { PrimaryButton, SecondaryButton } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { getAllTemplates, getTemplateById, type WorkoutTemplate } from '../data/workoutTemplates';
-import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, getVolumeDisplayInfo, type GenerationOptions, type VolumeLevel } from '../lib/planGenerationEngine';
+import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, getVolumeDisplayInfo, getVolumeTuBudget, type GenerationOptions, type VolumeLevel } from '../lib/planGenerationEngine';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { getEnhancedExercise } from '../data/workoutData';
 
@@ -62,10 +62,13 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
     setError(null);
 
     try {
+      // Convert volume to TU budget
+      const tuBudget = getVolumeTuBudget(selectedVolume);
+      
       const options: GenerationOptions = {
         templateId: selectedTemplate.id,
         selectedEquipment,
-        volume: selectedVolume,
+        tuBudget,
         planName: planName || `My ${selectedTemplate.name}`
       };
 

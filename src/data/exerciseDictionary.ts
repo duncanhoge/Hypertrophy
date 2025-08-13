@@ -13,7 +13,8 @@ export interface ExerciseDefinition {
   secondaryMuscle: string[];
   equipment: string[];
   movementPattern: string;
-  exerciseType: 'compound' | 'isolation';
+  exerciseType: 'compound' | 'isolation' | 'core';
+  timeUnits: number;
   alternatives: string[];
   description: string;
 }
@@ -35,6 +36,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_floor', 'db_press_incline', 'bw_pushup'],
     description: 'If no bench, perform Dumbbell Floor Press. Focus on squeezing the chest at the top.'
   },
@@ -47,6 +49,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_bench', 'db_press_overhead'],
     description: 'Set bench to a 30-45 degree incline. Emphasizes the upper portion of the chest.'
   },
@@ -59,6 +62,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_bench', 'bw_pushup'],
     description: 'Lying on the floor, press dumbbells up. Limits range of motion to protect shoulders and emphasize triceps.'
   },
@@ -71,6 +75,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'horizontal_adduction',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_pullover', 'bw_pushup_wide'],
     description: 'Control the movement, feel the stretch.'
   },
@@ -83,6 +88,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['bodyweight'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_bench', 'bw_pushup_wide'],
     description: 'As Many Reps As Possible with good form. Elevate feet for more challenge.'
   },
@@ -95,6 +101,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['bodyweight'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_pushup', 'db_press_bench'],
     description: 'Place hands wider than shoulder-width to increase focus on the chest. Keep your core tight.'
   },
@@ -107,6 +114,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_pushup_close_grip', 'db_skullcrusher'],
     description: 'Keep elbows tucked in. Or Close-Grip Push-ups.'
   },
@@ -119,6 +127,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['bodyweight'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_bench', 'db_press_incline'],
     description: 'Try incline, decline, or standard. Focus on volume.'
   },
@@ -131,6 +140,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'pullover',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_flyes', 'lat_pulldown'],
     description: 'Use one dumbbell. Good for chest expansion.'
   },
@@ -143,6 +153,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'horizontal_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_incline', 'bw_pushup'],
     description: 'Full range of motion.'
   },
@@ -156,6 +167,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'vertical_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_shoulder', 'bw_pike_pushup'],
     description: 'Seated or standing. Keep core tight.'
   },
@@ -168,6 +180,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'vertical_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_overhead'],
     description: 'Start with palms facing you, rotate palms forward as you press overhead. Hits all three shoulder heads.'
   },
@@ -180,6 +193,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['bodyweight'],
     movementPattern: 'vertical_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_overhead', 'bw_pushup'],
     description: 'From a downward dog position, lower your head towards the floor. A great bodyweight shoulder press.'
   },
@@ -192,6 +206,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'lateral_raise',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_press_overhead', 'db_raise_front'],
     description: 'Lead with the elbows, avoid shrugging.'
   },
@@ -204,6 +219,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'front_raise',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_press_overhead', 'db_raise_lateral'],
     description: 'Control the weight, don\'t swing.'
   },
@@ -216,6 +232,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'horizontal_abduction',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['bw_pike_pushup_hold', 'db_row_bent_over'],
     description: 'Bend at hips, flat back. Or Pike Push-up holds.'
   },
@@ -240,6 +257,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'shrug',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['bb_shrug', 'db_row_upright'],
     description: 'Hold at top for a second.'
   },
@@ -252,6 +270,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'horizontal_abduction',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_flyes_reverse', 'bb_row_bent'],
     description: 'Control the movement.'
   },
@@ -265,6 +284,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'horizontal_pull',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_row_single_arm'],
     description: 'Hinge at the hips with a flat back. Pull the dumbbells towards your lower chest, squeezing your back muscles.'
   },
@@ -277,6 +297,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'horizontal_pull',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_row_bent_over'],
     description: 'Lie face down on an incline bench. Removes momentum and isolates the back muscles effectively.'
   },
@@ -289,6 +310,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['barbell'],
     movementPattern: 'horizontal_pull',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_row_bent_over', 'bw_chinup'],
     description: 'Keep back straight, squeeze shoulder blades.'
   },
@@ -302,6 +324,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['pullup_bar'],
     movementPattern: 'vertical_pull',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_chinup'],
     description: 'Overhand grip, wider than shoulders. Pull your chest to the bar. The king of upper body pulling exercises.'
   },
@@ -314,6 +337,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['pullup_bar'],
     movementPattern: 'vertical_pull',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_pullup', 'db_curl_bicep'],
     description: 'Underhand, shoulder-width grip. Puts more emphasis on the biceps while still building a strong back.'
   },
@@ -326,6 +350,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['barbell'],
     movementPattern: 'shrug',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_shrug_standing', 'db_row_upright'],
     description: 'Hold at top.'
   },
@@ -339,6 +364,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'vertical_extension',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_skullcrusher', 'bw_dips'],
     description: 'Seated or standing.'
   },
@@ -351,6 +377,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'tricep_extension',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_skullcrusher'],
     description: 'Can be done with one or two hands. Focus on the stretch at the bottom and a full squeeze at the top.'
   },
@@ -363,6 +390,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'horizontal_extension',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_extension_overhead', 'db_press_close_grip'],
     description: 'Keep elbows stable. Or Close-Grip DB Press.'
   },
@@ -375,6 +403,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['chair'],
     movementPattern: 'vertical_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_tricep_extensions', 'db_extension_overhead'],
     description: 'Or Bodyweight Tricep Extensions.'
   },
@@ -387,6 +416,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'tricep_extension',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_skullcrusher', 'bw_dips_chair'],
     description: 'Hinge at the hips with a flat back. Keep your upper arm parallel to the floor and extend your elbow.'
   },
@@ -399,6 +429,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dip_station', 'weight'],
     movementPattern: 'vertical_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_dips_chair', 'db_press_close_grip'],
     description: 'Control the descent.'
   },
@@ -411,6 +442,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['cable_machine'],
     movementPattern: 'vertical_extension',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_extension_overhead', 'db_kickback'],
     description: 'Keep elbows tucked.'
   },
@@ -424,6 +456,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'bicep_curl',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_curl_hammer', 'bb_curl'],
     description: 'Alternating or both arms. Avoid swinging.'
   },
@@ -436,6 +469,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'hammer_curl',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_curl_bicep', 'db_curl_concentration'],
     description: 'Palms facing your body.'
   },
@@ -448,6 +482,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'bicep_curl',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_curl_bicep', 'db_curl_hammer'],
     description: 'Seated, with your elbow braced against your inner thigh. Focus on peak contraction.'
   },
@@ -460,6 +495,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell', 'bench'],
     movementPattern: 'bicep_curl',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_curl_bicep'],
     description: 'Sit on an incline bench. Puts a great stretch on the bicep long head for a unique stimulus.'
   },
@@ -472,6 +508,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'bicep_curl',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_curl_bicep', 'db_curl_hammer'],
     description: 'Rotate wrists during curl.'
   },
@@ -484,6 +521,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['barbell'],
     movementPattern: 'bicep_curl',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['db_curl_bicep', 'db_curl_hammer'],
     description: 'Keep elbows at sides.'
   },
@@ -497,6 +535,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'squat',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_squat'],
     description: 'Hold one dumbbell vertically against your chest. Keep your chest up and back straight as you squat down.'
   },
@@ -509,6 +548,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['barbell', 'squat_rack'],
     movementPattern: 'squat',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_squat_goblet', 'bw_squat'],
     description: 'Focus on form and depth.'
   },
@@ -522,6 +562,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'hinge',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bb_deadlift'],
     description: 'Keep a slight bend in your knees. Hinge at your hips, keeping the dumbbells close to your legs. Feel the stretch.'
   },
@@ -534,6 +575,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['barbell'],
     movementPattern: 'hinge',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_deadlift_romanian', 'bb_row_bent'],
     description: 'Focus on form and hip hinge.'
   },
@@ -547,6 +589,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['dumbbell'],
     movementPattern: 'lunge',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_lunge_reverse'],
     description: 'Step forward and lower your hips until both knees are bent at a 90-degree angle. Push back to the start.'
   },
@@ -559,6 +602,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['leg_curl_machine'],
     movementPattern: 'knee_flexion',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['bb_deadlift', 'db_deadlift_romanian'],
     description: 'Squeeze at peak contraction.'
   },
@@ -571,6 +615,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['calf_raise_machine'],
     movementPattern: 'plantar_flexion',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['calf_raise_standing', 'calf_raise_single_leg'],
     description: 'Full range of motion.'
   },
@@ -583,6 +628,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['calf_raise_machine'],
     movementPattern: 'plantar_flexion',
     exerciseType: 'isolation',
+    timeUnits: 2,
     alternatives: ['calf_raise_seated', 'calf_raise_single_leg'],
     description: 'Full extension at top.'
   },
@@ -595,7 +641,8 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     secondaryMuscle: ['Shoulders'],
     equipment: ['bodyweight'],
     movementPattern: 'core',
-    exerciseType: 'isolation',
+    exerciseType: 'core',
+    timeUnits: 1,
     alternatives: ['bw_side_plank'],
     description: 'Hold a push-up position on your forearms. Keep a straight line from your head to your heels. Brace your abs.'
   },
@@ -607,7 +654,8 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     secondaryMuscle: [],
     equipment: ['bodyweight'],
     movementPattern: 'core',
-    exerciseType: 'isolation',
+    exerciseType: 'core',
+    timeUnits: 1,
     alternatives: ['bw_crunch'],
     description: 'Lie on your back, legs straight. Raise your legs until they are vertical, then slowly lower them. Don\'t let your feet touch the floor.'
   },
@@ -619,7 +667,8 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     secondaryMuscle: [],
     equipment: ['bodyweight'],
     movementPattern: 'spinal_flexion',
-    exerciseType: 'isolation',
+    exerciseType: 'core',
+    timeUnits: 1,
     alternatives: ['bw_situp', 'bw_leg_raise'],
     description: 'Focus on contracting abs. Hold DB for resistance.'
   },
@@ -631,7 +680,8 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     secondaryMuscle: ['Hip_Flexors'],
     equipment: ['bodyweight'],
     movementPattern: 'hip_flexion',
-    exerciseType: 'isolation',
+    exerciseType: 'core',
+    timeUnits: 1,
     alternatives: ['bw_crunch', 'bw_leg_raise_hanging'],
     description: 'Keep lower back pressed into the floor.'
   },
@@ -643,7 +693,8 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     secondaryMuscle: ['Obliques'],
     equipment: ['bodyweight'],
     movementPattern: 'rotation',
-    exerciseType: 'isolation',
+    exerciseType: 'core',
+    timeUnits: 1,
     alternatives: ['bw_crunch', 'bw_plank'],
     description: 'Per side. Can hold a dumbbell.'
   },
@@ -656,6 +707,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['pull_up_bar'],
     movementPattern: 'hip_flexion',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['bw_leg_raise', 'bw_crunch'],
     description: 'Keep core engaged.'
   },
@@ -667,7 +719,8 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     secondaryMuscle: ['Hip_Flexors'],
     equipment: ['decline_bench'],
     movementPattern: 'spinal_flexion',
-    exerciseType: 'isolation',
+    exerciseType: 'core',
+    timeUnits: 1,
     alternatives: ['bw_crunch', 'bw_situp'],
     description: 'Control the movement.'
   },
@@ -681,6 +734,7 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     equipment: ['barbell', 'incline_bench'],
     movementPattern: 'incline_press',
     exerciseType: 'compound',
+    timeUnits: 3,
     alternatives: ['db_press_incline', 'bb_press_flat'],
     description: 'Control the movement.'
   }

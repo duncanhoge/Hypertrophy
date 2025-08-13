@@ -266,7 +266,8 @@ export function useUserProfile() {
        // Generate the next level
        const nextLevel = generateNextLevel(
          currentGeneratedPlan,
-         previousLevelExerciseIds
+        previousLevelExerciseIds,
+        currentGeneratedPlan.tuBudget
        );
        
        if (!nextLevel) {
