@@ -8,8 +8,10 @@ import { Card } from './ui/Card';
 import { Modal } from './ui/Modal';
 import { ExerciseHistory } from './ExerciseHistory';
 import { TrainingBlockCompleteModal } from './TrainingBlockCompleteModal';
+import { NextExercisePreview } from './NextExercisePreview';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
+import { useExerciseHistory } from '../hooks/useExerciseHistory';
 import { useUserProfile } from '../hooks/useUserProfile';
 import type { Exercise, WorkoutPlan } from '../data/workoutData';
 
@@ -258,6 +260,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [reps, setReps] = useState('');
   const [duration, setDuration] = useState('');
   const [loggedSetsForExercise, setLoggedSetsForExercise] = useState<any[]>([]);
+  const [nextExerciseDetails, setNextExerciseDetails] = useState<any>(null);
   
   // Timer state with timestamp-based tracking
   const [timerActive, setTimerActive] = useState(false);
@@ -289,6 +292,14 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const currentExercise = currentWorkout?.exercises[currentExerciseIndex];
   const enhancedCurrentExercise = currentExercise ? getEnhancedExercise(currentExercise) : null;
 
+  // Get next exercise details and history
+  const nextExercise = currentWorkout?.exercises[currentExerciseIndex + 1];
+  const enhancedNextExercise = nextExercise ? getEnhancedExercise(nextExercise) : null;
+  const { history: nextExerciseHistory, loading: nextExerciseHistoryLoading } = useExerciseHistory(
+    enhancedNextExercise?.id || '',
+    enhancedNextExercise?.name || ''
+  );
+
   useEffect(() => {
     if (!enhancedCurrentExercise) return;
     
@@ -304,6 +315,14 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     setTimedExerciseStartTime(null);
     setTimedExerciseElapsed(0);
     setJustCompletedFinalSet(false);
+    
+    // Update next exercise details
+    if (currentWorkout?.exercises[currentExerciseIndex + 1]) {
+      const nextEx = currentWorkout.exercises[currentExerciseIndex + 1];
+      setNextExerciseDetails(getEnhancedExercise(nextEx));
+    } else {
+      setNextExerciseDetails(null);
+    }
   }, [currentExerciseIndex, enhancedCurrentExercise?.type, enhancedCurrentExercise?.reps]);
 
   // Timer effect with timestamp-based calculation
@@ -697,6 +716,17 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
               isActive={timerActive}
               onSkip={skipRest}
             />
+            
+            {/* Next Exercise Preview - Only show after final set of current exercise */}
+            {enhancedNextExercise && justCompletedFinalSet && (
+              <div className="mt-4">
+                <NextExercisePreview
+                  exercise={enhancedNextExercise}
+                  history={nextExerciseHistory}
+                  loading={nextExerciseHistoryLoading}
+                />
+              </div>
+            )}
           </div>
         )}
 
