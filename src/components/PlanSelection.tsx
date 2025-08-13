@@ -369,6 +369,37 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
         )}
       </Card>
 
+      {/* Workout History Section */}
+      <Card className="bg-theme-black-light border border-theme-gold/20">
+        <button 
+          onClick={() => setShowHistory(!showHistory)}
+          className="w-full flex justify-between items-center text-left text-xl font-semibold text-theme-gold hover:text-theme-gold-light transition-colors py-2"
+        >
+          Workout History
+          {showHistory ? <MinusCircle size={24} /> : <PlusCircle size={24} />}
+        </button>
+        {showHistory && (
+          <div className="mt-4 space-y-4 max-h-96 overflow-y-auto pr-2">
+            {Object.keys(workoutHistory).length > 0 ? (
+              Object.entries(workoutHistory).map(([date, logs]) => (
+                <div key={date} className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/10">
+                  <h3 className="text-md font-semibold text-theme-gold-light mb-2">{date}</h3>
+                  <ul className="space-y-1 text-sm">
+                    {logs.map((log, index) => (
+                      <li key={index} className="text-theme-gold-dark">
+                        {log.exercise_name} - Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''}{log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            ) : (
+              <p className="text-theme-gold-dark">No workout history yet. Complete a workout to see your logs!</p>
+            )}
+          </div>
+        )}
+      </Card>
+
       {/* Switch Plan Confirmation Modal */}
       <Modal 
         isOpen={showSwitchModal} 
