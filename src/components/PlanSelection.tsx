@@ -176,6 +176,67 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
         </Card>
       )}
 
+      {/* Current Active Pre-Made Plan - Display above Other Plans */}
+      {hasActivePlan && !hasGeneratedPlan && (
+        <Card className="bg-gradient-to-br from-theme-gold/10 to-theme-gold/5 border-theme-gold/40 hover:border-theme-gold/60 transition-all duration-300 hover:scale-[1.02]">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="md:w-1/3 flex flex-col items-center justify-center bg-theme-black-lighter rounded-nested-container relative p-4">
+              <div className="w-16 h-16 flex items-center justify-center">
+                <Dumbbell className="w-8 h-8 text-theme-gold" />
+              </div>
+              <div className="bg-theme-gold text-theme-black px-2 py-1 rounded-2x-nested-container text-xs font-bold mb-2">
+                ACTIVE
+              </div>
+              <div className="text-center">
+                <div className="text-theme-gold font-semibold text-sm">
+                  Level {(profile?.current_level_index || 0) + 1}
+                </div>
+              </div>
+            </div>
+            <div className="md:w-2/3 space-y-4">
+              <div className="flex justify-between items-start">
+                <h3 className="text-2xl font-bold text-theme-gold">
+                  {WORKOUT_PLANS[profile?.current_plan_id || '']?.name}
+                </h3>
+                {workoutsRemaining !== null && (
+                  <div className="flex items-center gap-2 text-theme-gold-light">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {workoutsRemaining > 0 ? `${workoutsRemaining} workouts left` : 'Block Complete!'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-theme-gold-dark">{WORKOUT_PLANS[profile?.current_plan_id || '']?.description}</p>
+              
+              <div className="flex items-center gap-2 text-theme-gold-dark">
+                <Calendar className="w-5 h-5" />
+                <span>{Object.keys(WORKOUT_PLANS[profile?.current_plan_id || '']?.levels[0].workouts || {}).length} workouts per week</span>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(WORKOUT_PLANS[profile?.current_plan_id || '']?.levels[0].workouts || {}).map(([day, workout]) => (
+                  <span key={day} className="px-3 py-1 bg-theme-black-lighter rounded-2x-nested-container text-sm text-theme-gold-dark">
+                    {day}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <PrimaryButton
+                  onClick={() => onSelectPlan(profile?.current_plan_id || '')}
+                  ariaLabel="Continue Plan"
+                >
+                  <Play size={16} className="mr-1" />
+                  Continue Plan
+                </PrimaryButton>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Pre-Made Plans / Other Plans Section */}
       <Card className="bg-theme-black-light border border-theme-gold/20">
         <button 
@@ -341,66 +402,6 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
               </div>
               
               <p className="text-theme-gold-dark">{WORKOUT_PLANS[profile?.current_plan_id || '']?.description}</p>
-              
-              <div className="flex items-center gap-2 text-theme-gold-dark">
-                <Calendar className="w-5 h-5" />
-                <span>{Object.keys(WORKOUT_PLANS[profile?.current_plan_id || '']?.levels[0].workouts || {}).length} workouts per week</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(WORKOUT_PLANS[profile?.current_plan_id || '']?.levels[0].workouts || {}).map(([day, workout]) => (
-                  <span key={day} className="px-3 py-1 bg-theme-black-lighter rounded-2x-nested-container text-sm text-theme-gold-dark">
-                    {day}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap gap-3 pt-2">
-                <PrimaryButton
-                  onClick={() => onSelectPlan(profile?.current_plan_id || '')}
-                  ariaLabel="Continue Plan"
-                >
-                  <Play size={16} className="mr-1" />
-                  Continue Plan
-                </PrimaryButton>
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Workout History Section */}
-      <Card className="bg-theme-black-light border border-theme-gold/20">
-        <button 
-          onClick={() => setShowHistory(!showHistory)}
-          className="w-full flex justify-between items-center text-left text-xl font-semibold text-theme-gold hover:text-theme-gold-light transition-colors py-2"
-        >
-          Workout History
-          {showHistory ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
-        </button>
-        {showHistory && (
-          <div className="mt-4 space-y-4 max-h-96 overflow-y-auto pr-2">
-            {Object.keys(workoutHistory).length > 0 ? (
-              Object.entries(workoutHistory)
-                .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime())
-                .map(([date, logs]) => (
-                <div key={date} className="p-3 bg-theme-black-lighter rounded-nested-container border border-theme-gold/10">
-                  <h3 className="text-md font-semibold text-theme-gold-light mb-2">{date}</h3>
-                  <ul className="space-y-1 text-sm">
-                    {logs.map((log, index) => (
-                      <li key={index} className="text-theme-gold-dark">
-                        {log.workout_day} - {log.exercise_name} - Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''}{log.reps_logged} reps {log.duration_seconds ? `(${log.duration_seconds}s)` : ''}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))
-            ) : (
-              <p className="text-theme-gold-dark">No workout history yet. Complete a workout to see your logs!</p>
-            )}
-          </div>
-        )}
-      </Card>
 
       {/* Switch Plan Confirmation Modal */}
       <Modal 
