@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle, Dumbbell, Target, Zap, ChevronLeft, Clock, Edit3 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Dumbbell, Target, Zap, ChevronLeft, Clock, Edit3, Lock } from 'lucide-react';
 import { PrimaryButton, SecondaryButton } from './ui/Button';
 import { IconButton } from './ui/IconButton';
 import { Card } from './ui/Card';
 import { getAllTemplates, getTemplateById, type WorkoutTemplate } from '../data/workoutTemplates';
-import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, getVolumeDisplayInfo, getVolumeTuBudget, type GenerationOptions, type VolumeLevel } from '../lib/planGenerationEngine';
+import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, getVolumeDisplayInfo, getVolumeTuBudget, isEquipmentAvailable, type GenerationOptions, type VolumeLevel } from '../lib/planGenerationEngine';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { getEnhancedExercise } from '../data/workoutData';
 
@@ -328,25 +328,37 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
               {availableEquipment.map(equipment => (
                 <Card
                   key={equipment}
-                  className={`cursor-pointer transition-all duration-200 ${
-                    selectedEquipment.includes(equipment) 
-                      ? 'border-theme-gold bg-theme-gold/10' 
-                      : 'border-theme-gold/20 hover:border-theme-gold/50'
+                  className={`transition-all duration-200 ${
+                    !isEquipmentAvailable(equipment)
+                      ? 'opacity-50 cursor-not-allowed border-theme-gold/10 bg-theme-black-lighter'
+                      : selectedEquipment.includes(equipment) 
+                        ? 'border-theme-gold bg-theme-gold/10 cursor-pointer' 
+                        : 'border-theme-gold/20 hover:border-theme-gold/50 cursor-pointer'
                   } ${equipment === 'bodyweight' ? 'opacity-100' : ''}`}
-                  onClick={() => handleEquipmentToggle(equipment)}
+                  onClick={() => isEquipmentAvailable(equipment) && handleEquipmentToggle(equipment)}
                 >
                   <div className="flex flex-col items-center space-y-2 text-center p-2">
                     <div className={`w-8 h-8 rounded-2x-nested-container flex items-center justify-center ${
-                      selectedEquipment.includes(equipment) ? 'bg-theme-gold text-theme-black' : 'bg-theme-black-lighter'
+                      !isEquipmentAvailable(equipment)
+                        ? 'bg-theme-black-lighter'
+                        : selectedEquipment.includes(equipment) 
+                          ? 'bg-theme-gold text-theme-black' 
+                          : 'bg-theme-black-lighter'
                     }`}>
-                      {selectedEquipment.includes(equipment) ? (
+                      {!isEquipmentAvailable(equipment) ? (
+                        <Lock className="w-4 h-4 text-theme-gold-dark" />
+                      ) : selectedEquipment.includes(equipment) ? (
                         <CheckCircle className="w-5 h-5" />
                       ) : (
                         <Dumbbell className="w-5 h-5 text-theme-gold-dark" />
                       )}
                     </div>
                     <span className={`text-xs font-medium ${
-                      selectedEquipment.includes(equipment) ? 'text-theme-gold' : 'text-theme-gold-dark'
+                      !isEquipmentAvailable(equipment)
+                        ? 'text-theme-gold-dark/50'
+                        : selectedEquipment.includes(equipment) 
+                          ? 'text-theme-gold' 
+                          : 'text-theme-gold-dark'
                     }`}>
                       {getEquipmentDisplayName(equipment)}
                     </span>
@@ -355,8 +367,9 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
               ))}
             </div>
 
-            <div className="text-sm text-theme-gold-dark text-center">
+            <div className="text-sm text-theme-gold-dark text-center space-y-1">
               <p>💡 Bodyweight is always included and cannot be removed</p>
+              <p>🔒 Locked equipment indicates no exercises are available in our database</p>
             </div>
 
             <div className="flex gap-3 pt-4">

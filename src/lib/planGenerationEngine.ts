@@ -391,6 +391,21 @@ export function getEquipmentDisplayName(equipment: string): string {
 }
 
 /**
+ * Check if equipment has exercises available in the dictionary
+ */
+export function isEquipmentAvailable(equipment: string): boolean {
+  return Object.values(EXERCISE_DICTIONARY).some(exercise => 
+    exercise.equipment.includes(equipment)
+  );
+}
+
+/**
+ * Get all equipment that has exercises available
+ */
+export function getAvailableEquipmentOnly(): string[] {
+  return getAllAvailableEquipment().filter(equipment => isEquipmentAvailable(equipment));
+}
+/**
  * Get volume level display information
  */
 export function getVolumeDisplayInfo(volume: VolumeLevel): { name: string; description: string; duration: string } {
