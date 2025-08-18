@@ -971,7 +971,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                       Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged ? `${log.reps_logged} reps` : ''} {log.duration_seconds ? `${log.duration_seconds}s` : ''}
                     </span>
                     <span className="text-xs text-theme-gold-dark opacity-70">
-                      Tap to edit
+                      edit
                     </span>
                   </div>
                 </li>
