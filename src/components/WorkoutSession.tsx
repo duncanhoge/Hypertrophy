@@ -262,6 +262,13 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [loggedSetsForExercise, setLoggedSetsForExercise] = useState<any[]>([]);
   const [nextExerciseDetails, setNextExerciseDetails] = useState<any>(null);
   
+  // Edit set state
+  const [showEditSetModal, setShowEditSetModal] = useState(false);
+  const [editingSet, setEditingSet] = useState<any>(null);
+  const [editWeight, setEditWeight] = useState('');
+  const [editReps, setEditReps] = useState('');
+  const [editDuration, setEditDuration] = useState('');
+  
   // Timer state with timestamp-based tracking
   const [timerActive, setTimerActive] = useState(false);
   const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
@@ -455,6 +462,86 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       console.error('Error logging workout:', error);
       alert('Failed to save workout log. Please try again.');
     }
+  };
+
+  const handleEditSet = (logEntry: any) => {
+    setEditingSet(logEntry);
+    setEditWeight(logEntry.weight ? logEntry.weight.toString() : '');
+    setEditReps(logEntry.reps_logged ? logEntry.reps_logged.toString() : '');
+    setEditDuration(logEntry.duration_seconds ? logEntry.duration_seconds.toString() : '');
+    setShowEditSetModal(true);
+  };
+
+  const handleSaveEditedSet = async () => {
+    if (!editingSet || !user) return;
+
+    // Validate inputs based on exercise type
+    if (enhancedCurrentExercise?.type === 'timed') {
+      const durationValue = parseInt(editDuration);
+      if (isNaN(durationValue) || durationValue <= 0) {
+        alert("Please enter a valid duration in seconds (greater than 0).");
+        return;
+      }
+    } else if (enhancedCurrentExercise?.type !== 'timed') {
+      const repsValue = parseInt(editReps);
+      if (isNaN(repsValue) || repsValue <= 0) {
+        alert("Please enter a valid number of reps (greater than 0).");
+        return;
+      }
+    }
+
+    // Check if we're in trial mode - if so, only update local state
+    const isTrialMode = profile?.is_trial_mode || false;
+
+    const updatedData: any = {
+      weight: enhancedCurrentExercise?.type.includes('weight') ? (editWeight ? parseFloat(editWeight) : null) : null,
+      reps_logged: enhancedCurrentExercise?.type === 'timed' ? null : parseInt(editReps),
+      duration_seconds: enhancedCurrentExercise?.type === 'timed' ? parseInt(editDuration) : null,
+    };
+
+    try {
+      // Only update Supabase if not in trial mode
+      if (!isTrialMode) {
+        const { error } = await supabase
+          .from('workout_logs')
+          .update(updatedData)
+          .eq('id', editingSet.id);
+
+        if (error) {
+          console.error('Error updating set in Supabase:', error);
+          alert('Failed to update set. Please try again.');
+          return;
+        }
+      }
+
+      // Update local state
+      setLoggedSetsForExercise(prev => 
+        prev.map(log => 
+          log.id === editingSet.id 
+            ? { ...log, ...updatedData }
+            : log
+        )
+      );
+
+      // Close modal and reset state
+      setShowEditSetModal(false);
+      setEditingSet(null);
+      setEditWeight('');
+      setEditReps('');
+      setEditDuration('');
+
+    } catch (error) {
+      console.error('Error updating set:', error);
+      alert('Failed to update set. Please try again.');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditSetModal(false);
+    setEditingSet(null);
+    setEditWeight('');
+    setEditReps('');
+    setEditDuration('');
   };
 
   const startRestTimer = () => {
@@ -874,8 +961,19 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             <h4 className="text-md font-semibold text-theme-gold mb-2">Logged Sets for {enhancedCurrentExercise.name}:</h4>
             <ul className="space-y-1 text-sm">
               {loggedSetsForExercise.map((log, index) => (
-                <li key={index} className="p-2 bg-theme-black-lighter rounded-2x-nested-container border border-theme-gold/10 text-theme-gold-dark">
-                  Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged ? `${log.reps_logged} reps` : ''} {log.duration_seconds ? `${log.duration_seconds}s` : ''}
+                <li 
+                  key={index} 
+                  className="p-2 bg-theme-black-lighter rounded-2x-nested-container border border-theme-gold/10 text-theme-gold-dark cursor-pointer hover:bg-theme-gold/10 hover:border-theme-gold/30 transition-colors duration-200"
+                  onClick={() => handleEditSet(log)}
+                >
+                  <div className="flex justify-between items-center">
+                    <span>
+                      Set {log.set_number}: {log.weight ? `${log.weight} lbs/kg, ` : ''} {log.reps_logged ? `${log.reps_logged} reps` : ''} {log.duration_seconds ? `${log.duration_seconds}s` : ''}
+                    </span>
+                    <span className="text-xs text-theme-gold-dark opacity-70">
+                      Tap to edit
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -980,6 +1078,121 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
         currentLevelIndex={profile?.current_level_index || 0}
       />
+
+      {/* Edit Set Modal */}
+      <Modal 
+        isOpen={showEditSetModal} 
+        onClose={handleCancelEdit} 
+        title={`Edit Set ${editingSet?.set_number || ''}`}
+      >
+        <div className="space-y-4">
+          {/* Weight input for weight-based exercises */}
+          {enhancedCurrentExercise?.type === 'weight_reps' && (
+            <div className="relative">
+              <label htmlFor="editWeight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                Weight
+              </label>
+              <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                <span className="pl-4 text-theme-gold-dark">
+                  <Dumbbell size={20} />
+                </span>
+                <input
+                  type="number"
+                  id="editWeight"
+                  value={editWeight}
+                  onChange={(e) => setEditWeight(e.target.value)}
+                  placeholder="e.g., 25"
+                  className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Reps input for rep-based exercises */}
+          {(enhancedCurrentExercise?.type === 'weight_reps' || enhancedCurrentExercise?.type === 'reps_only' || enhancedCurrentExercise?.type === 'reps_only_with_optional_weight') && (
+            <div className="relative">
+              <label htmlFor="editReps" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                Reps
+              </label>
+              <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                <span className="pl-4 text-theme-gold-dark">
+                  <Repeat size={20} />
+                </span>
+                <input
+                  type="number"
+                  id="editReps"
+                  value={editReps}
+                  onChange={(e) => setEditReps(e.target.value)}
+                  placeholder="e.g., 10"
+                  className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Optional weight for reps_only_with_optional_weight */}
+          {enhancedCurrentExercise?.type === 'reps_only_with_optional_weight' && (
+            <div className="relative">
+              <label htmlFor="editOptionalWeight" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                Weight (Optional)
+              </label>
+              <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                <span className="pl-4 text-theme-gold-dark">
+                  <Dumbbell size={20} />
+                </span>
+                <input
+                  type="number"
+                  id="editOptionalWeight"
+                  value={editWeight}
+                  onChange={(e) => setEditWeight(e.target.value)}
+                  placeholder="e.g., 10 (optional)"
+                  className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Duration input for timed exercises */}
+          {enhancedCurrentExercise?.type === 'timed' && (
+            <div className="relative">
+              <label htmlFor="editDuration" className="absolute -top-2 left-4 px-2 bg-theme-black-light text-xs text-theme-gold-dark">
+                Duration (seconds)
+              </label>
+              <div className="flex items-center bg-theme-black-lighter border border-theme-gold/30 rounded-lg">
+                <span className="pl-4 text-theme-gold-dark">
+                  <Clock size={20} />
+                </span>
+                <input
+                  type="number"
+                  id="editDuration"
+                  value={editDuration}
+                  onChange={(e) => setEditDuration(e.target.value)}
+                  placeholder="e.g., 60"
+                  className="w-full p-4 bg-transparent text-theme-gold placeholder-theme-gold-dark/50 focus:outline-none focus:ring-2 focus:ring-theme-gold/50 rounded-r-lg"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <IconButton
+              onClick={handleCancelEdit}
+              ariaLabel="Cancel Edit"
+              className="flex-1 text-theme-gold-dark hover:text-theme-gold"
+            >
+              Cancel
+            </IconButton>
+            <PrimaryButton
+              onClick={handleSaveEditedSet}
+              ariaLabel="Save Changes"
+              className="flex-1"
+            >
+              <Save size={16} className="mr-1" />
+              Save Changes
+            </PrimaryButton>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
