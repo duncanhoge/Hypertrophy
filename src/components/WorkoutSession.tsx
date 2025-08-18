@@ -415,7 +415,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     try {
       // Only save to Supabase if not in trial mode
       if (!isTrialMode) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('workout_logs')
           .insert([logEntry]);
 
@@ -425,8 +425,16 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           return;
         }
 
+        // Update logEntry with the ID returned from Supabase
+        if (data && data[0]) {
+          logEntry.id = data[0].id;
+        }
+
         // Also call the legacy callback for local storage compatibility
         onLogWorkout(logEntry);
+      } else {
+        // For trial mode, generate a temporary client-side ID
+        logEntry.id = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       }
 
       setLoggedSetsForExercise(prev => [...prev, logEntry]);
