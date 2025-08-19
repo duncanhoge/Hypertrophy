@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Dumbbell, Repeat, Play, Save, CheckCircle, SkipForward, Info, Target, Clock, ListChecks, History, X, ExternalLink } from 'lucide-react';
 import { REST_DURATION_SECONDS, getCurrentLevelWorkouts, getEnhancedExercise, getCurrentLevel } from '../data/workoutData';
 import { getExerciseById } from '../data/exerciseDictionary';
 import { IconButton } from './ui/IconButton';
@@ -288,6 +288,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const [showWorkoutQueue, setShowWorkoutQueue] = useState(false);
   const [showExerciseHistory, setShowExerciseHistory] = useState(false);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [showEndWorkoutModal, setShowEndWorkoutModal] = useState(false);
 
   const { user } = useAuth();
   const { profile, incrementCompletedWorkoutCount, isBlockComplete, startNextLevel, restartCurrentLevel, endTrainingBlock } = useUserProfile();
@@ -670,6 +671,25 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     onGoHome();
   };
 
+  const handleEndWorkoutEarly = () => {
+    setShowEndWorkoutModal(true);
+  };
+
+  const handleConfirmEndWorkout = () => {
+    setShowEndWorkoutModal(false);
+    // Navigate home without incrementing workout count
+    onGoHome();
+  };
+
+  const handleCancelEndWorkout = () => {
+    setShowEndWorkoutModal(false);
+  };
+
+  const generateExerciseSearchUrl = (exerciseName: string): string => {
+    const searchQuery = `${exerciseName} form`;
+    return `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+  };
+
   if (!currentWorkout) {
     return (
       <Card className="bg-theme-black-light border border-theme-gold/20 text-center">
@@ -729,6 +749,13 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
             </p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
+            <IconButton 
+              onClick={handleEndWorkoutEarly} 
+              ariaLabel="End Workout Early"
+              className="text-red-400 hover:text-red-300 hover:bg-red-900/20 border-red-500/30"
+            >
+              <X size={20} />
+            </IconButton>
             <IconButton 
               onClick={() => setShowWorkoutQueue(!showWorkoutQueue)} 
               ariaLabel="Toggle Workout Queue" 
@@ -797,7 +824,17 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         )}
 
         <div className="mb-6 p-4 bg-theme-black-lighter rounded-nested-container border border-theme-gold/10">
-          <h3 className="text-xl font-medium text-theme-gold">{enhancedCurrentExercise.name}</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <a
+              href={generateExerciseSearchUrl(enhancedCurrentExercise.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xl font-medium text-theme-gold hover:text-theme-gold-light transition-colors duration-200 flex items-center gap-2 group"
+            >
+              {enhancedCurrentExercise.name}
+              <ExternalLink size={16} className="opacity-60 group-hover:opacity-100 transition-opacity duration-200" />
+            </a>
+          </div>
           <p className="text-sm text-theme-gold-dark flex items-center">
             <Target size={16} className="mr-2"/> 
             Set {currentSet} of {enhancedCurrentExercise.sets} | Target Reps: {enhancedCurrentExercise.reps}
@@ -1088,6 +1125,42 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         currentPlanId={profile?.active_generated_plan?.id || profile?.current_plan_id || ''}
         currentLevelIndex={profile?.current_level_index || 0}
       />
+
+      {/* End Workout Early Confirmation Modal */}
+      <Modal 
+        isOpen={showEndWorkoutModal} 
+        onClose={handleCancelEndWorkout} 
+        title="End Workout Early?"
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <X className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <p className="text-theme-gold-dark">
+              Your logged sets for this session will be saved to your history, but this workout will not count towards your plan's progress.
+            </p>
+            <p className="text-theme-gold-dark font-medium mt-2">
+              Are you sure you want to end?
+            </p>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <IconButton
+              onClick={handleCancelEndWorkout}
+              ariaLabel="Cancel"
+              className="flex-1 text-theme-gold-dark hover:text-theme-gold"
+            >
+              Cancel
+            </IconButton>
+            <IconButton
+              onClick={handleConfirmEndWorkout}
+              ariaLabel="End Workout"
+              className="flex-1 bg-red-900/20 text-red-400 hover:bg-red-900/40 border-red-500/30"
+            >
+              <X size={16} className="mr-1" />
+              End Workout
+            </IconButton>
+          </div>
+        </div>
+      </Modal>
 
       {/* Edit Set Modal */}
       <Modal 
