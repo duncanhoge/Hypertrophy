@@ -1028,9 +1028,15 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         )}
       </Card>
 
-      <IconButton onClick={onGoHome} ariaLabel="Go Home" className="w-full sm:w-auto">
-        <ChevronLeft size={20} className="mr-1" /> Back to Home
-      </IconButton>
+      <div className="flex justify-center pt-8">
+        <IconButton 
+          onClick={handleEndWorkoutEarly} 
+          ariaLabel="End Workout"
+          className="text-lg bg-red-900/20 text-red-400 hover:bg-red-900/40 border-red-500/30"
+        >
+          <X size={20} className="mr-1" /> End Workout
+        </IconButton>
+      </div>
 
       <Modal isOpen={showCompletionModal} onClose={handleCompletionModalClose} title="Workout Complete!">
         <div className="text-center">
