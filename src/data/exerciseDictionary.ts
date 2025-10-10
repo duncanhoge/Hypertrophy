@@ -737,6 +737,1030 @@ export const EXERCISE_DICTIONARY: Record<string, ExerciseDefinition> = {
     timeUnits: 3,
     alternatives: ['db_press_incline', 'bb_press_flat'],
     description: 'Control the movement.'
+  },
+
+  // Additional Chest Exercises
+  'bb_press_flat': {
+    id: 'bb_press_flat',
+    name: 'Flat Barbell Bench Press',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Shoulders', 'Triceps'],
+    equipment: ['barbell', 'bench'],
+    movementPattern: 'horizontal_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_press_bench', 'bb_press_incline'],
+    description: 'The king of upper body pressing. Keep your feet planted and drive through the bar.'
+  },
+
+  'bb_press_decline': {
+    id: 'bb_press_decline',
+    name: 'Decline Barbell Press',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Triceps', 'Shoulders'],
+    equipment: ['barbell', 'decline_bench'],
+    movementPattern: 'horizontal_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_press_flat', 'db_press_bench'],
+    description: 'Set bench to decline angle. Emphasizes lower chest development.'
+  },
+
+  'db_press_decline': {
+    id: 'db_press_decline',
+    name: 'Decline Dumbbell Press',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Triceps', 'Shoulders'],
+    equipment: ['dumbbell', 'decline_bench'],
+    movementPattern: 'horizontal_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_press_bench', 'bb_press_decline'],
+    description: 'Targets lower chest with increased range of motion compared to barbell.'
+  },
+
+  'cable_fly_high': {
+    id: 'cable_fly_high',
+    name: 'High-to-Low Cable Fly',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Shoulders'],
+    equipment: ['cable_machine'],
+    movementPattern: 'horizontal_adduction',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_flyes', 'cable_fly_mid'],
+    description: 'Set cables high and bring handles down and together. Targets lower chest.'
+  },
+
+  'cable_fly_mid': {
+    id: 'cable_fly_mid',
+    name: 'Mid Cable Fly',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Shoulders'],
+    equipment: ['cable_machine'],
+    movementPattern: 'horizontal_adduction',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_flyes', 'cable_fly_high'],
+    description: 'Set cables at chest height. Constant tension throughout the movement.'
+  },
+
+  'cable_fly_low': {
+    id: 'cable_fly_low',
+    name: 'Low-to-High Cable Fly',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Shoulders'],
+    equipment: ['cable_machine'],
+    movementPattern: 'horizontal_adduction',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_flyes', 'cable_fly_mid'],
+    description: 'Set cables low and bring handles up and together. Emphasizes upper chest.'
+  },
+
+  'bw_dips_chest': {
+    id: 'bw_dips_chest',
+    name: 'Chest Dips',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Triceps', 'Shoulders'],
+    equipment: ['dip_station'],
+    movementPattern: 'vertical_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_dips_weighted', 'db_press_bench'],
+    description: 'Lean forward and flare elbows slightly to emphasize chest over triceps.'
+  },
+
+  'db_flyes_incline': {
+    id: 'db_flyes_incline',
+    name: 'Incline Dumbbell Flyes',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Shoulders'],
+    equipment: ['dumbbell', 'bench'],
+    movementPattern: 'horizontal_adduction',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_flyes', 'cable_fly_low'],
+    description: 'Set bench to incline. Targets upper chest with deep stretch.'
+  },
+
+  'bw_pushup_decline': {
+    id: 'bw_pushup_decline',
+    name: 'Decline Push-up',
+    primaryMuscle: 'Chest',
+    secondaryMuscle: ['Shoulders', 'Triceps'],
+    equipment: ['bodyweight', 'bench'],
+    movementPattern: 'horizontal_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_pushup', 'bw_pushup_wide'],
+    description: 'Elevate feet on bench. Increases difficulty and upper chest emphasis.'
+  },
+
+  'bw_pushup_diamond': {
+    id: 'bw_pushup_diamond',
+    name: 'Diamond Push-up',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: ['Chest', 'Shoulders'],
+    equipment: ['bodyweight'],
+    movementPattern: 'horizontal_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_pushup_close_grip', 'db_press_close_grip'],
+    description: 'Form diamond shape with hands. Intense tricep focus.'
+  },
+
+  // Additional Back Exercises
+  'bb_row_bent': {
+    id: 'bb_row_bent',
+    name: 'Bent-Over Barbell Row',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps', 'Shoulders'],
+    equipment: ['barbell'],
+    movementPattern: 'horizontal_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_row_bent_over', 'bb_row_pendlay'],
+    description: 'Hinge at hips with flat back. Pull bar to lower chest. The staple back builder.'
+  },
+
+  'bb_row_pendlay': {
+    id: 'bb_row_pendlay',
+    name: 'Pendlay Row',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps', 'Shoulders'],
+    equipment: ['barbell'],
+    movementPattern: 'horizontal_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_row_bent', 'db_row_bent_over'],
+    description: 'Bar starts from floor each rep. Explosive pull to chest with torso parallel to floor.'
+  },
+
+  'db_row_single_arm': {
+    id: 'db_row_single_arm',
+    name: 'Single-Arm Dumbbell Row',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps', 'Core'],
+    equipment: ['dumbbell', 'bench'],
+    movementPattern: 'horizontal_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_row_bent_over', 'db_row_chest_supported'],
+    description: 'Support one hand on bench. Pull dumbbell to hip, focus on squeezing lat.'
+  },
+
+  'cable_row_seated': {
+    id: 'cable_row_seated',
+    name: 'Seated Cable Row',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps', 'Shoulders'],
+    equipment: ['cable_machine'],
+    movementPattern: 'horizontal_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_row_bent_over', 'bb_row'],
+    description: 'Keep torso upright. Pull handles to abdomen, squeeze shoulder blades together.'
+  },
+
+  'lat_pulldown_wide': {
+    id: 'lat_pulldown_wide',
+    name: 'Wide-Grip Lat Pulldown',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps'],
+    equipment: ['cable_machine'],
+    movementPattern: 'vertical_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_pullup', 'lat_pulldown_close'],
+    description: 'Wide overhand grip. Pull bar to upper chest, lean back slightly.'
+  },
+
+  'lat_pulldown_close': {
+    id: 'lat_pulldown_close',
+    name: 'Close-Grip Lat Pulldown',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps'],
+    equipment: ['cable_machine'],
+    movementPattern: 'vertical_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_chinup', 'lat_pulldown_wide'],
+    description: 'Close parallel grip. Pull to upper chest with vertical torso.'
+  },
+
+  'bw_pullup_wide': {
+    id: 'bw_pullup_wide',
+    name: 'Wide-Grip Pull-up',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps'],
+    equipment: ['pullup_bar'],
+    movementPattern: 'vertical_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_pullup', 'lat_pulldown_wide'],
+    description: 'Hands wider than shoulders. Emphasizes lat width.'
+  },
+
+  'bw_inverted_row': {
+    id: 'bw_inverted_row',
+    name: 'Inverted Row',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps', 'Core'],
+    equipment: ['barbell', 'squat_rack'],
+    movementPattern: 'horizontal_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_row_bent_over', 'cable_row_seated'],
+    description: 'Set bar at waist height. Pull chest to bar with body straight.'
+  },
+
+  't_bar_row': {
+    id: 't_bar_row',
+    name: 'T-Bar Row',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Biceps', 'Shoulders'],
+    equipment: ['barbell'],
+    movementPattern: 'horizontal_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_row_bent', 'db_row_bent_over'],
+    description: 'Straddle bar, hinge at hips. Pull bar to chest with neutral grip.'
+  },
+
+  'cable_pullover': {
+    id: 'cable_pullover',
+    name: 'Cable Pullover',
+    primaryMuscle: 'Back',
+    secondaryMuscle: ['Chest', 'Triceps'],
+    equipment: ['cable_machine'],
+    movementPattern: 'pullover',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_pullover', 'lat_pulldown_wide'],
+    description: 'Set cable high. Pull down with straight arms to thighs.'
+  },
+
+  'db_shrug': {
+    id: 'db_shrug',
+    name: 'Dumbbell Shrugs',
+    primaryMuscle: 'Traps',
+    secondaryMuscle: [],
+    equipment: ['dumbbell'],
+    movementPattern: 'shrug',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['bb_shrug', 'db_shrug_standing'],
+    description: 'Hold dumbbells at sides. Shrug shoulders straight up, pause at top.'
+  },
+
+  'bb_row_upright': {
+    id: 'bb_row_upright',
+    name: 'Upright Barbell Row',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: ['Traps'],
+    equipment: ['barbell'],
+    movementPattern: 'vertical_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_row_upright', 'db_raise_lateral'],
+    description: 'Pull bar up along torso to chest height. Elbows high and wide.'
+  },
+
+  'db_row_upright': {
+    id: 'db_row_upright',
+    name: 'Upright Dumbbell Row',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: ['Traps'],
+    equipment: ['dumbbell'],
+    movementPattern: 'vertical_pull',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_row_upright', 'db_raise_lateral'],
+    description: 'Hold dumbbells in front of thighs. Pull up to shoulder height.'
+  },
+
+  // Additional Shoulder Exercises
+  'db_press_seated': {
+    id: 'db_press_seated',
+    name: 'Seated Dumbbell Press',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: ['Triceps'],
+    equipment: ['dumbbell', 'bench'],
+    movementPattern: 'vertical_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_press_overhead', 'bb_press_overhead'],
+    description: 'Seated with back support. Press dumbbells overhead to full extension.'
+  },
+
+  'bb_press_overhead': {
+    id: 'bb_press_overhead',
+    name: 'Standing Barbell Overhead Press',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: ['Triceps', 'Core'],
+    equipment: ['barbell'],
+    movementPattern: 'vertical_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_press_overhead', 'bb_press_seated'],
+    description: 'The military press. Bar starts at shoulders, press straight overhead.'
+  },
+
+  'bb_press_seated': {
+    id: 'bb_press_seated',
+    name: 'Seated Barbell Press',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: ['Triceps'],
+    equipment: ['barbell', 'bench'],
+    movementPattern: 'vertical_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_press_overhead', 'db_press_seated'],
+    description: 'Seated with back support. More isolation than standing variation.'
+  },
+
+  'db_raise_front_alternating': {
+    id: 'db_raise_front_alternating',
+    name: 'Alternating Front Raise',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: [],
+    equipment: ['dumbbell'],
+    movementPattern: 'front_raise',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_raise_front', 'db_press_overhead'],
+    description: 'Alternate arms raising dumbbell to shoulder height. Controlled motion.'
+  },
+
+  'cable_raise_lateral': {
+    id: 'cable_raise_lateral',
+    name: 'Cable Lateral Raise',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: [],
+    equipment: ['cable_machine'],
+    movementPattern: 'lateral_raise',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_raise_lateral', 'db_press_overhead'],
+    description: 'Attach handle to low cable. Raise arm out to side. Constant tension.'
+  },
+
+  'cable_raise_rear_delt': {
+    id: 'cable_raise_rear_delt',
+    name: 'Cable Rear Delt Raise',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: ['Upper_Back'],
+    equipment: ['cable_machine'],
+    movementPattern: 'horizontal_abduction',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_flyes_rear_delt', 'db_flyes_reverse'],
+    description: 'Set cable across body. Pull across to work rear delts.'
+  },
+
+  'face_pull': {
+    id: 'face_pull',
+    name: 'Face Pull',
+    primaryMuscle: 'Shoulders',
+    secondaryMuscle: ['Upper_Back', 'Traps'],
+    equipment: ['cable_machine'],
+    movementPattern: 'horizontal_pull',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_flyes_reverse', 'cable_raise_rear_delt'],
+    description: 'Set cable high with rope. Pull to face, externally rotate shoulders at end.'
+  },
+
+  // Additional Arm Exercises - Biceps
+  'bb_curl_ez': {
+    id: 'bb_curl_ez',
+    name: 'EZ-Bar Curl',
+    primaryMuscle: 'Biceps',
+    secondaryMuscle: ['Forearms'],
+    equipment: ['barbell'],
+    movementPattern: 'bicep_curl',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['bb_curl', 'db_curl_bicep'],
+    description: 'Use EZ-bar for more comfortable wrist position during curls.'
+  },
+
+  'cable_curl_straight_bar': {
+    id: 'cable_curl_straight_bar',
+    name: 'Cable Bicep Curl',
+    primaryMuscle: 'Biceps',
+    secondaryMuscle: ['Forearms'],
+    equipment: ['cable_machine'],
+    movementPattern: 'bicep_curl',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['bb_curl', 'db_curl_bicep'],
+    description: 'Attach straight bar to low cable. Constant tension throughout movement.'
+  },
+
+  'cable_curl_rope': {
+    id: 'cable_curl_rope',
+    name: 'Cable Rope Hammer Curl',
+    primaryMuscle: 'Biceps',
+    secondaryMuscle: ['Forearms', 'Brachialis'],
+    equipment: ['cable_machine'],
+    movementPattern: 'hammer_curl',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_curl_hammer', 'cable_curl_straight_bar'],
+    description: 'Use rope attachment. Keep palms facing each other throughout.'
+  },
+
+  'db_curl_zottman': {
+    id: 'db_curl_zottman',
+    name: 'Zottman Curl',
+    primaryMuscle: 'Biceps',
+    secondaryMuscle: ['Forearms'],
+    equipment: ['dumbbell'],
+    movementPattern: 'bicep_curl',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_curl_bicep', 'db_curl_hammer'],
+    description: 'Curl with palms up, rotate wrists at top, lower with palms down.'
+  },
+
+  'bb_curl_21s': {
+    id: 'bb_curl_21s',
+    name: 'Barbell Curl 21s',
+    primaryMuscle: 'Biceps',
+    secondaryMuscle: ['Forearms'],
+    equipment: ['barbell'],
+    movementPattern: 'bicep_curl',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['bb_curl', 'db_curl_bicep'],
+    description: '7 bottom-half reps, 7 top-half reps, 7 full reps. Intense bicep pump.'
+  },
+
+  'cable_curl_high': {
+    id: 'cable_curl_high',
+    name: 'High Cable Curl',
+    primaryMuscle: 'Biceps',
+    secondaryMuscle: [],
+    equipment: ['cable_machine'],
+    movementPattern: 'bicep_curl',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_curl_bicep', 'cable_curl_straight_bar'],
+    description: 'Set cables high on both sides. Curl handles to shoulders in crucifix position.'
+  },
+
+  // Additional Arm Exercises - Triceps
+  'cable_pressdown_straight_bar': {
+    id: 'cable_pressdown_straight_bar',
+    name: 'Cable Tricep Pressdown',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: [],
+    equipment: ['cable_machine'],
+    movementPattern: 'vertical_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['tricep_pressdown', 'db_extension_overhead'],
+    description: 'Attach straight bar to high cable. Press down to full extension.'
+  },
+
+  'cable_pressdown_rope': {
+    id: 'cable_pressdown_rope',
+    name: 'Rope Tricep Pressdown',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: [],
+    equipment: ['cable_machine'],
+    movementPattern: 'vertical_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['cable_pressdown_straight_bar', 'db_extension_overhead'],
+    description: 'Use rope attachment. Split rope at bottom for maximum contraction.'
+  },
+
+  'cable_extension_overhead': {
+    id: 'cable_extension_overhead',
+    name: 'Cable Overhead Extension',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: [],
+    equipment: ['cable_machine'],
+    movementPattern: 'vertical_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_extension_overhead', 'cable_pressdown_rope'],
+    description: 'Face away from cable. Extend rope overhead for long head emphasis.'
+  },
+
+  'bb_skullcrusher': {
+    id: 'bb_skullcrusher',
+    name: 'Barbell Skullcrusher',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: [],
+    equipment: ['barbell', 'bench'],
+    movementPattern: 'horizontal_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_skullcrusher', 'bb_skullcrusher_ez'],
+    description: 'Lower bar to forehead, extend back up. Keep elbows stable.'
+  },
+
+  'bb_skullcrusher_ez': {
+    id: 'bb_skullcrusher_ez',
+    name: 'EZ-Bar Skullcrusher',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: [],
+    equipment: ['barbell', 'bench'],
+    movementPattern: 'horizontal_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['bb_skullcrusher', 'db_skullcrusher'],
+    description: 'Use EZ-bar for more comfortable wrist angle during skullcrushers.'
+  },
+
+  'bw_dips_tricep': {
+    id: 'bw_dips_tricep',
+    name: 'Tricep Dips',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: ['Chest', 'Shoulders'],
+    equipment: ['dip_station'],
+    movementPattern: 'vertical_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_dips_chair', 'bw_dips_weighted'],
+    description: 'Keep torso upright with elbows tucked to emphasize triceps.'
+  },
+
+  'db_extension_overhead_single': {
+    id: 'db_extension_overhead_single',
+    name: 'Single-Arm Overhead Extension',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: [],
+    equipment: ['dumbbell'],
+    movementPattern: 'vertical_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['db_extension_overhead', 'db_kickback'],
+    description: 'One arm at a time. Deep stretch and full contraction.'
+  },
+
+  'bb_press_close_grip': {
+    id: 'bb_press_close_grip',
+    name: 'Close-Grip Barbell Press',
+    primaryMuscle: 'Triceps',
+    secondaryMuscle: ['Chest', 'Shoulders'],
+    equipment: ['barbell', 'bench'],
+    movementPattern: 'horizontal_press',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_press_close_grip', 'bw_pushup_diamond'],
+    description: 'Hands shoulder-width apart. Powerful tricep mass builder.'
+  },
+
+  // Additional Leg Exercises - Quads
+  'bb_squat_front': {
+    id: 'bb_squat_front',
+    name: 'Front Squat',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Core'],
+    equipment: ['barbell', 'squat_rack'],
+    movementPattern: 'squat',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_squat', 'db_squat_goblet'],
+    description: 'Bar rests on front delts. More quad-dominant than back squat.'
+  },
+
+  'bb_squat_box': {
+    id: 'bb_squat_box',
+    name: 'Box Squat',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Hamstrings'],
+    equipment: ['barbell', 'squat_rack', 'bench'],
+    movementPattern: 'squat',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_squat', 'bb_squat_pause'],
+    description: 'Squat to seated position on box, then explode up. Great for power.'
+  },
+
+  'bb_squat_pause': {
+    id: 'bb_squat_pause',
+    name: 'Pause Squat',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Hamstrings'],
+    equipment: ['barbell', 'squat_rack'],
+    movementPattern: 'squat',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_squat', 'bb_squat_front'],
+    description: 'Pause for 2-3 seconds at bottom. Builds strength out of the hole.'
+  },
+
+  'leg_press': {
+    id: 'leg_press',
+    name: 'Leg Press',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Hamstrings'],
+    equipment: ['leg_curl_machine'],
+    movementPattern: 'squat',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_squat', 'hack_squat'],
+    description: 'Push platform away with feet. Controlled descent without locking knees.'
+  },
+
+  'hack_squat': {
+    id: 'hack_squat',
+    name: 'Hack Squat',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes'],
+    equipment: ['leg_curl_machine'],
+    movementPattern: 'squat',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['leg_press', 'bb_squat'],
+    description: 'Machine-based squat variation. Great quad isolation.'
+  },
+
+  'leg_extension': {
+    id: 'leg_extension',
+    name: 'Leg Extension',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: [],
+    equipment: ['leg_curl_machine'],
+    movementPattern: 'knee_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['leg_press', 'bb_squat'],
+    description: 'Extend knees to full contraction. Squeeze quads at top.'
+  },
+
+  'bw_squat': {
+    id: 'bw_squat',
+    name: 'Bodyweight Squat',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Hamstrings'],
+    equipment: ['bodyweight'],
+    movementPattern: 'squat',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_squat_goblet', 'bw_squat_jump'],
+    description: 'Fundamental movement pattern. Go deep and maintain upright torso.'
+  },
+
+  'bw_squat_jump': {
+    id: 'bw_squat_jump',
+    name: 'Jump Squat',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Calves'],
+    equipment: ['bodyweight'],
+    movementPattern: 'squat',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_squat', 'bw_lunge_jump'],
+    description: 'Explosive jump from squat position. Power and cardio combined.'
+  },
+
+  'db_bulgarian_split_squat': {
+    id: 'db_bulgarian_split_squat',
+    name: 'Bulgarian Split Squat',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Hamstrings'],
+    equipment: ['dumbbell', 'bench'],
+    movementPattern: 'lunge',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_lunge_forward', 'db_lunge_reverse'],
+    description: 'Rear foot elevated on bench. Excellent single-leg quad developer.'
+  },
+
+  // Additional Leg Exercises - Hamstrings/Glutes
+  'bb_deadlift_sumo': {
+    id: 'bb_deadlift_sumo',
+    name: 'Sumo Deadlift',
+    primaryMuscle: 'Hamstrings',
+    secondaryMuscle: ['Glutes', 'Back', 'Traps'],
+    equipment: ['barbell'],
+    movementPattern: 'hinge',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_deadlift', 'db_deadlift_romanian'],
+    description: 'Wide stance, toes pointed out. More quad and glute emphasis.'
+  },
+
+  'bb_deadlift_stiff_leg': {
+    id: 'bb_deadlift_stiff_leg',
+    name: 'Stiff-Leg Deadlift',
+    primaryMuscle: 'Hamstrings',
+    secondaryMuscle: ['Glutes', 'Lower_Back'],
+    equipment: ['barbell'],
+    movementPattern: 'hinge',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_deadlift_romanian', 'bb_deadlift'],
+    description: 'Minimal knee bend. Maximum hamstring stretch and development.'
+  },
+
+  'bb_hip_thrust': {
+    id: 'bb_hip_thrust',
+    name: 'Barbell Hip Thrust',
+    primaryMuscle: 'Glutes',
+    secondaryMuscle: ['Hamstrings'],
+    equipment: ['barbell', 'bench'],
+    movementPattern: 'hip_extension',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_hip_thrust', 'bb_glute_bridge'],
+    description: 'Upper back on bench, bar over hips. Thrust through heels, squeeze glutes.'
+  },
+
+  'db_hip_thrust': {
+    id: 'db_hip_thrust',
+    name: 'Dumbbell Hip Thrust',
+    primaryMuscle: 'Glutes',
+    secondaryMuscle: ['Hamstrings'],
+    equipment: ['dumbbell', 'bench'],
+    movementPattern: 'hip_extension',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_hip_thrust', 'bb_glute_bridge'],
+    description: 'Hold dumbbell on hips. Upper back on bench, thrust upward.'
+  },
+
+  'bb_glute_bridge': {
+    id: 'bb_glute_bridge',
+    name: 'Barbell Glute Bridge',
+    primaryMuscle: 'Glutes',
+    secondaryMuscle: ['Hamstrings'],
+    equipment: ['barbell'],
+    movementPattern: 'hip_extension',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_hip_thrust', 'bw_glute_bridge'],
+    description: 'Lie on floor, bar over hips. Bridge up, full glute contraction at top.'
+  },
+
+  'bw_glute_bridge': {
+    id: 'bw_glute_bridge',
+    name: 'Glute Bridge',
+    primaryMuscle: 'Glutes',
+    secondaryMuscle: ['Hamstrings'],
+    equipment: ['bodyweight'],
+    movementPattern: 'hip_extension',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bb_glute_bridge', 'bw_glute_bridge_single'],
+    description: 'Lie on back, feet flat. Drive through heels, lift hips high.'
+  },
+
+  'bw_glute_bridge_single': {
+    id: 'bw_glute_bridge_single',
+    name: 'Single-Leg Glute Bridge',
+    primaryMuscle: 'Glutes',
+    secondaryMuscle: ['Hamstrings'],
+    equipment: ['bodyweight'],
+    movementPattern: 'hip_extension',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_glute_bridge', 'db_hip_thrust'],
+    description: 'One leg extended. Bridge with single leg, maximum glute activation.'
+  },
+
+  'db_lunge_reverse': {
+    id: 'db_lunge_reverse',
+    name: 'Reverse Lunge',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Hamstrings'],
+    equipment: ['dumbbell'],
+    movementPattern: 'lunge',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_lunge_forward', 'db_bulgarian_split_squat'],
+    description: 'Step backward into lunge. Easier on knees than forward lunge.'
+  },
+
+  'db_lunge_walking': {
+    id: 'db_lunge_walking',
+    name: 'Walking Lunge',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes', 'Hamstrings'],
+    equipment: ['dumbbell'],
+    movementPattern: 'lunge',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_lunge_forward', 'db_lunge_reverse'],
+    description: 'Lunge forward alternating legs in walking motion. Great for glutes.'
+  },
+
+  'bw_lunge': {
+    id: 'bw_lunge',
+    name: 'Bodyweight Lunge',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes'],
+    equipment: ['bodyweight'],
+    movementPattern: 'lunge',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_squat', 'bw_lunge_jump'],
+    description: 'Master the movement pattern before adding weight.'
+  },
+
+  'bw_lunge_jump': {
+    id: 'bw_lunge_jump',
+    name: 'Jump Lunge',
+    primaryMuscle: 'Quads',
+    secondaryMuscle: ['Glutes'],
+    equipment: ['bodyweight'],
+    movementPattern: 'lunge',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['bw_lunge', 'bw_squat_jump'],
+    description: 'Explosive lunge with leg switch mid-air. Challenging plyometric.'
+  },
+
+  'leg_curl_seated': {
+    id: 'leg_curl_seated',
+    name: 'Seated Leg Curl',
+    primaryMuscle: 'Hamstrings',
+    secondaryMuscle: [],
+    equipment: ['leg_curl_machine'],
+    movementPattern: 'knee_flexion',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['leg_curl_lying', 'db_deadlift_romanian'],
+    description: 'Curl legs down, squeeze hamstrings at peak contraction.'
+  },
+
+  // Additional Calf Exercises
+  'calf_raise_single_leg': {
+    id: 'calf_raise_single_leg',
+    name: 'Single-Leg Calf Raise',
+    primaryMuscle: 'Calves',
+    secondaryMuscle: [],
+    equipment: ['bodyweight'],
+    movementPattern: 'plantar_flexion',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['calf_raise_standing', 'calf_raise_seated'],
+    description: 'One leg at a time. Can add dumbbell for extra resistance.'
+  },
+
+  'db_calf_raise': {
+    id: 'db_calf_raise',
+    name: 'Dumbbell Calf Raise',
+    primaryMuscle: 'Calves',
+    secondaryMuscle: [],
+    equipment: ['dumbbell'],
+    movementPattern: 'plantar_flexion',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['calf_raise_standing', 'calf_raise_single_leg'],
+    description: 'Hold dumbbells at sides. Rise onto toes, full extension.'
+  },
+
+  // Additional Core Exercises
+  'bw_situp': {
+    id: 'bw_situp',
+    name: 'Sit-ups',
+    primaryMuscle: 'Core',
+    secondaryMuscle: ['Hip_Flexors'],
+    equipment: ['bodyweight'],
+    movementPattern: 'spinal_flexion',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_crunch', 'bw_situp_decline'],
+    description: 'Full range sit-up motion. Can anchor feet for stability.'
+  },
+
+  'bw_side_plank': {
+    id: 'bw_side_plank',
+    name: 'Side Plank',
+    primaryMuscle: 'Core',
+    secondaryMuscle: ['Obliques'],
+    equipment: ['bodyweight'],
+    movementPattern: 'core',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_plank', 'bw_russian_twist'],
+    description: 'Balance on forearm and side of foot. Keep body straight, hips up.'
+  },
+
+  'bw_mountain_climber': {
+    id: 'bw_mountain_climber',
+    name: 'Mountain Climbers',
+    primaryMuscle: 'Core',
+    secondaryMuscle: ['Shoulders', 'Hip_Flexors'],
+    equipment: ['bodyweight'],
+    movementPattern: 'core',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_plank', 'bw_leg_raise'],
+    description: 'Plank position, alternate bringing knees to chest. Dynamic core work.'
+  },
+
+  'bw_bicycle_crunch': {
+    id: 'bw_bicycle_crunch',
+    name: 'Bicycle Crunches',
+    primaryMuscle: 'Core',
+    secondaryMuscle: ['Obliques'],
+    equipment: ['bodyweight'],
+    movementPattern: 'rotation',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_russian_twist', 'bw_crunch'],
+    description: 'Alternate elbow to opposite knee. Effective ab and oblique exercise.'
+  },
+
+  'cable_crunch': {
+    id: 'cable_crunch',
+    name: 'Cable Crunch',
+    primaryMuscle: 'Core',
+    secondaryMuscle: [],
+    equipment: ['cable_machine'],
+    movementPattern: 'spinal_flexion',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_crunch', 'ab_wheel'],
+    description: 'Hold rope attachment at head. Crunch down, flex abs fully.'
+  },
+
+  'ab_wheel': {
+    id: 'ab_wheel',
+    name: 'Ab Wheel Rollout',
+    primaryMuscle: 'Core',
+    secondaryMuscle: ['Shoulders', 'Back'],
+    equipment: ['bodyweight'],
+    movementPattern: 'core',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_plank', 'cable_crunch'],
+    description: 'Roll wheel forward while keeping core tight. Advanced core exercise.'
+  },
+
+  'pallof_press': {
+    id: 'pallof_press',
+    name: 'Pallof Press',
+    primaryMuscle: 'Core',
+    secondaryMuscle: ['Obliques'],
+    equipment: ['cable_machine'],
+    movementPattern: 'anti_rotation',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_plank', 'bw_side_plank'],
+    description: 'Cable at chest height. Press out and resist rotation. Anti-rotation core work.'
+  },
+
+  'db_side_bend': {
+    id: 'db_side_bend',
+    name: 'Dumbbell Side Bend',
+    primaryMuscle: 'Core',
+    secondaryMuscle: ['Obliques'],
+    equipment: ['dumbbell'],
+    movementPattern: 'lateral_flexion',
+    exerciseType: 'core',
+    timeUnits: 1,
+    alternatives: ['bw_side_plank', 'cable_crunch'],
+    description: 'Hold dumbbell at side. Bend laterally, engaging obliques.'
+  },
+
+  // Additional Forearm/Grip Exercises
+  'wrist_curl_seated': {
+    id: 'wrist_curl_seated',
+    name: 'Seated Wrist Curl',
+    primaryMuscle: 'Forearms',
+    secondaryMuscle: [],
+    equipment: ['dumbbell'],
+    movementPattern: 'wrist_flexion',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['wrist_curl_reverse', 'db_curl_hammer'],
+    description: 'Forearms on thighs, curl wrists up. Builds forearm flexors.'
+  },
+
+  'wrist_curl_reverse': {
+    id: 'wrist_curl_reverse',
+    name: 'Reverse Wrist Curl',
+    primaryMuscle: 'Forearms',
+    secondaryMuscle: [],
+    equipment: ['dumbbell'],
+    movementPattern: 'wrist_extension',
+    exerciseType: 'isolation',
+    timeUnits: 2,
+    alternatives: ['wrist_curl_seated', 'db_curl_hammer'],
+    description: 'Palms down, curl wrists up. Targets forearm extensors.'
+  },
+
+  'farmers_walk': {
+    id: 'farmers_walk',
+    name: 'Farmers Walk',
+    primaryMuscle: 'Forearms',
+    secondaryMuscle: ['Traps', 'Core'],
+    equipment: ['dumbbell'],
+    movementPattern: 'carry',
+    exerciseType: 'compound',
+    timeUnits: 3,
+    alternatives: ['db_shrug', 'bb_deadlift'],
+    description: 'Heavy dumbbells at sides. Walk with good posture. Total body conditioning.'
   }
 };
 
