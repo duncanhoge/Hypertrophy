@@ -8,7 +8,7 @@
 export interface WorkoutSlot {
   slotId: string;
   movementPattern: string;
-  slotType: 'compound' | 'isolation';
+  slotType: 'compound' | 'isolation' | 'core';
   targetSets: number;
   targetReps: string;
   exerciseType: 'weight_reps' | 'reps_only' | 'reps_only_with_optional_weight' | 'timed';
@@ -88,7 +88,7 @@ export const DAY_SPECIFIC_SKELETONS: Record<string, DaySpecificSkeleton> = {
       {
         slotId: 'push_acc_4',
         movementPattern: 'core',
-        slotType: 'isolation',
+        slotType: 'core',
         targetSets: 3,
         targetReps: '45-60s',
         exerciseType: 'timed'
@@ -144,7 +144,7 @@ export const DAY_SPECIFIC_SKELETONS: Record<string, DaySpecificSkeleton> = {
       {
         slotId: 'pull_acc_4',
         movementPattern: 'core',
-        slotType: 'isolation',
+        slotType: 'core',
         targetSets: 3,
         targetReps: '10-15',
         exerciseType: 'reps_only'
@@ -192,7 +192,7 @@ export const DAY_SPECIFIC_SKELETONS: Record<string, DaySpecificSkeleton> = {
       {
         slotId: 'legs_acc_3',
         movementPattern: 'core',
-        slotType: 'isolation',
+        slotType: 'core',
         targetSets: 3,
         targetReps: '30-45s',
         exerciseType: 'timed'
@@ -280,7 +280,7 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
           {
             slotId: 'a6',
             movementPattern: 'core',
-            slotType: 'isolation',
+            slotType: 'core',
             targetSets: 3,
             targetReps: '45-60s',
             exerciseType: 'timed'
@@ -344,7 +344,7 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
           {
             slotId: 'b6',
             movementPattern: 'core',
-            slotType: 'isolation',
+            slotType: 'core',
             targetSets: 3,
             targetReps: '10-15',
             exerciseType: 'reps_only'
@@ -408,7 +408,7 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
           {
             slotId: 'c6',
             movementPattern: 'core',
-            slotType: 'isolation',
+            slotType: 'core',
             targetSets: 3,
             targetReps: '30-45s',
             exerciseType: 'timed'
