@@ -10,9 +10,24 @@ export interface Exercise {
   type: string;
 }
 
+export type ExerciseOrSuperset = Exercise | [Exercise, Exercise];
+
 export interface WorkoutDay {
   name: string;
-  exercises: Exercise[];
+  exercises: (Exercise | SupersetPair)[];
+}
+
+export interface SupersetPair {
+  exerciseA: Exercise;
+  exerciseB: Exercise;
+}
+
+export function isSupersetPair(exercise: any): exercise is SupersetPair {
+  return exercise && typeof exercise === 'object' && 'exerciseA' in exercise && 'exerciseB' in exercise;
+}
+
+export function isExercise(exercise: any): exercise is Exercise {
+  return exercise && typeof exercise === 'object' && 'id' in exercise && !('exerciseA' in exercise);
 }
 
 export interface TrainingLevel {

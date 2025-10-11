@@ -14,11 +14,24 @@ export interface WorkoutSlot {
   exerciseType: 'weight_reps' | 'reps_only' | 'reps_only_with_optional_weight' | 'timed';
 }
 
+export interface SupersetSlot {
+  slotId: string;
+  isSuperset: true;
+  slotA: WorkoutSlot;
+  slotB: WorkoutSlot;
+}
+
+export type WorkoutSlotOrSuperset = WorkoutSlot | SupersetSlot;
+
+export function isSupersetSlot(slot: WorkoutSlotOrSuperset): slot is SupersetSlot {
+  return 'isSuperset' in slot && slot.isSuperset === true;
+}
+
 export interface WorkoutSkeleton {
   day: string;
   name: string;
-  coreSlots: WorkoutSlot[];
-  accessoryPool: WorkoutSlot[];
+  coreSlots: WorkoutSlotOrSuperset[];
+  accessoryPool: WorkoutSlotOrSuperset[];
 }
 
 /**
@@ -31,8 +44,8 @@ export interface WorkoutSkeleton {
 export interface DaySpecificSkeleton {
   dayType: string;
   name: string;
-  coreSlots: WorkoutSlot[];
-  accessoryPool: WorkoutSlot[];
+  coreSlots: WorkoutSlotOrSuperset[];
+  accessoryPool: WorkoutSlotOrSuperset[];
 }
 
 /**
@@ -599,45 +612,85 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
         coreSlots: [
           {
             slotId: 'superset_push_1',
-            movementPattern: 'horizontal_press',
-            slotType: 'compound',
-            targetSets: 4,
-            targetReps: '8-12',
-            exerciseType: 'weight_reps'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_push_1a',
+              movementPattern: 'horizontal_press',
+              slotType: 'compound',
+              targetSets: 4,
+              targetReps: '8-12',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_push_1b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 4,
+              targetReps: '10-15',
+              exerciseType: 'reps_only'
+            }
           },
           {
             slotId: 'superset_push_2',
-            movementPattern: 'vertical_press',
-            slotType: 'compound',
-            targetSets: 3,
-            targetReps: '10-15',
-            exerciseType: 'weight_reps'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_push_2a',
+              movementPattern: 'vertical_press',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_push_2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '30-45s',
+              exerciseType: 'timed'
+            }
           }
         ],
         accessoryPool: [
           {
             slotId: 'superset_push_acc_1',
-            movementPattern: 'lateral_raise',
-            slotType: 'isolation',
-            targetSets: 3,
-            targetReps: '12-15',
-            exerciseType: 'weight_reps'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_push_acc_1a',
+              movementPattern: 'tricep_extension',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_push_acc_1b',
+              movementPattern: 'lateral_raise',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            }
           },
           {
             slotId: 'superset_push_acc_2',
-            movementPattern: 'tricep_extension',
-            slotType: 'isolation',
-            targetSets: 3,
-            targetReps: '12-15',
-            exerciseType: 'weight_reps'
-          },
-          {
-            slotId: 'superset_push_acc_3',
-            movementPattern: 'horizontal_adduction',
-            slotType: 'isolation',
-            targetSets: 3,
-            targetReps: '12-15',
-            exerciseType: 'weight_reps'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_push_acc_2a',
+              movementPattern: 'horizontal_adduction',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_push_acc_2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '30-45s',
+              exerciseType: 'timed'
+            }
           }
         ]
       },
@@ -647,93 +700,173 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
         coreSlots: [
           {
             slotId: 'superset_pull_1',
-            movementPattern: 'horizontal_pull',
-            slotType: 'compound',
-            targetSets: 4,
-            targetReps: '8-12',
-            exerciseType: 'weight_reps'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_pull_1a',
+              movementPattern: 'horizontal_pull',
+              slotType: 'compound',
+              targetSets: 4,
+              targetReps: '8-12',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_pull_1b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 4,
+              targetReps: '10-15',
+              exerciseType: 'reps_only'
+            }
           },
           {
             slotId: 'superset_pull_2',
-            movementPattern: 'vertical_pull',
-            slotType: 'compound',
-            targetSets: 3,
-            targetReps: '8-12',
-            exerciseType: 'reps_only'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_pull_2a',
+              movementPattern: 'vertical_pull',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '8-12',
+              exerciseType: 'reps_only'
+            },
+            slotB: {
+              slotId: 'superset_pull_2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '30-45s',
+              exerciseType: 'timed'
+            }
           }
         ],
         accessoryPool: [
           {
             slotId: 'superset_pull_acc_1',
-            movementPattern: 'bicep_curl',
-            slotType: 'isolation',
-            targetSets: 3,
-            targetReps: '12-15',
-            exerciseType: 'weight_reps'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_pull_acc_1a',
+              movementPattern: 'bicep_curl',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_pull_acc_1b',
+              movementPattern: 'horizontal_abduction',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '15-20',
+              exerciseType: 'weight_reps'
+            }
           },
           {
             slotId: 'superset_pull_acc_2',
-            movementPattern: 'horizontal_abduction',
-            slotType: 'isolation',
-            targetSets: 3,
-            targetReps: '15-20',
-            exerciseType: 'weight_reps'
-          },
-          {
-            slotId: 'superset_pull_acc_3',
-            movementPattern: 'shrug',
-            slotType: 'isolation',
-            targetSets: 3,
-            targetReps: '12-15',
-            exerciseType: 'weight_reps'
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_pull_acc_2a',
+              movementPattern: 'shrug',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_pull_acc_2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '30-45s',
+              exerciseType: 'timed'
+            }
           }
         ]
       },
       {
         day: 'Day 3',
-        name: 'Day 3 - Core Focus',
+        name: 'Day 3 - Legs Superset',
         coreSlots: [
           {
-            slotId: 'superset_core_1',
-            movementPattern: 'squat',
-            slotType: 'compound',
-            targetSets: 3,
-            targetReps: '10-15',
-            exerciseType: 'weight_reps'
+            slotId: 'superset_legs_1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_legs_1a',
+              movementPattern: 'squat',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_legs_1b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '45-60s',
+              exerciseType: 'timed'
+            }
           },
           {
-            slotId: 'superset_core_2',
-            movementPattern: 'hinge',
-            slotType: 'compound',
-            targetSets: 3,
-            targetReps: '10-15',
-            exerciseType: 'weight_reps'
+            slotId: 'superset_legs_2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_legs_2a',
+              movementPattern: 'hinge',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_legs_2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'reps_only'
+            }
           }
         ],
         accessoryPool: [
           {
-            slotId: 'superset_core_acc_1',
-            movementPattern: 'core',
-            slotType: 'core',
-            targetSets: 3,
-            targetReps: '45-60s',
-            exerciseType: 'timed'
+            slotId: 'superset_legs_acc_1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_legs_acc_1a',
+              movementPattern: 'lunge',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'superset_legs_acc_1b',
+              movementPattern: 'plantar_flexion',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '15-20',
+              exerciseType: 'weight_reps'
+            }
           },
           {
-            slotId: 'superset_core_acc_2',
-            movementPattern: 'core',
-            slotType: 'core',
-            targetSets: 3,
-            targetReps: '10-15',
-            exerciseType: 'reps_only'
-          },
-          {
-            slotId: 'superset_core_acc_3',
-            movementPattern: 'plantar_flexion',
-            slotType: 'isolation',
-            targetSets: 3,
-            targetReps: '15-20',
-            exerciseType: 'weight_reps'
+            slotId: 'superset_legs_acc_2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'superset_legs_acc_2a',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '30-45s',
+              exerciseType: 'timed'
+            },
+            slotB: {
+              slotId: 'superset_legs_acc_2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'reps_only'
+            }
           }
         ]
       }

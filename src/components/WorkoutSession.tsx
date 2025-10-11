@@ -11,7 +11,8 @@ import { useUserProfile } from '../hooks/useUserProfile';
 import { useExerciseHistory } from '../hooks/useExerciseHistory';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
-import { getEnhancedExercise } from '../data/workoutData';
+import { getEnhancedExercise, isSupersetPair } from '../data/workoutData';
+import { flattenExercises, getSupersetLabel } from '../data/supersetUtils';
 import type { WorkoutPlan, EnhancedExercise } from '../data/workoutData';
 
 const REST_DURATION_SECONDS = 90;
@@ -45,8 +46,8 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
     );
   }
 
-  const exercises = workout.exercises.map(getEnhancedExercise);
-  
+  const flattenedExercises = flattenExercises(workout.exercises).map(getEnhancedExercise);
+
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
   const [weight, setWeight] = useState('');
@@ -69,10 +70,14 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
   const restTimerRef = useRef<NodeJS.Timeout | null>(null);
   const exerciseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const currentExercise = exercises[currentExerciseIndex];
-  const nextExercise = currentExerciseIndex < exercises.length - 1 ? exercises[currentExerciseIndex + 1] : null;
-  const isLastExercise = currentExerciseIndex === exercises.length - 1;
+  const currentExercise = flattenedExercises[currentExerciseIndex];
+  const nextExercise = currentExerciseIndex < flattenedExercises.length - 1 ? flattenedExercises[currentExerciseIndex + 1] : null;
+  const isLastExercise = currentExerciseIndex === flattenedExercises.length - 1;
   const isLastSet = currentSet >= currentExercise.sets;
+
+  const isSuperset = currentExercise.isSupersetExercise || false;
+  const supersetPosition = currentExercise.supersetPosition;
+  const supersetIndex = currentExercise.supersetIndex ?? 0;
 
   const { history: exerciseHistory, loading: historyLoading } = useExerciseHistory(
     currentExercise.id, 
@@ -223,20 +228,45 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
       setDuration('');
       setTimerSeconds(0);
 
-      // Move to next set or exercise
-      if (currentSet < currentExercise.sets) {
-        setCurrentSet(prev => prev + 1);
-        setIsResting(true);
-        setRestTimeLeft(REST_DURATION_SECONDS);
-      } else {
-        // Move to next exercise or complete workout
-        if (currentExerciseIndex < exercises.length - 1) {
-          setCurrentExerciseIndex(prev => prev + 1);
-          setCurrentSet(1);
+      // Superset flow logic
+      if (isSuperset && supersetPosition === 'A') {
+        // Logging exercise A of a superset - move to exercise B without rest
+        setCurrentExerciseIndex(prev => prev + 1);
+        setLoggedSetsForExercise([]);
+      } else if (isSuperset && supersetPosition === 'B') {
+        // Logging exercise B of a superset - start rest, then move to next set or next superset
+        if (currentSet < currentExercise.sets) {
+          // More sets to do - go back to exercise A of this superset
+          setCurrentExerciseIndex(prev => prev - 1);
+          setCurrentSet(prev => prev + 1);
           setLoggedSetsForExercise([]);
+          setIsResting(true);
+          setRestTimeLeft(REST_DURATION_SECONDS);
         } else {
-          // Workout complete
-          setShowCompletionModal(true);
+          // All sets complete - move to next exercise or complete workout
+          if (currentExerciseIndex < flattenedExercises.length - 1) {
+            setCurrentExerciseIndex(prev => prev + 1);
+            setCurrentSet(1);
+            setLoggedSetsForExercise([]);
+          } else {
+            setShowCompletionModal(true);
+          }
+        }
+      } else {
+        // Standard exercise flow (non-superset)
+        if (currentSet < currentExercise.sets) {
+          setCurrentSet(prev => prev + 1);
+          setIsResting(true);
+          setRestTimeLeft(REST_DURATION_SECONDS);
+        } else {
+          // Move to next exercise or complete workout
+          if (currentExerciseIndex < flattenedExercises.length - 1) {
+            setCurrentExerciseIndex(prev => prev + 1);
+            setCurrentSet(1);
+            setLoggedSetsForExercise([]);
+          } else {
+            setShowCompletionModal(true);
+          }
         }
       }
     } catch (error) {
@@ -411,7 +441,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
           <div className="text-center">
             <h2 className="text-xl font-bold text-theme-gold">{workout.name}</h2>
             <p className="text-sm text-theme-gold-dark">
-              Exercise {currentExerciseIndex + 1} of {exercises.length}
+              Exercise {currentExerciseIndex + 1} of {flattenedExercises.length}
             </p>
           </div>
           <div className="w-20"></div> {/* Spacer for centering */}
@@ -420,7 +450,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         {/* Exercise Progress */}
         <div className="flex justify-center">
           <div className="flex space-x-2">
-            {exercises.map((_, index) => (
+            {flattenedExercises.map((_, index) => (
               <div
                 key={index}
                 className={`w-3 h-3 rounded-full ${
@@ -439,13 +469,20 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
         <Card className="bg-theme-black-light border border-theme-gold/20">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <button
-                onClick={() => openExerciseLink(currentExercise.name)}
-                className="flex items-center gap-2 text-2xl font-bold text-theme-gold hover:text-theme-gold-light transition-colors"
-              >
-                {currentExercise.name}
-                <ExternalLink size={18} className="text-theme-gold-dark" />
-              </button>
+              <div className="flex flex-col">
+                {isSuperset && (
+                  <span className="text-sm font-semibold text-theme-gold-dark mb-1">
+                    {getSupersetLabel(supersetIndex, supersetPosition!)}
+                  </span>
+                )}
+                <button
+                  onClick={() => openExerciseLink(currentExercise.name)}
+                  className="flex items-center gap-2 text-2xl font-bold text-theme-gold hover:text-theme-gold-light transition-colors"
+                >
+                  {currentExercise.name}
+                  <ExternalLink size={18} className="text-theme-gold-dark" />
+                </button>
+              </div>
               <IconButton
                 onClick={() => setShowHistory(true)}
                 ariaLabel="View exercise history"
@@ -454,7 +491,7 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
                 <History size={16} />
               </IconButton>
             </div>
-            
+
             <div className="flex items-center gap-4 text-theme-gold-light">
               <span className="flex items-center gap-1">
                 <Target size={16} />
@@ -589,10 +626,20 @@ function WorkoutSession({ day, plan, onGoHome, onLogWorkout }: WorkoutSessionPro
 
               <PrimaryButton
                 onClick={handleLogSet}
-                ariaLabel="Log Set & Start Rest"
+                ariaLabel={
+                  isLastSet && isLastExercise
+                    ? 'Complete Workout'
+                    : isSuperset && supersetPosition === 'A'
+                    ? `Log & Start ${getSupersetLabel(supersetIndex, 'B')}`
+                    : 'Log Set & Start Rest'
+                }
                 className="w-full py-3 text-lg font-semibold"
               >
-                {isLastSet && isLastExercise ? 'Complete Workout' : 'Log Set & Start Rest'}
+                {isLastSet && isLastExercise
+                  ? 'Complete Workout'
+                  : isSuperset && supersetPosition === 'A'
+                  ? `Log & Start ${getSupersetLabel(supersetIndex, 'B')}`
+                  : 'Log Set & Start Rest'}
               </PrimaryButton>
             </div>
           </div>

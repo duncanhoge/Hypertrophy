@@ -276,6 +276,149 @@ generatedPlan = {
 
 This ensures users see consistent information about their plan throughout the application.
 
+## Creating a Superset Workout
+
+**New Feature**: The template system now supports superset exercise pairs, enabling time-efficient, high-intensity workouts where two exercises are performed back-to-back with minimal rest.
+
+### What is a Superset?
+
+A superset pairs two exercises (A and B) that are performed consecutively without rest between them. Rest only occurs after completing both exercises in the pair. This training method maximizes metabolic stress and training density while allowing for strategic recovery.
+
+### Superset Data Structure
+
+Supersets use a special `SupersetSlot` structure that wraps two `WorkoutSlot` definitions:
+
+```typescript
+{
+  slotId: 'unique_superset_id',
+  isSuperset: true,
+  slotA: {
+    slotId: 'exercise_a_id',
+    movementPattern: 'horizontal_press',
+    slotType: 'compound',
+    targetSets: 4,
+    targetReps: '8-12',
+    exerciseType: 'weight_reps'
+  },
+  slotB: {
+    slotId: 'exercise_b_id',
+    movementPattern: 'core',
+    slotType: 'core',
+    targetSets: 4,
+    targetReps: '10-15',
+    exerciseType: 'reps_only'
+  }
+}
+```
+
+### Superset Pairing Strategy
+
+For optimal results, pair exercises according to these principles:
+
+1. **Primary + Core**: Demanding compound lift paired with core work
+   - Example: Bench Press + Leg Raises
+
+2. **Primary + Less Taxing**: Heavy compound paired with isolation that doesn't fatigue the same systems
+   - Example: Deadlift + Plank
+
+3. **Isolation + Isolation**: Two isolation movements targeting different muscle groups
+   - Example: Tricep Extension + Lateral Raise
+
+### Workout Flow
+
+The superset workout flow differs from standard workouts:
+
+**Standard Exercise**:
+1. Perform set
+2. Start rest timer (90s)
+3. Repeat for all sets
+
+**Superset Pair**:
+1. Perform Exercise A (Set 1)
+2. Immediately perform Exercise B (Set 1) - NO REST
+3. Start rest timer (90s)
+4. Return to Exercise A (Set 2)
+5. Repeat until all sets complete
+
+### User Interface
+
+During superset workouts, the app displays:
+- **Exercise Label**: "Superset 1A", "Superset 1B", "Superset 2A", etc.
+- **Dynamic Button Text**:
+  - Exercise A: "Log & Start Superset 1B"
+  - Exercise B: "Log Set & Start Rest"
+
+### Example Superset Template
+
+Here's a complete example of a Push Day using supersets:
+
+```typescript
+{
+  day: 'Day 1',
+  name: 'Day 1 - Push Superset',
+  coreSlots: [
+    {
+      slotId: 'superset_1',
+      isSuperset: true,
+      slotA: {
+        slotId: 'superset_1a',
+        movementPattern: 'horizontal_press',
+        slotType: 'compound',
+        targetSets: 4,
+        targetReps: '8-12',
+        exerciseType: 'weight_reps'
+      },
+      slotB: {
+        slotId: 'superset_1b',
+        movementPattern: 'core',
+        slotType: 'core',
+        targetSets: 4,
+        targetReps: '10-15',
+        exerciseType: 'reps_only'
+      }
+    }
+  ],
+  accessoryPool: [
+    {
+      slotId: 'superset_acc_1',
+      isSuperset: true,
+      slotA: {
+        slotId: 'superset_acc_1a',
+        movementPattern: 'tricep_extension',
+        slotType: 'isolation',
+        targetSets: 3,
+        targetReps: '12-15',
+        exerciseType: 'weight_reps'
+      },
+      slotB: {
+        slotId: 'superset_acc_1b',
+        movementPattern: 'lateral_raise',
+        slotType: 'isolation',
+        targetSets: 3,
+        targetReps: '12-15',
+        exerciseType: 'weight_reps'
+      }
+    }
+  ]
+}
+```
+
+### Best Practices for Superset Design
+
+1. **Strategic Pairing**: Pair exercises that don't compete for the same energy systems
+2. **Set Synchronization**: Both exercises in a pair should have the same number of sets
+3. **Rep Ranges**: Exercise A and B can have different rep ranges based on their purposes
+4. **Equipment Consideration**: Ensure both exercises use commonly available equipment
+5. **Recovery Balance**: The pairing should allow partial recovery while maintaining intensity
+
+### Time Unit (TU) Considerations
+
+When using supersets with the TU budget system:
+- Both exercises in a superset pair contribute their individual TU values
+- The plan generation engine accounts for the total TU cost of the pair
+- Superset pairs are treated as single units for budget calculation
+- Rest periods between superset pairs use the standard 90-second duration
+
 ## Related Documentation
 
 - [Exercise Dictionary](./exercise-dictionary.md) - Complete exercise definitions and movement patterns

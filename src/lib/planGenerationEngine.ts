@@ -6,8 +6,8 @@
  */
 
 import { EXERCISE_DICTIONARY, getExercisesByMovementPattern } from '../data/exerciseDictionary';
-import { getTemplateById, getDaySpecificSkeleton, type WorkoutTemplate, type WorkoutSlot, type DaySpecificSkeleton } from '../data/workoutTemplates';
-import type { Exercise, WorkoutPlan, TrainingLevel, WorkoutDay } from '../data/workoutData';
+import { getTemplateById, getDaySpecificSkeleton, type WorkoutTemplate, type WorkoutSlot, type WorkoutSlotOrSuperset, type DaySpecificSkeleton, isSupersetSlot } from '../data/workoutTemplates';
+import type { Exercise, WorkoutPlan, TrainingLevel, WorkoutDay, SupersetPair } from '../data/workoutData';
 
 export type VolumeLevel = 'short' | 'standard' | 'long';
 
@@ -59,33 +59,65 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
 
   // Generate Level 1 workouts
   const generatedWorkouts: Record<string, WorkoutDay> = {};
-  
+
   for (const workoutSkeleton of template.workouts) {
-    const exercises: Exercise[] = [];
-    
+    const exercises: (Exercise | SupersetPair)[] = [];
+
     // Always include all core slots
     for (const slot of workoutSkeleton.coreSlots) {
-      const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
-      
-      if (!selectedExercise) {
-        console.warn(`No suitable exercise found for core slot ${slot.slotId} with pattern ${slot.movementPattern}`);
-        continue;
+      if (isSupersetSlot(slot)) {
+        const exerciseA = selectExerciseForSlot(slot.slotA, selectedEquipment, excludeExerciseIds);
+        const exerciseB = selectExerciseForSlot(slot.slotB, selectedEquipment, excludeExerciseIds);
+
+        if (!exerciseA || !exerciseB) {
+          console.warn(`No suitable exercises found for superset slot ${slot.slotId}`);
+          continue;
+        }
+
+        exercises.push({
+          exerciseA: {
+            id: exerciseA.id,
+            sets: slot.slotA.targetSets,
+            reps: slot.slotA.targetReps,
+            type: slot.slotA.exerciseType
+          },
+          exerciseB: {
+            id: exerciseB.id,
+            sets: slot.slotB.targetSets,
+            reps: slot.slotB.targetReps,
+            type: slot.slotB.exerciseType
+          }
+        });
+      } else {
+        const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
+
+        if (!selectedExercise) {
+          console.warn(`No suitable exercise found for core slot ${slot.slotId} with pattern ${slot.movementPattern}`);
+          continue;
+        }
+
+        exercises.push({
+          id: selectedExercise.id,
+          sets: slot.targetSets,
+          reps: slot.targetReps,
+          type: slot.exerciseType
+        });
       }
-      
-      exercises.push({
-        id: selectedExercise.id,
-        sets: slot.targetSets,
-        reps: slot.targetReps,
-        type: slot.exerciseType
-      });
     }
     
     // Calculate current TU count from core exercises
     let currentTuCount = 0;
     for (const exercise of exercises) {
-      const exerciseDefinition = EXERCISE_DICTIONARY[exercise.id];
-      if (exerciseDefinition) {
-        currentTuCount += exerciseDefinition.timeUnits;
+      if ('exerciseA' in exercise && 'exerciseB' in exercise) {
+        const exerciseADefinition = EXERCISE_DICTIONARY[exercise.exerciseA.id];
+        const exerciseBDefinition = EXERCISE_DICTIONARY[exercise.exerciseB.id];
+        if (exerciseADefinition) currentTuCount += exerciseADefinition.timeUnits;
+        if (exerciseBDefinition) currentTuCount += exerciseBDefinition.timeUnits;
+      } else {
+        const exerciseDefinition = EXERCISE_DICTIONARY[exercise.id];
+        if (exerciseDefinition) {
+          currentTuCount += exerciseDefinition.timeUnits;
+        }
       }
     }
     
@@ -100,9 +132,16 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
     
     for (const accessoryExercise of selectedAccessories) {
       exercises.push(accessoryExercise);
-      const exerciseDefinition = EXERCISE_DICTIONARY[accessoryExercise.id];
-      if (exerciseDefinition) {
-        currentTuCount += exerciseDefinition.timeUnits;
+      if ('exerciseA' in accessoryExercise && 'exerciseB' in accessoryExercise) {
+        const exerciseADefinition = EXERCISE_DICTIONARY[accessoryExercise.exerciseA.id];
+        const exerciseBDefinition = EXERCISE_DICTIONARY[accessoryExercise.exerciseB.id];
+        if (exerciseADefinition) currentTuCount += exerciseADefinition.timeUnits;
+        if (exerciseBDefinition) currentTuCount += exerciseBDefinition.timeUnits;
+      } else {
+        const exerciseDefinition = EXERCISE_DICTIONARY[accessoryExercise.id];
+        if (exerciseDefinition) {
+          currentTuCount += exerciseDefinition.timeUnits;
+        }
       }
     }
     
@@ -143,43 +182,76 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
  * Select accessory exercises based on TU budget
  */
 function selectAccessoriesByTuBudget(
-  accessoryPool: WorkoutSlot[],
+  accessoryPool: WorkoutSlotOrSuperset[],
   selectedEquipment: string[],
   excludeExerciseIds: string[],
   tuBudget: number,
   currentTuCount: number
-): Exercise[] {
-  const selectedAccessories: Exercise[] = [];
+): (Exercise | SupersetPair)[] {
+  const selectedAccessories: (Exercise | SupersetPair)[] = [];
   let remainingBudget = tuBudget - currentTuCount;
-  
+
   // Create a shuffled list of available accessories
   const availableSlots = [...accessoryPool].sort(() => Math.random() - 0.5);
-  
+
   // Iteratively select accessories that fit within budget
   for (const slot of availableSlots) {
-    const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
-    
-    if (selectedExercise) {
-      const exerciseDefinition = EXERCISE_DICTIONARY[selectedExercise.id];
-      
-      if (exerciseDefinition && exerciseDefinition.timeUnits <= remainingBudget) {
-        selectedAccessories.push({
-          id: selectedExercise.id,
-          sets: slot.targetSets,
-          reps: slot.targetReps,
-          type: slot.exerciseType
-        });
-        
-        remainingBudget -= exerciseDefinition.timeUnits;
-        
-        // Stop if we can't fit any more exercises (minimum TU is 1)
-        if (remainingBudget < 1) {
-          break;
+    if (isSupersetSlot(slot)) {
+      const exerciseA = selectExerciseForSlot(slot.slotA, selectedEquipment, excludeExerciseIds);
+      const exerciseB = selectExerciseForSlot(slot.slotB, selectedEquipment, excludeExerciseIds);
+
+      if (exerciseA && exerciseB) {
+        const exerciseADefinition = EXERCISE_DICTIONARY[exerciseA.id];
+        const exerciseBDefinition = EXERCISE_DICTIONARY[exerciseB.id];
+        const totalTU = (exerciseADefinition?.timeUnits || 0) + (exerciseBDefinition?.timeUnits || 0);
+
+        if (totalTU <= remainingBudget) {
+          selectedAccessories.push({
+            exerciseA: {
+              id: exerciseA.id,
+              sets: slot.slotA.targetSets,
+              reps: slot.slotA.targetReps,
+              type: slot.slotA.exerciseType
+            },
+            exerciseB: {
+              id: exerciseB.id,
+              sets: slot.slotB.targetSets,
+              reps: slot.slotB.targetReps,
+              type: slot.slotB.exerciseType
+            }
+          });
+
+          remainingBudget -= totalTU;
+
+          if (remainingBudget < 1) {
+            break;
+          }
+        }
+      }
+    } else {
+      const selectedExercise = selectExerciseForSlot(slot, selectedEquipment, excludeExerciseIds);
+
+      if (selectedExercise) {
+        const exerciseDefinition = EXERCISE_DICTIONARY[selectedExercise.id];
+
+        if (exerciseDefinition && exerciseDefinition.timeUnits <= remainingBudget) {
+          selectedAccessories.push({
+            id: selectedExercise.id,
+            sets: slot.targetSets,
+            reps: slot.targetReps,
+            type: slot.exerciseType
+          });
+
+          remainingBudget -= exerciseDefinition.timeUnits;
+
+          if (remainingBudget < 1) {
+            break;
+          }
         }
       }
     }
   }
-  
+
   return selectedAccessories;
 }
 
