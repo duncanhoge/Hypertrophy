@@ -6,7 +6,7 @@ import { Card } from './ui/Card';
 import { getAllTemplates, getTemplateById, type WorkoutTemplate } from '../data/workoutTemplates';
 import { generateWorkoutPlan, getAllAvailableEquipment, getEquipmentDisplayName, getVolumeDisplayInfo, getVolumeTuBudget, type GenerationOptions, type VolumeLevel } from '../lib/planGenerationEngine';
 import { useUserProfile } from '../hooks/useUserProfile';
-import { getEnhancedExercise } from '../data/workoutData';
+import { getEnhancedExercise, isSupersetPair } from '../data/workoutData';
 
 interface PlanGenerationWizardProps {
   onBack: () => void;
@@ -528,13 +528,36 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
                                 <h7 className="text-xs font-medium text-theme-gold-dark uppercase tracking-wide">Exercises:</h7>
                                 <div className="grid grid-cols-1 gap-1">
                                   {workout.exercises.map((exercise: any, index: number) => {
-                                    const enhancedExercise = getEnhancedExercise(exercise);
-                                    return (
-                                      <div key={index} className="flex justify-between items-center text-xs">
-                                        <span className="text-theme-gold-light">{enhancedExercise.name}</span>
-                                        <span className="text-theme-gold-dark">{exercise.sets} × {exercise.reps}</span>
-                                      </div>
-                                    );
+                                    if (isSupersetPair(exercise)) {
+                                      const enhancedExerciseA = getEnhancedExercise(exercise.exerciseA);
+                                      const enhancedExerciseB = getEnhancedExercise(exercise.exerciseB);
+                                      return (
+                                        <div key={index} className="space-y-1">
+                                          <div className="flex justify-between items-center text-xs">
+                                            <span className="text-theme-gold-light">
+                                              <span className="text-theme-gold-dark font-semibold mr-1">Superset {index + 1}A:</span>
+                                              {enhancedExerciseA.name}
+                                            </span>
+                                            <span className="text-theme-gold-dark">{exercise.exerciseA.sets} × {exercise.exerciseA.reps}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center text-xs">
+                                            <span className="text-theme-gold-light">
+                                              <span className="text-theme-gold-dark font-semibold mr-1">Superset {index + 1}B:</span>
+                                              {enhancedExerciseB.name}
+                                            </span>
+                                            <span className="text-theme-gold-dark">{exercise.exerciseB.sets} × {exercise.exerciseB.reps}</span>
+                                          </div>
+                                        </div>
+                                      );
+                                    } else {
+                                      const enhancedExercise = getEnhancedExercise(exercise);
+                                      return (
+                                        <div key={index} className="flex justify-between items-center text-xs">
+                                          <span className="text-theme-gold-light">{enhancedExercise.name}</span>
+                                          <span className="text-theme-gold-dark">{exercise.sets} × {exercise.reps}</span>
+                                        </div>
+                                      );
+                                    }
                                   })}
                                 </div>
                               </div>
