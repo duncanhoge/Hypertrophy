@@ -145,18 +145,25 @@ function PlanSelection({ onSelectPlan, onCreatePlan, workoutHistory }: PlanSelec
               </div>
               
               <p className="text-theme-gold-dark">{profile.active_generated_plan.description}</p>
-              
-              <div className="flex items-center gap-2 text-theme-gold-dark">
-                <Calendar className="w-5 h-5" />
-                <span>{Object.keys(profile.active_generated_plan.levels[0].workouts).length} workouts per week</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(profile.active_generated_plan.levels[0].workouts).map(([day, workout]: [string, any]) => (
-                  <span key={day} className="px-3 py-1 bg-theme-black-lighter rounded-2x-nested-container text-sm text-theme-gold-dark">
-                    {day}
-                  </span>
-                ))}
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-theme-gold-dark">
+                  <Calendar className="w-5 h-5" />
+                  <span>{profile.active_generated_plan.weeklySchedule}</span>
+                </div>
+
+                {profile.active_generated_plan.tags && profile.active_generated_plan.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {profile.active_generated_plan.tags.map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="px-2 py-1 bg-theme-black-lighter rounded-2x-nested-container text-xs text-theme-gold-light border border-theme-gold/20"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-3 pt-2">

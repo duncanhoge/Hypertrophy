@@ -119,6 +119,8 @@ src/
 │   └── planGenerationEngine.ts # Plan generation logic
 ├── docs/                # Architecture documentation
 │   ├── exercise-dictionary.md # Exercise Dictionary documentation
+│   ├── workout-templates.md # Workout Templates architecture
+│   ├── plan-generation.md # Plan Generation Engine documentation
 │   └── training-block-completion.md # Training Block system documentation
 ├── App.tsx              # Main application component
 ├── main.tsx             # Application entry point
@@ -135,12 +137,21 @@ The **Plan Generation Engine** creates personalized workout plans using a templa
 - **Exercise Dictionary Integration**: Leverages centralized exercise database
 - **Plan Management**: Full CRUD operations for generated plans
 
+#### Available Templates
+- **Full Body Hypertrophy** (3 days/week) - Balanced full-body training
+- **Push/Pull/Legs** (3 days/week) - Functional movement patterns
+- **Hypertrophy Superset** (3 days/week) - Time-efficient high intensity
+- **Upper/Lower Split** (4 days/week) - Classic frequency and volume balance
+- **The Bodybuilder Split** (4 days/week) - Maximum isolation and volume
+
 #### Volume Levels
 - **Short**: 1 accessory exercise (~30-40 minutes)
 - **Standard**: 2 accessory exercises (~45-55 minutes) - Default
 - **Long**: 4 accessory exercises (~60+ minutes)
 
 For detailed information about the Plan Generation system, see: [Plan Generation Documentation](docs/plan-generation.md)
+
+For information about the template system and how to add new templates, see: [Workout Templates Documentation](docs/workout-templates.md)
 
 ### Exercise Dictionary Architecture
 

@@ -23,6 +23,8 @@ export interface GeneratedPlan {
   id: string;
   name: string;
   description: string;
+  weeklySchedule: string;
+  tags: string[];
   image: string;
   templateId: string; // Reference to the template used
   tuBudget: number; // TU budget used for generation
@@ -118,6 +120,8 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
     id: `generated_${Date.now()}`, // Unique ID for this generated plan
     name: planName || `My ${template.name}`,
     description: `Personalized ${template.description.toLowerCase()} generated based on your available equipment and workout preferences.`,
+    weeklySchedule: template.weeklySchedule,
+    tags: template.tags,
     image: "https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
     templateId,
     tuBudget,

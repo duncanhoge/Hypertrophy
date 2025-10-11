@@ -234,7 +234,7 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
             
             <div className="grid grid-cols-1 gap-4">
               {availableTemplates.map(template => (
-                <Card 
+                <Card
                   key={template.id}
                   className={`cursor-pointer transition-all duration-200 hover:border-theme-gold/50 hover:scale-[1.02] ${
                     selectedTemplate?.id === template.id ? 'border-theme-gold bg-theme-gold/10' : 'border-theme-gold/20'
@@ -248,10 +248,21 @@ export function PlanGenerationWizard({ onBack, onPlanGenerated }: PlanGeneration
                     <div className="flex-1">
                       <h4 className="text-xl font-semibold text-theme-gold">{template.name}</h4>
                       <p className="text-theme-gold-dark mb-3">{template.description}</p>
-                      <div className="flex items-center text-theme-gold-dark text-sm">
-                        <span>{template.daysPerWeek} days per week</span>
-                        <span className="mx-2">•</span>
-                        <span>{template.workouts.length} unique workouts</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center text-theme-gold-dark text-sm">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{template.weeklySchedule}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {template.tags.map(tag => (
+                            <span
+                              key={tag}
+                              className="px-2 py-1 bg-theme-black-lighter rounded-2x-nested-container text-xs text-theme-gold-light border border-theme-gold/20"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
