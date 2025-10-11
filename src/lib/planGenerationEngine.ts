@@ -67,9 +67,22 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
     for (const slot of workoutSkeleton.coreSlots) {
       if (isSupersetSlot(slot)) {
         const exerciseA = selectExerciseForSlot(slot.slotA, selectedEquipment, excludeExerciseIds);
-        const exerciseB = selectExerciseForSlot(slot.slotB, selectedEquipment, excludeExerciseIds);
 
-        if (!exerciseA || !exerciseB) {
+        if (!exerciseA) {
+          console.warn(`No suitable exercise found for superset slot A ${slot.slotA.slotId}`);
+          continue;
+        }
+
+        // For antagonistic superset template, use antagonist pairing logic
+        const useAntagonistPairing = templateId === 'antagonistic_superset';
+        const exerciseB = selectExerciseForSlot(
+          slot.slotB,
+          selectedEquipment,
+          excludeExerciseIds,
+          useAntagonistPairing ? exerciseA.id : undefined
+        );
+
+        if (!exerciseB) {
           console.warn(`No suitable exercises found for superset slot ${slot.slotId}`);
           continue;
         }
@@ -127,7 +140,8 @@ export function generateWorkoutPlan(options: GenerationOptions): GeneratedPlan |
       selectedEquipment,
       excludeExerciseIds,
       tuBudget,
-      currentTuCount
+      currentTuCount,
+      templateId
     );
     
     for (const accessoryExercise of selectedAccessories) {
@@ -186,19 +200,32 @@ function selectAccessoriesByTuBudget(
   selectedEquipment: string[],
   excludeExerciseIds: string[],
   tuBudget: number,
-  currentTuCount: number
+  currentTuCount: number,
+  templateId: string
 ): (Exercise | SupersetPair)[] {
   const selectedAccessories: (Exercise | SupersetPair)[] = [];
   let remainingBudget = tuBudget - currentTuCount;
 
   // Create a shuffled list of available accessories
   const availableSlots = [...accessoryPool].sort(() => Math.random() - 0.5);
+  const useAntagonistPairing = templateId === 'antagonistic_superset';
 
   // Iteratively select accessories that fit within budget
   for (const slot of availableSlots) {
     if (isSupersetSlot(slot)) {
       const exerciseA = selectExerciseForSlot(slot.slotA, selectedEquipment, excludeExerciseIds);
-      const exerciseB = selectExerciseForSlot(slot.slotB, selectedEquipment, excludeExerciseIds);
+
+      if (!exerciseA) {
+        continue;
+      }
+
+      // Use antagonist pairing for antagonistic superset template
+      const exerciseB = selectExerciseForSlot(
+        slot.slotB,
+        selectedEquipment,
+        excludeExerciseIds,
+        useAntagonistPairing ? exerciseA.id : undefined
+      );
 
       if (exerciseA && exerciseB) {
         const exerciseADefinition = EXERCISE_DICTIONARY[exerciseA.id];
@@ -286,43 +313,63 @@ function selectAccessoryExercises(
 
 /**
  * Select an appropriate exercise for a given slot
+ *
+ * @param antagonistExerciseId - If provided, selects exercise targeting the antagonist muscle of this exercise (for antagonistic supersets)
  */
 function selectExerciseForSlot(
-  slot: WorkoutSlot, 
-  selectedEquipment: string[], 
-  excludeExerciseIds: string[]
+  slot: WorkoutSlot,
+  selectedEquipment: string[],
+  excludeExerciseIds: string[],
+  antagonistExerciseId?: string
 ): { id: string } | null {
   // Get all exercises matching the movement pattern
-  const candidateExercises = getExercisesByMovementPattern(slot.movementPattern);
-  
+  let candidateExercises = getExercisesByMovementPattern(slot.movementPattern);
+
+  // ANTAGONIST PAIRING LOGIC: If antagonistExerciseId is provided, filter by antagonist muscle
+  if (antagonistExerciseId) {
+    const antagonistExercise = EXERCISE_DICTIONARY[antagonistExerciseId];
+    if (antagonistExercise && antagonistExercise.antagonistMuscle) {
+      // Filter exercises where primaryMuscle matches the antagonist of the first exercise
+      const antagonistFilteredExercises = candidateExercises.filter(
+        exercise => exercise.primaryMuscle === antagonistExercise.antagonistMuscle
+      );
+
+      // Only use antagonist filtering if we found matching exercises
+      if (antagonistFilteredExercises.length > 0) {
+        candidateExercises = antagonistFilteredExercises;
+        console.log(`Antagonist pairing: ${antagonistExercise.primaryMuscle} exercise paired with ${antagonistExercise.antagonistMuscle} exercises`);
+      }
+    }
+  }
+
   // Filter by exercise type (compound/isolation)
   const typeFilteredExercises = candidateExercises.filter(
     exercise => exercise.exerciseType === slot.slotType
   );
-  
+
   // Filter by equipment availability (inclusive filtering)
-  const equipmentFilteredExercises = typeFilteredExercises.filter(exercise => 
-    exercise.equipment.every(requiredEquipment => 
+  const equipmentFilteredExercises = typeFilteredExercises.filter(exercise =>
+    exercise.equipment.every(requiredEquipment =>
       selectedEquipment.includes(requiredEquipment)
     )
   );
-  
+
   // Filter out excluded exercises (for level up variety)
   const availableExercises = equipmentFilteredExercises.filter(
     exercise => !excludeExerciseIds.includes(exercise.id)
   );
-  
+
   // If no exercises available after exclusion, fall back to all equipment-filtered exercises
   const finalCandidates = availableExercises.length > 0 ? availableExercises : equipmentFilteredExercises;
-  
+
   if (finalCandidates.length === 0) {
     return null;
   }
-  
+
   // Select a random exercise from the candidates
   const randomIndex = Math.floor(Math.random() * finalCandidates.length);
   const selectedExercise = finalCandidates[randomIndex];
-  
+
   return { id: selectedExercise.id };
 }
 

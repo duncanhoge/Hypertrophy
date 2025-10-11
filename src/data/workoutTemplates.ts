@@ -1293,6 +1293,369 @@ export const WORKOUT_TEMPLATES: Record<string, WorkoutTemplate> = {
         ]
       }
     ]
+  },
+  'antagonistic_superset': {
+    id: 'antagonistic_superset',
+    name: 'Antagonistic Superset',
+    description: 'A high-intensity workout that pairs opposing muscle groups (like Chest & Back or Biceps & Triceps). This technique increases workout density and delivers a unique muscle pump.',
+    weeklySchedule: '4 Days / Week',
+    tags: ['High Intensity', 'Body Part Focus', 'Advanced'],
+    daysPerWeek: 4,
+    dayRotation: ['push', 'pull', 'push', 'legs'],
+    workouts: [
+      {
+        day: 'Day 1',
+        name: 'Day 1 - Chest & Back',
+        coreSlots: [
+          {
+            slotId: 'chest_back_ss1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'chest_back_ss1a',
+              movementPattern: 'horizontal_press',
+              slotType: 'compound',
+              targetSets: 4,
+              targetReps: '8-12',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'chest_back_ss1b',
+              movementPattern: 'horizontal_pull',
+              slotType: 'compound',
+              targetSets: 4,
+              targetReps: '8-12',
+              exerciseType: 'weight_reps'
+            }
+          },
+          {
+            slotId: 'chest_back_ss2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'chest_back_ss2a',
+              movementPattern: 'horizontal_press',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'chest_back_ss2b',
+              movementPattern: 'vertical_pull',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '8-12',
+              exerciseType: 'reps_only'
+            }
+          }
+        ],
+        accessoryPool: [
+          {
+            slotId: 'chest_back_acc1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'chest_back_acc1a',
+              movementPattern: 'horizontal_adduction',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'chest_back_acc1b',
+              movementPattern: 'horizontal_pull',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            }
+          },
+          {
+            slotId: 'chest_back_acc2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'chest_back_acc2a',
+              movementPattern: 'horizontal_press',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'chest_back_acc2b',
+              movementPattern: 'horizontal_abduction',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '15-20',
+              exerciseType: 'weight_reps'
+            }
+          }
+        ]
+      },
+      {
+        day: 'Day 2',
+        name: 'Day 2 - Shoulders & Core',
+        coreSlots: [
+          {
+            slotId: 'shoulders_core_ss1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'shoulders_core_ss1a',
+              movementPattern: 'vertical_press',
+              slotType: 'compound',
+              targetSets: 4,
+              targetReps: '8-12',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'shoulders_core_ss1b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 4,
+              targetReps: '45-60s',
+              exerciseType: 'timed'
+            }
+          },
+          {
+            slotId: 'shoulders_core_ss2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'shoulders_core_ss2a',
+              movementPattern: 'lateral_raise',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'shoulders_core_ss2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'reps_only'
+            }
+          }
+        ],
+        accessoryPool: [
+          {
+            slotId: 'shoulders_core_acc1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'shoulders_core_acc1a',
+              movementPattern: 'horizontal_abduction',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'shoulders_core_acc1b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '30-45s',
+              exerciseType: 'timed'
+            }
+          },
+          {
+            slotId: 'shoulders_core_acc2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'shoulders_core_acc2a',
+              movementPattern: 'front_raise',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'shoulders_core_acc2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'reps_only'
+            }
+          }
+        ]
+      },
+      {
+        day: 'Day 3',
+        name: 'Day 3 - Legs',
+        coreSlots: [
+          {
+            slotId: 'legs_ss1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'legs_ss1a',
+              movementPattern: 'squat',
+              slotType: 'compound',
+              targetSets: 4,
+              targetReps: '8-12',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'legs_ss1b',
+              movementPattern: 'hinge',
+              slotType: 'compound',
+              targetSets: 4,
+              targetReps: '8-12',
+              exerciseType: 'weight_reps'
+            }
+          },
+          {
+            slotId: 'legs_ss2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'legs_ss2a',
+              movementPattern: 'lunge',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'legs_ss2b',
+              movementPattern: 'knee_flexion',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            }
+          }
+        ],
+        accessoryPool: [
+          {
+            slotId: 'legs_acc1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'legs_acc1a',
+              movementPattern: 'squat',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'legs_acc1b',
+              movementPattern: 'hinge',
+              slotType: 'compound',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            }
+          },
+          {
+            slotId: 'legs_acc2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'legs_acc2a',
+              movementPattern: 'plantar_flexion',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '15-20',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'legs_acc2b',
+              movementPattern: 'core',
+              slotType: 'core',
+              targetSets: 3,
+              targetReps: '30-45s',
+              exerciseType: 'timed'
+            }
+          }
+        ]
+      },
+      {
+        day: 'Day 4',
+        name: 'Day 4 - Arms',
+        coreSlots: [
+          {
+            slotId: 'arms_ss1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'arms_ss1a',
+              movementPattern: 'bicep_curl',
+              slotType: 'isolation',
+              targetSets: 4,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'arms_ss1b',
+              movementPattern: 'tricep_extension',
+              slotType: 'isolation',
+              targetSets: 4,
+              targetReps: '10-15',
+              exerciseType: 'weight_reps'
+            }
+          },
+          {
+            slotId: 'arms_ss2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'arms_ss2a',
+              movementPattern: 'hammer_curl',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'arms_ss2b',
+              movementPattern: 'horizontal_extension',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            }
+          }
+        ],
+        accessoryPool: [
+          {
+            slotId: 'arms_acc1',
+            isSuperset: true,
+            slotA: {
+              slotId: 'arms_acc1a',
+              movementPattern: 'bicep_curl',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'arms_acc1b',
+              movementPattern: 'vertical_extension',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '12-15',
+              exerciseType: 'weight_reps'
+            }
+          },
+          {
+            slotId: 'arms_acc2',
+            isSuperset: true,
+            slotA: {
+              slotId: 'arms_acc2a',
+              movementPattern: 'bicep_curl',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '15-20',
+              exerciseType: 'weight_reps'
+            },
+            slotB: {
+              slotId: 'arms_acc2b',
+              movementPattern: 'tricep_extension',
+              slotType: 'isolation',
+              targetSets: 3,
+              targetReps: '15-20',
+              exerciseType: 'weight_reps'
+            }
+          }
+        ]
+      }
+    ]
   }
 };
 

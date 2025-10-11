@@ -343,18 +343,101 @@ function selectAccessoriesByTuBudget(
 }
 
 function selectExerciseForSlot(
-  slot: WorkoutSlot, 
-  selectedEquipment: string[], 
-  excludeExerciseIds: string[]
+  slot: WorkoutSlot,
+  selectedEquipment: string[],
+  excludeExerciseIds: string[],
+  antagonistExerciseId?: string
 ): { id: string } | null {
   // Enhanced algorithm with better equipment filtering
   // 1. Filter by movement pattern
-  // 2. Filter by exercise type (compound/isolation)
-  // 3. Filter by equipment availability
-  // 4. Filter out excluded exercises
-  // 5. Random selection from candidates
+  // 2. OPTIONAL: Filter by antagonist muscle (for antagonistic supersets)
+  // 3. Filter by exercise type (compound/isolation)
+  // 4. Filter by equipment availability
+  // 5. Filter out excluded exercises
+  // 6. Random selection from candidates
 }
 ```
+
+### Antagonist Superset Logic
+
+**New in October 2025**: Intelligent pairing of opposing muscle groups for the Antagonistic Superset template.
+
+#### Overview
+
+The antagonist superset system enables the generation engine to create workouts that pair exercises targeting opposing muscle groups (e.g., Chest & Back, Biceps & Triceps). This advanced training technique increases workout density, enhances recovery between sets, and delivers a unique muscle pump through alternating antagonist movements.
+
+#### Exercise Dictionary Schema Enhancement
+
+Each exercise in the dictionary now includes an `antagonistMuscle` property:
+
+```typescript
+interface ExerciseDefinition {
+  id: string;
+  name: string;
+  primaryMuscle: string;
+  antagonistMuscle: string | null;  // NEW: Muscle group that opposes primaryMuscle
+  // ... other properties
+}
+```
+
+#### Antagonist Muscle Mappings
+
+| Primary Muscle | Antagonist Muscle |
+|---------------|-------------------|
+| Chest | Back |
+| Back | Chest |
+| Biceps | Triceps |
+| Triceps | Biceps |
+| Shoulders | Core |
+| Quads | Hamstrings |
+| Hamstrings | Quads |
+| Glutes | Hamstrings |
+| Core | null |
+| Traps | null |
+| Calves | null |
+| Forearms | null |
+
+#### Pairing Algorithm
+
+When the template ID is `'antagonistic_superset'`, the engine applies special logic for superset pairs:
+
+1. **Select Exercise A**: Choose first exercise using standard movement pattern matching
+2. **Query Antagonist**: Look up `antagonistMuscle` property from Exercise A's definition
+3. **Filter by Antagonist**: Filter candidate exercises for Exercise B where `primaryMuscle` matches the antagonist value
+4. **Select Exercise B**: Apply standard equipment and type filtering, then select from antagonist-filtered candidates
+5. **Fallback**: If no antagonist exercises available, fall back to standard movement pattern matching
+
+```typescript
+// Example pairing logic
+const exerciseA = selectExerciseForSlot(slot.slotA, equipment, excludeIds);
+// exerciseA.id = 'db_press_bench' (primaryMuscle: 'Chest', antagonistMuscle: 'Back')
+
+const exerciseB = selectExerciseForSlot(
+  slot.slotB,
+  equipment,
+  excludeIds,
+  exerciseA.id  // Triggers antagonist filtering
+);
+// exerciseB selected from exercises where primaryMuscle === 'Back'
+```
+
+#### Template Structure
+
+The Antagonistic Superset template uses a 4-day split structure:
+- **Day 1**: Chest & Back (horizontal press/pull antagonist pairs)
+- **Day 2**: Shoulders & Core (overhead press + stabilization)
+- **Day 3**: Legs (quad/hamstring antagonist pairs via squat/hinge movements)
+- **Day 4**: Arms (bicep/tricep direct antagonist pairs)
+
+All workouts use the `SupersetSlot` format with antagonist pairing applied to both core and accessory pools.
+
+#### Benefits
+
+- **Increased Workout Density**: Minimal rest needed between antagonist exercises
+- **Enhanced Recovery**: One muscle group rests while its antagonist works
+- **Improved Muscle Balance**: Equal work for opposing muscle groups
+- **Exercise Science Based**: Leverages reciprocal inhibition for optimal performance
+- **Future Compatibility**: The `antagonistMuscle` property is permanently available for future templates and features
 
 ### Volume-Based Exercise Selection
 
